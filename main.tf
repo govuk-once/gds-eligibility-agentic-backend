@@ -1,36 +1,54 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
 
 resource "aws_bedrockagent_agent" "example" {
-  agent_name = "example"
-  foundation_model = "anthropic.claude-v2"
+  agent_name         = var.agent_name
   agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
-  instruction = "You are a helpful assistant."
+  foundation_model   = var.foundation_model
+  instruction        = var.agent_instruction
 }
 
-resource "aws_bedrockagent_knowledge_base" "example" {
-  name = "example"
-  role_arn = aws_iam_role.bedrock_agent_role.arn
+resource "aws_iam_role" "bedrock_agent_role" {
+  name = "${var.agent_name}-role"
 
-  knowledge_base_configuration {
-    type = "VECTOR"
-    vector_knowledge_base_configuration {
-      embedding_model_arn = "arn:aws:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v1"
-    }
-  }
-
-  storage_configuration {
-    type = "S3"
-    s3_configuration {
-      bucket_arn = aws_s3_bucket.knowledge_base.arn
-    }
-  }
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "bedrock.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
 
-resource "aws_bedrockagent_agent_knowledge_base_association" "example" {
-  agent_id = aws_bedrockagent_agent.example.id
-  knowledge_base_id = aws_bedrockagent_knowledge_base.example.id
-  description = "Example knowledge base association"
-  knowledge_base_state = "ENABLED"
+resource "aws_iam_role_policy" "bedrock_agent_policy" {
+  name = "${var.agent_name}-policy"
+  role = aws_iam_role.bedrock_agent_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
