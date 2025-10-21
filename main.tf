@@ -58,3 +58,125 @@ resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
     agent_version = "DRAFT"
     parent_action_group_signature = "AMAZON.UserInput"
 }
+
+resource "aws_bedrockagent_prompt" "triage_prompt" {
+  name            = "triage_prompt"
+  description     = "This is an entrypoint prompt to triage the users initial input"
+  default_variant = "triage_variant"
+
+  variant {
+    name          = "triage_variant"
+    template_type = "TEXT"
+
+    inference_configuration {
+      text {
+        max_tokens     = 2048
+        stop_sequences = ["User:"]
+        temperature    = 0
+        top_p          = 0.8999999761581421
+      }
+    }
+
+    template_configuration {
+      text {
+        text = "Write a paragraph about {{topic}}."
+
+        input_variable {
+          name = "topic"
+        }
+      }
+    }
+    gen_ai_resource {
+      agent {
+        agent_identifier = aws_bedrockagent_agent.eligability_agent.agent_arn
+      }
+    }
+  }
+}
+
+resource "aws_bedrockagent_flow" "triage" {
+  name               = "triage-flow"
+  execution_role_arn = aws_iam_role.bedrock_agent_role.arn # TODO does this need to be its own role?
+  # TODO would this be better composed as a set of data blocks? Could they be made resusable somehow?
+  definition {
+    connection {
+      name   = "FlowInputNodeFlowInputNode0ToPrompt_1PromptsNode0"
+      source = "FlowInputNode"
+      target = "Prompt_1"
+      type   = "Data"
+
+      configuration {
+        data {
+          source_output = "document"
+          target_input  = "topic"
+        }
+      }
+    }
+    connection {
+      name   = "Prompt_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
+      source = "Prompt_1"
+      target = "FlowOutputNode"
+      type   = "Data"
+
+      configuration {
+        data {
+          source_output = "modelCompletion"
+          target_input  = "document"
+        }
+      }
+    }
+    node {
+      name = "FlowInputNode"
+      type = "Input"
+
+      configuration {
+        input {}
+      }
+
+      output {
+        name = "document"
+        type = "String"
+      }
+    }
+    node {
+      name = "Prompt_1"
+      type = "Prompt"
+
+      configuration {
+        prompt {
+          source_configuration {
+            resource {
+              prompt_arn = aws_bedrockagent_prompt.triage_prompt.arn
+            }
+          }
+        }
+      }
+
+      input {
+        expression = "$.data"
+        name       = "topic"
+        type       = "String"
+      }
+
+      output {
+        name = "modelCompletion"
+        type = "String"
+      }
+    }
+    node {
+      name = "FlowOutputNode"
+      type = "Output"
+
+      configuration {
+        output {}
+      }
+
+      input {
+        expression = "$.data"
+        name       = "document"
+        type       = "String"
+      }
+    }
+  }
+}
+
