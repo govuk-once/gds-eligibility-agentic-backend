@@ -1,13 +1,13 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
+  default     = "eu-west-2"
 }
 
 variable "agent_name" {
   description = "Name of the Bedrock agent"
   type        = string
-  default     = "example-agent"
+  default     = "gds_eligability_terraform_sandbox_example"
 }
 
 variable "foundation_model" {
@@ -19,5 +19,5 @@ variable "foundation_model" {
 variable "agent_instruction" {
   description = "Instructions for the agent"
   type        = string
-  default     = "You are a helpful assistant."
+  default     = "You are a helpful assistant. Who's a good assistant? You are! Yes, you are, yes you are"
 }
