@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "agent_name" {
   description = "Name of the Bedrock agent"
   type        = string
-  default     = "gds_eligability_terraform_sandbox_example"
+  default     = "gds_eligability_terraform_sandbox_eligability_agent"
 }
 
 variable "foundation_model" {

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.17"
     }
   }
 }
@@ -46,9 +46,15 @@ resource "aws_iam_role_policy" "bedrock_agent_policy" {
   })
 }
 
-resource "aws_bedrockagent_agent" "example" {
+resource "aws_bedrockagent_agent" "eligability_agent" {
   agent_name              = var.agent_name
   agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
   foundation_model        = var.foundation_model
   instruction             = var.agent_instruction
+}
+resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
+    action_group_name = "allow_user_input"
+    agent_id = aws_bedrockagent_agent.eligability_agent.id
+    agent_version = "DRAFT"
+    parent_action_group_signature = "AMAZON.UserInput"
 }
