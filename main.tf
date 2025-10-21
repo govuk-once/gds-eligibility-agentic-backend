@@ -46,12 +46,45 @@ resource "aws_iam_role_policy" "bedrock_agent_policy" {
   })
 }
 
+resource "aws_iam_role" "bedrock_execution_role" {
+  name = "bedrock-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "bedrock.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "bedrock_execution_policy_limited_access" {
+  role       = aws_iam_role.bedrock_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockLimitedAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "bedrock_agent_policy_limited_access" {
+  role       = aws_iam_role.bedrock_agent_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockLimitedAccess"
+  # policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockMarketplaceAccess"
+  # policy_arn = "arn:aws:iam::aws:policy/AWSMarketplaceRead-only"
+}
+
 resource "aws_bedrockagent_agent" "eligability_agent" {
   agent_name              = var.agent_name
   agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
   foundation_model        = var.foundation_model
   instruction             = var.agent_instruction
 }
+
+# Expanding "github.com/hashicorp/terraform-provider-aws/internal/service/bedrockagent.actionGroupExecutorModel" returned nil.
+#TODO figure out how to set user input to true
+# https://github.com/hashicorp/terraform-provider-aws/issues/43045
 resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
     action_group_name = "allow_user_input"
     agent_id = aws_bedrockagent_agent.eligability_agent.id
@@ -103,7 +136,7 @@ resource "aws_bedrockagent_prompt" "triage_prompt" {
 
 resource "aws_bedrockagent_flow" "triage" {
   name               = "triage-flow"
-  execution_role_arn = aws_iam_role.bedrock_agent_role.arn # TODO does this need to be its own role?
+  execution_role_arn = aws_iam_role.bedrock_execution_role.arn
   # TODO would this be better composed as a set of data blocks? Could they be made resusable somehow?
   definition {
     connection {
