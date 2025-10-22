@@ -13,7 +13,7 @@ variable "agent_name" {
 variable "foundation_model" {
   description = "Foundation model for the agent"
   type        = string
-  default     = "anthropic.claude-3-sonnet-20240229-v1:0"
+  default     = "amazon.nova-lite-v1:0"
 }
 
 variable "agent_instruction" {

@@ -82,16 +82,14 @@ resource "aws_bedrockagent_agent" "eligability_agent" {
   instruction             = var.agent_instruction
 }
 
-# Expanding "github.com/hashicorp/terraform-provider-aws/internal/service/bedrockagent.actionGroupExecutorModel" returned nil.
-#TODO figure out how to set user input to true
-# https://github.com/hashicorp/terraform-provider-aws/issues/43045
-resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
-    action_group_name = "allow_user_input"
-    agent_id = aws_bedrockagent_agent.eligability_agent.id
-    agent_version = "DRAFT"
-    parent_action_group_signature = "AMAZON.UserInput"
-}
-
+# This doesn't actually work as descibed by the terraform documentation, and generates errononeous conflicts
+# See https://github.com/hashicorp/terraform-provider-aws/issues/43045
+# resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
+#     action_group_name = "allow_user_input"
+#     agent_id = aws_bedrockagent_agent.eligability_agent.id
+#     agent_version = "DRAFT"
+#     parent_action_group_signature = "AMAZON.UserInput"
+# }
 
 resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
   agent_alias_name = "eligability-alias-for-prompts"
