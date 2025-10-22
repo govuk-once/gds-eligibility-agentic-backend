@@ -142,7 +142,6 @@ resource "aws_bedrockagent_flow" "triage" {
       source = "FlowInputNode"
       target = "Agent_1"
       type   = "Data"
-
       configuration {
         data {
           source_output = "document"
@@ -150,12 +149,12 @@ resource "aws_bedrockagent_flow" "triage" {
         }
       }
     }
+
     connection {
       name   = "Agent_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
       source = "Agent_1"
       target = "FlowOutputNode"
       type   = "Data"
-
       configuration {
         data {
           source_output = "agentResponse"
@@ -163,60 +162,54 @@ resource "aws_bedrockagent_flow" "triage" {
         }
       }
     }
+
     node {
       name = "FlowInputNode"
       type = "Input"
-
       configuration {
         input {}
       }
-
       output {
         name = "document"
         type = "String"
       }
     }
+
     node {
       name = "Agent_1"
       type = "Agent"
-
       configuration {
         agent {
           agent_alias_arn = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
         }
       }
-
       input {
         expression = "$.data"
         name       = "agentInputText"
         type       = "String"
       }
-
       input {
         expression = "$.data"
         name       = "promptAttributes"
         type       = "Object"
       }
-
       input {
         expression = "$.data"
         name       = "sessionAttributes"
         type       = "Object"
       }
-
       output {
         name = "agentResponse"
         type = "String"
       }
     }
+
     node {
       name = "FlowOutputNode"
       type = "Output"
-
       configuration {
         output {}
       }
-
       input {
         expression = "$.data"
         name       = "document"
