@@ -138,9 +138,9 @@ resource "aws_bedrockagent_flow" "triage" {
   # TODO would this be better composed as a set of data blocks? Could they be made resusable somehow?
   definition {
     connection {
-      name   = "FlowInputNodeFlowInputNode0ToPrompt_1PromptsNode0"
+      name   = "FlowInputNodeFlowInputNode0ToAgent_1PromptsNode0"
       source = "FlowInputNode"
-      target = "Prompt_1"
+      target = "Agent_1"
       type   = "Data"
 
       configuration {
@@ -151,8 +151,8 @@ resource "aws_bedrockagent_flow" "triage" {
       }
     }
     connection {
-      name   = "Prompt_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
-      source = "Prompt_1"
+      name   = "Agent_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
+      source = "Agent_1"
       target = "FlowOutputNode"
       type   = "Data"
 
@@ -177,16 +177,12 @@ resource "aws_bedrockagent_flow" "triage" {
       }
     }
     node {
-      name = "Prompt_1"
-      type = "Prompt"
+      name = "Agent_1"
+      type = "Agent"
 
       configuration {
-        prompt {
-          source_configuration {
-            resource {
-              prompt_arn = aws_bedrockagent_prompt.triage_prompt.arn
-            }
-          }
+        agent {
+          agent_alias_arn = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
         }
       }
 
