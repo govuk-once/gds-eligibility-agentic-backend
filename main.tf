@@ -146,7 +146,7 @@ resource "aws_bedrockagent_flow" "triage" {
       configuration {
         data {
           source_output = "document"
-          target_input  = "topic"
+          target_input  = "agentInputText"
         }
       }
     }
@@ -188,7 +188,7 @@ resource "aws_bedrockagent_flow" "triage" {
 
       input {
         expression = "$.data"
-        name       = "topic"
+        name       = "agentInputText"
         type       = "String"
       }
 
