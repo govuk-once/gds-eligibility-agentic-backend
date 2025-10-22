@@ -28,24 +28,6 @@ resource "aws_iam_role" "bedrock_agent_role" {
   })
 }
 
-resource "aws_iam_role_policy" "bedrock_agent_policy" {
-  name = "bedrock-agent-policy"
-  role = aws_iam_role.bedrock_agent_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "bedrock:InvokeModel"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
 resource "aws_iam_role" "bedrock_execution_role" {
   name = "bedrock-execution-role"
 
@@ -58,6 +40,24 @@ resource "aws_iam_role" "bedrock_execution_role" {
         Principal = {
           Service = "bedrock.amazonaws.com"
         }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "bedrock_execution_policy" {
+  name = "bedrock-execution-policy"
+  role = aws_iam_role.bedrock_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeAgent"
+        ]
+        Resource = "*"
       }
     ]
   })
