@@ -158,7 +158,7 @@ resource "aws_bedrockagent_flow" "triage" {
 
       configuration {
         data {
-          source_output = "modelCompletion"
+          source_output = "agentResponse"
           target_input  = "document"
         }
       }
@@ -192,8 +192,20 @@ resource "aws_bedrockagent_flow" "triage" {
         type       = "String"
       }
 
+      input {
+        expression = "$.data"
+        name       = "promptAttributes"
+        type       = "Object"
+      }
+
+      input {
+        expression = "$.data"
+        name       = "sessionAttributes"
+        type       = "Object"
+      }
+
       output {
-        name = "modelCompletion"
+        name = "agentResponse"
         type = "String"
       }
     }
