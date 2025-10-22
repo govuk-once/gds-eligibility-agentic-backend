@@ -97,40 +97,40 @@ resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
   description      = "Alias to allow linkage between eligability agent and prompts"
 }
 
-resource "aws_bedrockagent_prompt" "triage_prompt" {
-  name            = "triage_prompt"
-  description     = "This is an entrypoint prompt to triage the users initial input"
-  default_variant = "triage_variant"
+# resource "aws_bedrockagent_prompt" "triage_prompt" {
+#   name            = "triage_prompt"
+#   description     = "This is an entrypoint prompt to triage the users initial input"
+#   default_variant = "triage_variant"
 
-  variant {
-    name          = "triage_variant"
-    template_type = "TEXT"
+#   variant {
+#     name          = "triage_variant"
+#     template_type = "TEXT"
 
-    inference_configuration {
-      text {
-        max_tokens     = 2048
-        stop_sequences = ["User:"]
-        temperature    = 0
-        top_p          = 0.8999999761581421
-      }
-    }
+#     inference_configuration {
+#       text {
+#         max_tokens     = 2048
+#         stop_sequences = ["User:"]
+#         temperature    = 0
+#         top_p          = 0.8999999761581421
+#       }
+#     }
 
-    template_configuration {
-      text {
-        text = "Write a paragraph about {{topic}}."
+#     template_configuration {
+#       text {
+#         text = "Write a paragraph about {{topic}}."
 
-        input_variable {
-          name = "topic"
-        }
-      }
-    }
-    gen_ai_resource {
-      agent {
-        agent_identifier = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
-      }
-    }
-  }
-}
+#         input_variable {
+#           name = "topic"
+#         }
+#       }
+#     }
+#     gen_ai_resource {
+#       agent {
+#         agent_identifier = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
+#       }
+#     }
+#   }
+# }
 
 resource "aws_bedrockagent_flow" "triage" {
   name               = "triage-flow"
