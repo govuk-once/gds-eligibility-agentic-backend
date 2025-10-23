@@ -132,6 +132,31 @@ resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
 #   }
 # }
 
+resource "aws_s3_bucket" "dialogue_storage" {
+  bucket = "gds-eligability-dialogue-storage"
+}
+
+resource "aws_s3_bucket_public_access_block" "dialogue_storage" {
+  bucket = aws_s3_bucket.dialogue_storage.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+module "recall_for_user" {
+  source = "terraform-aws-modules/lambda/aws"
+
+  function_name = "recall_for_user"
+  description   = "Recall past user interactions with agent"
+  handler       = "main.lambda_handler"
+  runtime       = "python3.12"
+
+  source_path = "./src/lambda/recall_for_user"
+
+}
+
 resource "aws_bedrockagent_flow" "triage" {
   name               = "triage-flow"
   execution_role_arn = aws_iam_role.bedrock_execution_role.arn
@@ -146,6 +171,45 @@ resource "aws_bedrockagent_flow" "triage" {
         data {
           source_output = "document"
           target_input  = "agentInputText"
+        }
+      }
+    }
+
+    connection {
+      name   = "FlowInputNodeToRecallForUsercodeHookInput"
+      source = "FlowInputNode"
+      target = "RecallForUser"
+      type   = "Data"
+      configuration {
+        data {
+          source_output = "document"
+          target_input  = "codeHookInput"
+        }
+      }
+    }
+
+    connection {
+      name   = "RecallForUserToAgent_1SessionAttributes"
+      source = "RecallForUser"
+      target = "Agent_1"
+      type   = "Data"
+      configuration {
+        data {
+          source_output = "functionResponse"
+          target_input  = "sessionAttributes"
+        }
+      }
+    }
+
+    connection {
+      name   = "Agent_1agentResponseToStoreDiagloguecontent"
+      source = "Agent_1"
+      target = "StoreDialogue"
+      type   = "Data"
+      configuration {
+        data {
+          source_output = "agentResponse"
+          target_input  = "content"
         }
       }
     }
@@ -171,7 +235,26 @@ resource "aws_bedrockagent_flow" "triage" {
       }
       output {
         name = "document"
-        type = "String"
+        type = "Object"
+      }
+    }
+
+    node {
+      name = "RecallForUser"
+      type = "LambdaFunction"
+      configuration {
+        lambda_function {
+          lambda_arn = module.recall_for_user.lambda_function_arn
+        }
+      }
+      input {
+        expression = "$.data.userId"
+        name       = "codeHookInput"
+        type       = "String" # TODO this probably wants to be an object?
+      }
+      output {
+        name = "functionResponse"
+        type = "Object"
       }
     }
 
@@ -184,7 +267,7 @@ resource "aws_bedrockagent_flow" "triage" {
         }
       }
       input {
-        expression = "$.data"
+        expression = "$.data.inputString"
         name       = "agentInputText"
         type       = "String"
       }
@@ -201,6 +284,34 @@ resource "aws_bedrockagent_flow" "triage" {
       output {
         name = "agentResponse"
         type = "String"
+      }
+    }
+
+    node {
+      name = "StoreDialogue"
+      type = "Storage"
+      configuration {
+        storage {
+          service_configuration {
+            s3 {
+              bucket_name = aws_s3_bucket.dialogue_storage.bucket
+            }
+          }
+        }
+      }
+      input {
+        expression = "$.data"
+        name       = "content"
+        type       = "String"
+      }
+      input {
+        expression = "$.data.storageKey"
+        name       = "objectKey"
+        type       = "String"
+      }
+      output {
+        name       = "s3Uri"
+        type       = "String"
       }
     }
 
