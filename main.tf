@@ -202,7 +202,7 @@ resource "aws_bedrockagent_flow" "triage" {
     }
 
     connection {
-      name   = "Agent_1agentResponseToStoreDiagloguecontent"
+      name   = "Agent_1agentResponseToStoreDialoguecontent"
       source = "Agent_1"
       target = "StoreDialogue"
       type   = "Data"
@@ -214,6 +214,18 @@ resource "aws_bedrockagent_flow" "triage" {
       }
     }
 
+    connection {
+      name   = "RecallForUserfunctionReponseToStoreDialogueobjectKey"
+      source = "RecallForUser"
+      target = "StoreDialogue"
+      type   = "Data"
+      configuration {
+        data {
+          source_output = "functionResponse"
+          target_input  = "objectKey"
+        }
+      }
+    }
     connection {
       name   = "Agent_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
       source = "Agent_1"
@@ -305,7 +317,7 @@ resource "aws_bedrockagent_flow" "triage" {
         type       = "String"
       }
       input {
-        expression = "$.data.storageKey"
+        expression = "$.data.newStorageKey"
         name       = "objectKey"
         type       = "String"
       }
