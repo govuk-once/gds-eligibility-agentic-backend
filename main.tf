@@ -247,7 +247,8 @@ resource "aws_bedrockagent_flow" "triage" {
       }
       output {
         name = "document"
-        type = "Object"
+        # type = "Object"
+        type = "String"
       }
     }
 
