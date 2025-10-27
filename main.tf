@@ -175,57 +175,57 @@ resource "aws_bedrockagent_flow" "triage" {
       }
     }
 
-    connection {
-      name   = "FlowInputNodeToRecallForUsercodeHookInput"
-      source = "FlowInputNode"
-      target = "RecallForUser"
-      type   = "Data"
-      configuration {
-        data {
-          source_output = "document"
-          target_input  = "codeHookInput"
-        }
-      }
-    }
+    # connection {
+    #   name   = "FlowInputNodeToRecallForUsercodeHookInput"
+    #   source = "FlowInputNode"
+    #   target = "RecallForUser"
+    #   type   = "Data"
+    #   configuration {
+    #     data {
+    #       source_output = "document"
+    #       target_input  = "codeHookInput"
+    #     }
+    #   }
+    # }
 
-    connection {
-      name   = "RecallForUserToAgent_1SessionAttributes"
-      source = "RecallForUser"
-      target = "Agent_1"
-      type   = "Data"
-      configuration {
-        data {
-          source_output = "functionResponse"
-          target_input  = "sessionAttributes"
-        }
-      }
-    }
+    # connection {
+    #   name   = "RecallForUserToAgent_1SessionAttributes"
+    #   source = "RecallForUser"
+    #   target = "Agent_1"
+    #   type   = "Data"
+    #   configuration {
+    #     data {
+    #       source_output = "functionResponse"
+    #       target_input  = "sessionAttributes"
+    #     }
+    #   }
+    # }
 
-    connection {
-      name   = "Agent_1agentResponseToStoreDialoguecontent"
-      source = "Agent_1"
-      target = "StoreDialogue"
-      type   = "Data"
-      configuration {
-        data {
-          source_output = "agentResponse"
-          target_input  = "content"
-        }
-      }
-    }
+    # connection {
+    #   name   = "Agent_1agentResponseToStoreDialoguecontent"
+    #   source = "Agent_1"
+    #   target = "StoreDialogue"
+    #   type   = "Data"
+    #   configuration {
+    #     data {
+    #       source_output = "agentResponse"
+    #       target_input  = "content"
+    #     }
+    #   }
+    # }
 
-    connection {
-      name   = "RecallForUserfunctionReponseToStoreDialogueobjectKey"
-      source = "RecallForUser"
-      target = "StoreDialogue"
-      type   = "Data"
-      configuration {
-        data {
-          source_output = "functionResponse"
-          target_input  = "objectKey"
-        }
-      }
-    }
+    # connection {
+    #   name   = "RecallForUserfunctionReponseToStoreDialogueobjectKey"
+    #   source = "RecallForUser"
+    #   target = "StoreDialogue"
+    #   type   = "Data"
+    #   configuration {
+    #     data {
+    #       source_output = "functionResponse"
+    #       target_input  = "objectKey"
+    #     }
+    #   }
+    # }
     connection {
       name   = "Agent_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
       source = "Agent_1"
@@ -251,24 +251,24 @@ resource "aws_bedrockagent_flow" "triage" {
       }
     }
 
-    node {
-      name = "RecallForUser"
-      type = "LambdaFunction"
-      configuration {
-        lambda_function {
-          lambda_arn = module.recall_for_user.lambda_function_arn
-        }
-      }
-      input {
-        expression = "$.data.userId"
-        name       = "codeHookInput"
-        type       = "String" # TODO this probably wants to be an object?
-      }
-      output {
-        name = "functionResponse"
-        type = "Object"
-      }
-    }
+    # node {
+    #   name = "RecallForUser"
+    #   type = "LambdaFunction"
+    #   configuration {
+    #     lambda_function {
+    #       lambda_arn = module.recall_for_user.lambda_function_arn
+    #     }
+    #   }
+    #   input {
+    #     expression = "$.data.userId"
+    #     name       = "codeHookInput"
+    #     type       = "String" # TODO this probably wants to be an object?
+    #   }
+    #   output {
+    #     name = "functionResponse"
+    #     type = "Object"
+    #   }
+    # }
 
     node {
       name = "Agent_1"
@@ -279,7 +279,8 @@ resource "aws_bedrockagent_flow" "triage" {
         }
       }
       input {
-        expression = "$.data.inputString"
+        # expression = "$.data.inputString"
+        expression = "$.data"
         name       = "agentInputText"
         type       = "String"
       }
@@ -299,33 +300,33 @@ resource "aws_bedrockagent_flow" "triage" {
       }
     }
 
-    node {
-      name = "StoreDialogue"
-      type = "Storage"
-      configuration {
-        storage {
-          service_configuration {
-            s3 {
-              bucket_name = aws_s3_bucket.dialogue_storage.bucket
-            }
-          }
-        }
-      }
-      input {
-        expression = "$.data"
-        name       = "content"
-        type       = "String"
-      }
-      input {
-        expression = "$.data.newStorageKey"
-        name       = "objectKey"
-        type       = "String"
-      }
-      output {
-        name       = "s3Uri"
-        type       = "String"
-      }
-    }
+    # node {
+    #   name = "StoreDialogue"
+    #   type = "Storage"
+    #   configuration {
+    #     storage {
+    #       service_configuration {
+    #         s3 {
+    #           bucket_name = aws_s3_bucket.dialogue_storage.bucket
+    #         }
+    #       }
+    #     }
+    #   }
+    #   input {
+    #     expression = "$.data"
+    #     name       = "content"
+    #     type       = "String"
+    #   }
+    #   input {
+    #     expression = "$.data.newStorageKey"
+    #     name       = "objectKey"
+    #     type       = "String"
+    #   }
+    #   output {
+    #     name       = "s3Uri"
+    #     type       = "String"
+    #   }
+    # }
 
     node {
       name = "FlowOutputNode"
