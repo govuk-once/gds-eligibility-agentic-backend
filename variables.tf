@@ -1,4 +1,3 @@
-
 variable "agent_instruction" {
   description = "Instructions for the agent"
   type        = string

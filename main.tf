@@ -133,13 +133,12 @@ resource "aws_bedrockagent_prompt" "triage_prompt" {
             These benefits, are:
             * Blue Badge: https://www.gov.uk/government/publications/blue-badge-can-i-get-one/can-i-get-a-blue-badge
             </context>
-            {{user_input}}
           EOT
         }
         message {
-          role = "assistant"
+          role = "user"
           content {
-            text = "Hi there, what can I help you with today?"
+            text = "{{user_input}}"
           }
         }
         input_variable {
