@@ -11,6 +11,10 @@ provider "aws" {
   region = "eu-west-2"
 }
 
+locals {
+  model_id = "amazon.nova-lite-v1:0"
+}
+
 resource "aws_iam_role" "bedrock_agent_role" {
   name = "bedrock-agent-role-${terraform.workspace}"
 
@@ -75,62 +79,83 @@ resource "aws_iam_role_policy_attachment" "bedrock_agent_policy_limited_access" 
   # policy_arn = "arn:aws:iam::aws:policy/AWSMarketplaceRead-only"
 }
 
-resource "aws_bedrockagent_agent" "eligability_agent" {
-  agent_name              = "gds_eligability_terraform_sandbox_eligability_agent-${terraform.workspace}"
-  agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
-  foundation_model        = "amazon.nova-lite-v1:0"
-  instruction             = var.agent_instruction
-}
-
-# This doesn't actually work as descibed by the terraform documentation, and generates errononeous conflicts
-# See https://github.com/hashicorp/terraform-provider-aws/issues/43045
-# resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
-#     action_group_name = "allow_user_input"
-#     agent_id = aws_bedrockagent_agent.eligability_agent.id
-#     agent_version = "DRAFT"
-#     parent_action_group_signature = "AMAZON.UserInput"
+# resource "aws_bedrockagent_agent" "eligability_agent" {
+#   agent_name              = "gds_eligability_terraform_sandbox_eligability_agent-${terraform.workspace}"
+#   agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
+#   foundation_model        = local.model_id
+#   instruction             = var.agent_instruction
 # }
 
-resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
-  agent_alias_name = "eligability-alias-for-prompts-${terraform.workspace}"
-  agent_id         = aws_bedrockagent_agent.eligability_agent.agent_id
-  description      = "Alias to allow linkage between eligability agent and prompts"
-}
-
-# resource "aws_bedrockagent_prompt" "triage_prompt" {
-#   name            = "triage_prompt_${terraform.workspace}"
-#   description     = "This is an entrypoint prompt to triage the users initial input"
-#   default_variant = "triage_variant"
-
-#   variant {
-#     name          = "triage_variant"
-#     template_type = "TEXT"
-
-#     inference_configuration {
-#       text {
-#         max_tokens     = 2048
-#         stop_sequences = ["User:"]
-#         temperature    = 0
-#         top_p          = 0.8999999761581421
-#       }
-#     }
-
-#     template_configuration {
-#       text {
-#         text = "Write a paragraph about {{topic}}."
-
-#         input_variable {
-#           name = "topic"
-#         }
-#       }
-#     }
-#     gen_ai_resource {
-#       agent {
-#         agent_identifier = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
-#       }
-#     }
-#   }
+# # This doesn't actually work as descibed by the terraform documentation, and generates errononeous conflicts
+# # See https://github.com/hashicorp/terraform-provider-aws/issues/43045
+# # resource "aws_bedrockagent_agent_action_group" "allow_user_input" {
+# #     action_group_name = "allow_user_input"
+# #     agent_id = aws_bedrockagent_agent.eligability_agent.id
+# #     agent_version = "DRAFT"
+# #     parent_action_group_signature = "AMAZON.UserInput"
 # }
+
+# resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
+#   agent_alias_name = "eligability-alias-for-prompts-${terraform.workspace}"
+#   agent_id         = aws_bedrockagent_agent.eligability_agent.agent_id
+#   description      = "Alias to allow linkage between eligability agent and prompts"
+# }
+
+resource "aws_bedrockagent_prompt" "triage_prompt" {
+  name            = "triage_prompt_${terraform.workspace}"
+  description     = "This is an entrypoint prompt to triage the users initial input"
+  default_variant = "triage_variant"
+
+
+  variant {
+    name          = "triage_variant"
+    model_id      = local.model_id
+    template_type = "CHAT"
+
+    inference_configuration {
+      text {
+        max_tokens     = 2048
+        stop_sequences = ["User:"]
+        temperature    = 0
+        top_p          = 0.8999999761581421
+      }
+    }
+
+    template_configuration {
+      chat {
+        system {
+          text = <<-EOT
+            <context>
+            You are tasked with assessing whether the person you are in conversation with is
+            eligable for one or more benefits. You can ask the person as many questions as are needed to
+            assess their eligability.
+
+            You must only use the links provided in this context block to understand the criteria for eligability.
+
+            These benefits, are:
+            * Blue Badge: https://www.gov.uk/government/publications/blue-badge-can-i-get-one/can-i-get-a-blue-badge
+            </context>
+            {{user_input}}
+          EOT
+        }
+        message {
+          role = "assistant"
+          content {
+            text = "Hi there, what can I help you with today?"
+          }
+        }
+        input_variable {
+          name = "user_input"
+        }
+      }
+    }
+    # gen_ai_resource {
+    #   agent {
+    #     agent_identifier = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
+    #   }
+    # }
+  }
+}
 
 resource "aws_bedrockagent_flow" "triage" {
   name               = "triage-flow-${terraform.workspace}"
@@ -140,24 +165,26 @@ resource "aws_bedrockagent_flow" "triage" {
     connection {
       name   = "FlowInputNodeFlowInputNode0ToAgent_1PromptsNode0"
       source = "FlowInputNode"
-      target = "Agent_1"
+      target = "Triage"
       type   = "Data"
       configuration {
         data {
           source_output = "document"
-          target_input  = "agentInputText"
+          # target_input  = "agentInputText"
+          target_input  = "topic"
         }
       }
     }
 
     connection {
       name   = "Agent_1PromptsNode0ToFlowOutputNodeFlowOutputNode0"
-      source = "Agent_1"
+      source = "Triage"
       target = "FlowOutputNode"
       type   = "Data"
       configuration {
         data {
-          source_output = "agentResponse"
+          # source_output = "agentResponse"
+          source_output = "modelCompletion"
           target_input  = "document"
         }
       }
@@ -176,33 +203,55 @@ resource "aws_bedrockagent_flow" "triage" {
     }
 
     node {
-      name = "Agent_1"
-      type = "Agent"
+      name = "Triage"
+      type = "Prompt"
       configuration {
-        agent {
-          agent_alias_arn = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
+        prompt {
+          source_configuration {
+            resource {
+              prompt_arn = aws_bedrockagent_prompt.triage_prompt.arn
+            }
+          }
         }
       }
       input {
         expression = "$.data"
-        name       = "agentInputText"
+        name       = "topic"
         type       = "String"
       }
-      input {
-        expression = "$.data"
-        name       = "promptAttributes"
-        type       = "Object"
-      }
-      input {
-        expression = "$.data"
-        name       = "sessionAttributes"
-        type       = "Object"
-      }
       output {
-        name = "agentResponse"
-        type = "String"
+        name       = "modelCompletion"
+        type       = "String"
       }
     }
+    # node {
+    #   name = "Agent_1"
+    #   type = "Agent"
+    #   configuration {
+    #     agent {
+    #       agent_alias_arn = aws_bedrockagent_agent_alias.eligability_alias_for_prompts.agent_alias_arn
+    #     }
+    #   }
+    #   input {
+    #     expression = "$.data"
+    #     name       = "agentInputText"
+    #     type       = "String"
+    #   }
+    #   input {
+    #     expression = "$.data"
+    #     name       = "promptAttributes"
+    #     type       = "Object"
+    #   }
+    #   input {
+    #     expression = "$.data"
+    #     name       = "sessionAttributes"
+    #     type       = "Object"
+    #   }
+    #   output {
+    #     name = "agentResponse"
+    #     type = "String"
+    #   }
+    # }
 
     node {
       name = "FlowOutputNode"
