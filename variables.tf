@@ -10,11 +10,6 @@ variable "agent_name" {
   default     = "gds_eligability_terraform_sandbox_eligability_agent"
 }
 
-variable "foundation_model" {
-  description = "Foundation model for the agent"
-  type        = string
-  default     = "amazon.nova-lite-v1:0"
-}
 
 variable "agent_instruction" {
   description = "Instructions for the agent"

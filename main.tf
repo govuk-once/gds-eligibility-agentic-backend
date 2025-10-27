@@ -78,7 +78,7 @@ resource "aws_iam_role_policy_attachment" "bedrock_agent_policy_limited_access" 
 resource "aws_bedrockagent_agent" "eligability_agent" {
   agent_name              = var.agent_name
   agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
-  foundation_model        = var.foundation_model
+  foundation_model        = "amazon.nova-lite-v1:0"
   instruction             = var.agent_instruction
 }
 
