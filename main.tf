@@ -12,7 +12,7 @@ provider "aws" {
 }
 
 resource "aws_iam_role" "bedrock_agent_role" {
-  name = "bedrock-agent-role"
+  name = "bedrock-agent-role-${terraform.workspace}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -29,7 +29,7 @@ resource "aws_iam_role" "bedrock_agent_role" {
 }
 
 resource "aws_iam_role" "bedrock_execution_role" {
-  name = "bedrock-execution-role"
+  name = "bedrock-execution-role-${terraform.workspace}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -46,7 +46,7 @@ resource "aws_iam_role" "bedrock_execution_role" {
 }
 
 resource "aws_iam_role_policy" "bedrock_execution_policy" {
-  name = "bedrock-execution-policy"
+  name = "bedrock-execution-policy-${terraform.workspace}"
   role = aws_iam_role.bedrock_execution_role.id
 
   policy = jsonencode({
@@ -76,7 +76,7 @@ resource "aws_iam_role_policy_attachment" "bedrock_agent_policy_limited_access" 
 }
 
 resource "aws_bedrockagent_agent" "eligability_agent" {
-  agent_name              = "gds_eligability_terraform_sandbox_eligability_agent"
+  agent_name              = "gds_eligability_terraform_sandbox_eligability_agent-${terraform.workspace}"
   agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
   foundation_model        = "amazon.nova-lite-v1:0"
   instruction             = var.agent_instruction
@@ -92,13 +92,13 @@ resource "aws_bedrockagent_agent" "eligability_agent" {
 # }
 
 resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
-  agent_alias_name = "eligability-alias-for-prompts"
+  agent_alias_name = "eligability-alias-for-prompts-${terraform.workspace}"
   agent_id         = aws_bedrockagent_agent.eligability_agent.agent_id
   description      = "Alias to allow linkage between eligability agent and prompts"
 }
 
 # resource "aws_bedrockagent_prompt" "triage_prompt" {
-#   name            = "triage_prompt"
+#   name            = "triage_prompt_${terraform.workspace}"
 #   description     = "This is an entrypoint prompt to triage the users initial input"
 #   default_variant = "triage_variant"
 
@@ -133,7 +133,7 @@ resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
 # }
 
 resource "aws_s3_bucket" "dialogue_storage" {
-  bucket = "gds-eligability-dialogue-storage"
+  bucket = "gds-eligability-dialogue-storage-${terraform.workspace}"
 }
 
 resource "aws_s3_bucket_public_access_block" "dialogue_storage" {
@@ -148,7 +148,7 @@ resource "aws_s3_bucket_public_access_block" "dialogue_storage" {
 module "recall_for_user" {
   source = "terraform-aws-modules/lambda/aws"
 
-  function_name = "recall_for_user"
+  function_name = "recall_for_user-${terraform.workspace}"
   description   = "Recall past user interactions with agent"
   handler       = "main.lambda_handler"
   runtime       = "python3.12"
@@ -158,7 +158,7 @@ module "recall_for_user" {
 }
 
 resource "aws_bedrockagent_flow" "triage" {
-  name               = "triage-flow"
+  name               = "triage-flow-${terraform.workspace}"
   execution_role_arn = aws_iam_role.bedrock_execution_role.arn
   # TODO would this be better composed as a set of data blocks? Could they be made resusable somehow?
   definition {
