@@ -132,30 +132,30 @@ resource "aws_bedrockagent_agent_alias" "eligability_alias_for_prompts" {
 #   }
 # }
 
-resource "aws_s3_bucket" "dialogue_storage" {
-  bucket = "gds-eligability-dialogue-storage-${terraform.workspace}"
-}
+# resource "aws_s3_bucket" "dialogue_storage" {
+#   bucket = "gds-eligability-dialogue-storage-${terraform.workspace}"
+# }
 
-resource "aws_s3_bucket_public_access_block" "dialogue_storage" {
-  bucket = aws_s3_bucket.dialogue_storage.id
+# resource "aws_s3_bucket_public_access_block" "dialogue_storage" {
+#   bucket = aws_s3_bucket.dialogue_storage.id
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
+#   block_public_acls       = true
+#   block_public_policy     = true
+#   ignore_public_acls      = true
+#   restrict_public_buckets = true
+# }
 
-module "recall_for_user" {
-  source = "terraform-aws-modules/lambda/aws"
+# module "recall_for_user" {
+#   source = "terraform-aws-modules/lambda/aws"
 
-  function_name = "recall_for_user-${terraform.workspace}"
-  description   = "Recall past user interactions with agent"
-  handler       = "main.lambda_handler"
-  runtime       = "python3.12"
+#   function_name = "recall_for_user-${terraform.workspace}"
+#   description   = "Recall past user interactions with agent"
+#   handler       = "main.lambda_handler"
+#   runtime       = "python3.12"
 
-  source_path = "./src/lambda/recall_for_user"
+#   source_path = "./src/lambda/recall_for_user"
 
-}
+# }
 
 resource "aws_bedrockagent_flow" "triage" {
   name               = "triage-flow-${terraform.workspace}"
