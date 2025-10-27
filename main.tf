@@ -69,14 +69,12 @@ resource "aws_iam_role_policy" "bedrock_execution_policy" {
 
 resource "aws_iam_role_policy_attachment" "bedrock_execution_policy_limited_access" {
   role       = aws_iam_role.bedrock_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockLimitedAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "bedrock_agent_policy_limited_access" {
   role       = aws_iam_role.bedrock_agent_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockLimitedAccess"
-  # policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockMarketplaceAccess"
-  # policy_arn = "arn:aws:iam::aws:policy/AWSMarketplaceRead-only"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockFullAccess"
 }
 
 # resource "aws_bedrockagent_agent" "eligability_agent" {
