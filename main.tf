@@ -168,7 +168,7 @@ resource "aws_bedrockagent_flow" "triage" {
         data {
           source_output = "document"
           # target_input  = "agentInputText"
-          target_input  = "topic"
+          target_input  = "user_input"
         }
       }
     }
@@ -213,7 +213,7 @@ resource "aws_bedrockagent_flow" "triage" {
       }
       input {
         expression = "$.data"
-        name       = "topic"
+        name       = "user_input"
         type       = "String"
       }
       output {
