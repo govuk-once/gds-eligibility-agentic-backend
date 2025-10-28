@@ -225,7 +225,7 @@ resource "aws_bedrockagent_flow" "triage" {
     # }
 
     node {
-      name = "Agent_1"
+      name = "Triage"
       type = "Agent"
       configuration {
         agent {
