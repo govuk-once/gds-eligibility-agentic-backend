@@ -23,7 +23,6 @@ locals {
     * Don't provide links.
     * Always be polite
     * Only ask questions relating to the person you are talking to
-    * Ensure that you have information on every criteria applicable before giving a judgement
     </rules>
 
     You must only use the links provided in this context block to understand the criteria for eligability.
