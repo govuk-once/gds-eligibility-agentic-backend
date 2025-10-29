@@ -24,8 +24,21 @@ resource "aws_apprunner_service" "frontend_app" {
     image_repository {
       image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       image_repository_type = "ECR"
+      image_configuration {
+        runtime_environment_variables = {
+          AWS_REGION = "eu-west-2"
+          # Both the stable and unstable frontend will point to the stable flow
+          # Can't use data source for aws_bedrockagent_flow, so have to hard code it
+          BEDROCK_FLOW_ID = "RU8U3PTJF8" #data.aws_bedrockagent_flow.stable_flow.id
+          # THis alias needs to be created manually!
+          BEDROCK_ALIAS_ID = "web-test-alias"
+        }
+      }
     }
     auto_deployments_enabled = true
+  }
+  instance_configuration {
+    instance_role_arn = aws_iam_role.frontend_app_service.arn
   }
   network_configuration {
     ingress_configuration {

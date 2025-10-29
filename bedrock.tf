@@ -259,4 +259,3 @@ resource "aws_bedrockagent_flow" "triage" {
     }
   }
 }
-
