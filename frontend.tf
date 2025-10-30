@@ -31,7 +31,7 @@ resource "aws_apprunner_service" "frontend_app" {
           # Can't use data source for aws_bedrockagent_flow, so have to hard code it
           BEDROCK_FLOW_ID = "RU8U3PTJF8" # aws_bedrockagent_flow.triage.id for workspace=stable
           # THis alias needs to be created manually!
-          BEDROCK_ALIAS_ID = "web-test-alias"
+          BEDROCK_FLOW_ALIAS_ID = "XC4VHFA93K"
         }
       }
     }
@@ -42,8 +42,12 @@ resource "aws_apprunner_service" "frontend_app" {
   }
   network_configuration {
     ingress_configuration {
-      is_publicly_accessible = false
+      is_publicly_accessible = true
     }
+  }
+  health_check_configuration {
+    protocol = "HTTP"
+    path     = "/health"
   }
 }
 
@@ -89,3 +93,22 @@ resource "aws_iam_role_policy_attachment" "frontend_app_service_apprunner" {
   role = aws_iam_role.frontend_app_service.name
   policy_arn = "arn:aws:iam::aws:policy/AWSAppRunnerFullAccess"
 }
+
+resource "aws_iam_role_policy" "frontend_app_service_bedrock" {
+  role = aws_iam_role.frontend_app_service.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeFlow"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
