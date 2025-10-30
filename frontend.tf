@@ -19,7 +19,7 @@ resource "aws_apprunner_service" "frontend_app" {
 
   source_configuration {
     authentication_configuration {
-      access_role_arn = aws_iam_role.frontend_app_service.arn
+      access_role_arn = aws_iam_role.frontend_app_ecr.arn
     }
     image_repository {
       image_identifier      = data.aws_ecr_image.frontend_app.image_uri
@@ -29,7 +29,7 @@ resource "aws_apprunner_service" "frontend_app" {
           AWS_REGION = "eu-west-2"
           # Both the stable and unstable frontend will point to the stable flow
           # Can't use data source for aws_bedrockagent_flow, so have to hard code it
-          BEDROCK_FLOW_ID = "RU8U3PTJF8" #data.aws_bedrockagent_flow.stable_flow.id
+          BEDROCK_FLOW_ID = "RU8U3PTJF8" # aws_bedrockagent_flow.triage.id for workspace=stable
           # THis alias needs to be created manually!
           BEDROCK_ALIAS_ID = "web-test-alias"
         }
@@ -56,15 +56,32 @@ resource "aws_iam_role" "frontend_app_service" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "apprunner.amazonaws.com"
+          Service = "tasks.apprunner.amazonaws.com"
         }
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "frontend_app_service_ecr" {
-  role = aws_iam_role.frontend_app_service.name
+resource "aws_iam_role" "frontend_app_ecr" {
+  name = "gds-eligability-frontend-app-ecr-${terraform.workspace}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "build.apprunner.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "frontend_app_ecr_role_ecr" {
+  role = aws_iam_role.frontend_app_ecr.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
 }
 
