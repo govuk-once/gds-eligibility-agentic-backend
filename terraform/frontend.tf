@@ -7,12 +7,12 @@ resource "aws_ecr_repository" "frontend_app" {
   name  = local.ecr_repo_name
 }
 
-# Both stable and unstable share the same ecr repo, use this accessor instead of the resource
-# to make sure the reference is always valid
-data "aws_ecr_image" "frontend_app" {
-  repository_name = local.ecr_repo_name
-  image_tag       = terraform.workspace
-}
+# # Both stable and unstable share the same ecr repo, use this accessor instead of the resource
+# # to make sure the reference is always valid
+# data "aws_ecr_image" "frontend_app" {
+#   repository_name = local.ecr_repo_name
+#   image_tag       = terraform.workspace
+# }
 
 resource "aws_apprunner_service" "frontend_app" {
   service_name = "gds-eligability-frontend-app-${terraform.workspace}"
@@ -22,7 +22,9 @@ resource "aws_apprunner_service" "frontend_app" {
       access_role_arn = aws_iam_role.frontend_app_ecr.arn
     }
     image_repository {
-      image_identifier      = data.aws_ecr_image.frontend_app.image_uri
+      # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
+      # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
+      image_identifier      = "261219435789.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
       image_repository_type = "ECR"
       image_configuration {
         runtime_environment_variables = {
@@ -32,6 +34,8 @@ resource "aws_apprunner_service" "frontend_app" {
           BEDROCK_FLOW_ID = "RU8U3PTJF8" # aws_bedrockagent_flow.triage.id for workspace=stable
           # THis alias needs to be created manually!
           BEDROCK_FLOW_ALIAS_ID = "XC4VHFA93K"
+          NODE_ENV = "production"
+          PINO_LOG_LEVEL = "debug"
         }
       }
     }
