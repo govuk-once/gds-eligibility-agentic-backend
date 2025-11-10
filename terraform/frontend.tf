@@ -33,7 +33,7 @@ resource "aws_apprunner_service" "frontend_app" {
           # Can't use data source for aws_bedrockagent_flow, so have to hard code it
           BEDROCK_FLOW_ID = "RU8U3PTJF8" # aws_bedrockagent_flow.triage.id for workspace=stable
           # THis alias needs to be created manually!
-          BEDROCK_FLOW_ALIAS_ID = "XC4VHFA93K"
+          BEDROCK_FLOW_ALIAS_ID = "FU9XTXSV52"
           NODE_ENV = "production"
           PINO_LOG_LEVEL = "debug"
         }
