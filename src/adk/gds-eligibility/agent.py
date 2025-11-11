@@ -1,7 +1,8 @@
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.agents.llm_agent import Agent
 
 root_agent = Agent(
-    model='<FILL_IN_MODEL>',
+    model=LiteLlm(model="bedrock/converse/amazon.nova-lite-v1:0"),
     name='root_agent',
     description='A helpful assistant for user questions.',
     instruction='Answer user questions to the best of your knowledge',
