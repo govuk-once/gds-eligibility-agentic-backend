@@ -27,7 +27,7 @@ This document provides a summary of the tests executed by Agent Evaluation.
 
 **Conversation**
 ```
-[USER] Hi, can you tell me if I'm eligible for a blue badge?
+[USER] Hi, I'm interested in getting a blue badge. Can you tell me if I'm eligible for one?
 [AGENT] 
 ```
 
@@ -36,7 +36,7 @@ Not all of the expected results can be observed in the conversation.
 
 **Reasoning**
 ```
-The conversation just started, and the agent hasn't responded yet. The expected result is that the agent returns with a question about physical health, but that hasn't happened yet.
+The conversation has just started, and the agent hasn't responded yet. The expected result is that the agent should ask a question about physical health, but we don't see that happening in this initial response.
 ```
 
 ---
