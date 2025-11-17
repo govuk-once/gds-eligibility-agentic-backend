@@ -1,0 +1,46 @@
+locals {
+  adk_ecr_repo_name = "gds-eligability-adk-repo"
+}
+
+resource "aws_ecr_repository" "adk_server" {
+  count = terraform.workspace == "stable" ? 1 : 0
+  name  = local.adk_ecr_repo_name
+}
+
+resource "aws_apprunner_service" "adk_server" {
+  service_name = "gds-eligability-adk-server-${terraform.workspace}"
+
+  source_configuration {
+    authentication_configuration {
+      access_role_arn = aws_iam_role.frontend_app_ecr.arn
+    }
+    image_repository {
+      # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
+      # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
+      image_identifier      = "261219435789.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-adk-repo:${terraform.workspace}"
+      image_repository_type = "ECR"
+      image_configuration {
+        runtime_environment_variables = {
+          AWS_REGION = "eu-west-2"
+          BEDROCK_AGENT_ID = "CBVQSIPNEW"
+          BEDROCK_AGENT_ALIAS_ID = "JU2SFMBBHR"
+        }
+        port = 8000
+      }
+    }
+    auto_deployments_enabled = true
+  }
+  instance_configuration {
+    instance_role_arn = aws_iam_role.frontend_app_service.arn
+  }
+  network_configuration {
+    ingress_configuration {
+      is_publicly_accessible = false
+    }
+  }
+  health_check_configuration {
+    protocol = "HTTP"
+    path     = "/dev-ui/assets/config/runtime-config.json"
+
+  }
+}

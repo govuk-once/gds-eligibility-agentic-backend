@@ -1,16 +1,16 @@
 locals {
-  ecr_repo_name = "gds-eligability-frontend-repo"
+  app_ecr_repo_name = "gds-eligability-frontend-repo"
 }
 
 resource "aws_ecr_repository" "frontend_app" {
   count = terraform.workspace == "stable" ? 1 : 0
-  name  = local.ecr_repo_name
+  name  = local.app_ecr_repo_name
 }
 
 # # Both stable and unstable share the same ecr repo, use this accessor instead of the resource
 # # to make sure the reference is always valid
 # data "aws_ecr_image" "frontend_app" {
-#   repository_name = local.ecr_repo_name
+#   repository_name = local.app_ecr_repo_name
 #   image_tag       = terraform.workspace
 # }
 
