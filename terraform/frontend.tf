@@ -1,9 +1,13 @@
 locals {
   app_ecr_repo_name = "gds-eligability-frontend-repo"
+  account_id_lookup = {
+    "goe-dev" = "453624448465"
+  }
+  account_id = local.account_id_lookup[terraform.workspace]
 }
 
 resource "aws_ecr_repository" "frontend_app" {
-  count = terraform.workspace == "stable" ? 1 : 0
+  #count = terraform.workspace == "stable" ? 1 : 0
   name  = local.app_ecr_repo_name
 }
 
@@ -24,7 +28,7 @@ resource "aws_apprunner_service" "frontend_app" {
     image_repository {
       # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
-      image_identifier      = "261219435789.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
+      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
       image_repository_type = "ECR"
       image_configuration {
         runtime_environment_variables = {
