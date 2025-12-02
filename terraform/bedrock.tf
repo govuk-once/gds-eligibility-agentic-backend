@@ -1,6 +1,6 @@
 locals {
-  model_id = "amazon.nova-lite-v1:0"
-  system_instruction = file("../prompts/agents/main.md")
+  model_id = "anthropic.claude-sonnet-4-20250514-v1:0"
+  system_instruction = file("../prompts/agents/Prompt_Draft_Eligibility.md")
 }
 
 resource "aws_iam_role" "bedrock_agent_role" {
