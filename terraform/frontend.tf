@@ -2,6 +2,7 @@ locals {
   app_ecr_repo_name = "gds-eligability-frontend-repo"
   account_id_lookup = {
     "goe-dev" = "453624448465"
+    "goe-staging" = "173331852279"
   }
   account_id = local.account_id_lookup[terraform.workspace]
 }
