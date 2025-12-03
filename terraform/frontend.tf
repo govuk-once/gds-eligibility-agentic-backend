@@ -39,6 +39,7 @@ resource "aws_apprunner_service" "frontend_app" {
       image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
       image_repository_type = "ECR"
       image_configuration {
+        port = 3000
         runtime_environment_variables = {
           AWS_REGION = "eu-west-2"
           BEDROCK_FLOW_ID = local.env_specific["bedrock_flow_id"]
