@@ -1,10 +1,17 @@
 locals {
   app_ecr_repo_name = "gds-eligability-frontend-repo"
-  account_id_lookup = {
-    "goe-dev" = "453624448465"
-    "goe-staging" = "173331852279"
+  environment_specific_lookup = {
+    "goe-dev" = {
+      account_id = "453624448465"
+    }
+    "goe-staging" = {
+      account_id = "173331852279"
+      bedrock_flow_id = "4REUKJYSPZ" 
+      bedrock_flow_alias_id = "4F2X04KGIF"
+    }
   }
-  account_id = local.account_id_lookup[terraform.workspace]
+  account_id = local.environment_specific_lookup[terraform.workspace].account_id
+  env_specific = local.environment_specific_lookup[terraform.workspace]
 }
 
 resource "aws_ecr_repository" "frontend_app" {
@@ -34,11 +41,9 @@ resource "aws_apprunner_service" "frontend_app" {
       image_configuration {
         runtime_environment_variables = {
           AWS_REGION = "eu-west-2"
-          # Both the stable and unstable frontend will point to the stable flow
-          # Can't use data source for aws_bedrockagent_flow, so have to hard code it
-          BEDROCK_FLOW_ID = "RU8U3PTJF8" # aws_bedrockagent_flow.triage.id for workspace=stable
+          BEDROCK_FLOW_ID = local.env_specific["bedrock_flow_id"]
           # THis alias needs to be created manually!
-          BEDROCK_FLOW_ALIAS_ID = "QFDTY5YJ73"
+          BEDROCK_FLOW_ALIAS_ID = local.env_specific["bedrock_flow_alias_id"]
           NODE_ENV = "production"
           PINO_LOG_LEVEL = "debug"
         }

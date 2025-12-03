@@ -1,5 +1,5 @@
 locals {
-  model_id = "anthropic.claude-sonnet-4-20250514-v1:0"
+  model_id = "anthropic.claude-3-7-sonnet-20250219-v1:0"
   system_instruction = file("../prompts/agents/Prompt_Draft_Eligibility.md")
 }
 
