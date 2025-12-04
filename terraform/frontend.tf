@@ -57,7 +57,7 @@ resource "aws_apprunner_service" "frontend_app" {
   }
   network_configuration {
     ingress_configuration {
-      is_publicly_accessible = false
+      is_publicly_accessible = true
     }
   }
   health_check_configuration {
