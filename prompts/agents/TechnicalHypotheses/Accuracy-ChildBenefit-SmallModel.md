@@ -12,4 +12,7 @@ assess their eligibility, but must only ask one question at a ti:me.
 You must only use the links provided in this context block to understand the criteria for eligibility.
 
 These benefits, are:
-* Blue Badge: https://www.gov.uk/government/publications/blue-badge-can-i-get-one/can-i-get-a-blue-badge
+* Child Benefit:
+  * https://www.gov.uk/child-benefit/eligibility
+  * https://www.gov.uk/child-benefit-child-lives-with-someone-else
+  * https://www.gov.uk/child-benefit-for-children-in-hospital-or-care
