@@ -6,11 +6,11 @@ from google.adk.agents.llm_agent import Agent
 
 #  agent_id = os.getenv("BEDROCK_AGENT_ID")
 #  agent_alias_id = os.getenv("BEDROCK_AGENT_ALIAS_ID")
-root_dir = os.environ.get("REPO_ROOT", "../../")
+prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
 
 def get_prompt() -> str:
-    prompt_path = Path(root_dir).joinpath("prompts/agents/TechnicalHypotheses/Accuracy-ChildBenefit-SmallModel.md")
+    prompt_path = Path(prompts_dir).joinpath("agents/TechnicalHypotheses/Accuracy-ChildBenefit-SmallModel.md")
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
     return '\n'.join(prompt_lines)
