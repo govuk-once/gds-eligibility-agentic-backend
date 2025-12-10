@@ -1,5 +1,5 @@
 import asyncio
-import uuid
+from datetime import datetime
 from pathlib import Path
 
 from google.genai import types
@@ -19,27 +19,33 @@ async def main():
     session_service = InMemorySessionService()
     artifact_service = InMemoryArtifactService()
     credential_service = InMemoryCredentialService()
-    for test_case in test_cases:
-        foo = execute_test_case(
+    output_dir = Path("./testOutputs").joinpath(datetime.now().isoformat())
+    output_dir.mkdir(parents=True)
+    test_cases = [test_cases[0]] # Remove this when happy the test is terminating properly
+    for test_id, test_case in enumerate(test_cases, start=1):
+        await execute_test_case(
+            test_id,
             test_case,
             session_service,
             artifact_service,
-            credential_service
+            credential_service,
+            output_dir
         )
-        import pudb; pudb.set_trace()
 
 
 
 async def execute_test_case(
-    test_case,
-    session_service,
-    artifact_service,
-    credential_service
+    test_id: int,
+    test_case: str,
+    session_service: InMemorySessionService,
+    artifact_service: InMemoryArtifactService,
+    credential_service: InMemoryCredentialService,
+    output_dir: Path
 
 ):
     """
-        This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
-        https://github.com/google/adk-python/blob/32f2ec3a78c4ef8475b7d8a630705e4cf5ccbe50/src/google/adk/cli/cli.py#L88
+    This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
+    https://github.com/google/adk-python/blob/32f2ec3a78c4ef8475b7d8a630705e4cf5ccbe50/src/google/adk/cli/cli.py#L88
     """
     app_name = "evaluation_judge"
     user_id = "test_user"
@@ -53,21 +59,24 @@ async def execute_test_case(
         session_service=session_service,
         credential_service=credential_service,
     )
-    while True:
-        async with Aclosing(
-            runner.run_async(
-                user_id=user_id,
-                session_id=session.id,
-                new_message=types.Content(
-                    role='user', parts=[types.Part(text=test_case)]
-                ),
-            )
-        ) as agen:
-            async for event in agen:
-                if event.content and event.content.parts:
-                    if text := ''.join(part.text or '' for part in event.content.parts):
-                        print(f'[{event.author}]: {text}')
-    await runner.close()
+    with output_dir.joinpath(f"Permutation{test_id}.out").open("a+") as output_file:
+        print(f"Outputting dialogue to {output_file.name}")
+        while True:
+            async with Aclosing(
+                runner.run_async(
+                    user_id=user_id,
+                    session_id=session.id,
+                    new_message=types.Content(
+                        role='user', parts=[types.Part(text=test_case)]
+                    ),
+                )
+            ) as agen:
+                async for event in agen:
+                    if event.content and event.content.parts:
+                        if text := ''.join(part.text or '' for part in event.content.parts):
+                            output = f'[{event.author}]: {text}\n'
+                            output_file.writelines(f'{output}\n')
+                            print(output)
 
 
 def load_and_parse_test_cases():
