@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 
-from google.adk.agents import SequentialAgent
-from google.adk.models.lite_llm import LiteLlm
+from google.adk.agents import LoopAgent
 from google.adk.agents.llm_agent import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.tools.tool_context import ToolContext
 
 from gds_eligibility.agent import root_agent as eligibility_agent
 
@@ -17,16 +18,26 @@ def get_prompt(rel_path: str) -> str:
     return '\n'.join(prompt_lines)
 
 
+def exit_loop(tool_context: ToolContext):
+  """Call this function ONLY when the judge indicates no further conversation is needed, signaling the iterative process should end."""
+  print(f"  [Tool Call] exit_loop triggered by {tool_context.agent_name}")
+  tool_context.actions.escalate = True
+  # Return empty dict as tools should typically return JSON-serializable output
+  return {}
+
+
 evaluation_judge = Agent(
     model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
     name='evaluation_judge',
     description='When given a context, it will role-play as a user in order to test another agent',
-    instruction=get_prompt("agents/Ancillary/EvaluationJudge.md")
+    instruction=get_prompt("agents/Ancillary/EvaluationJudge.md"),
+    tools=[exit_loop], # Provide the exit_loop tool
 )
+
 
 # TODO are we making the test inauthentic by using A2A as the communication medium?
 # https://google.github.io/adk-docs/agents/multi-agents/#reviewcritique-pattern-generator-critic
-review_pipeline = SequentialAgent(
+review_pipeline = LoopAgent(
     name="ConverseAndEvaluate",
     sub_agents=[evaluation_judge, eligibility_agent]
 )

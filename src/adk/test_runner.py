@@ -21,7 +21,7 @@ async def main():
     credential_service = InMemoryCredentialService()
     output_dir = Path("./testOutputs").joinpath(datetime.now().isoformat())
     output_dir.mkdir(parents=True)
-    test_cases = [test_cases[0]] # Remove this when happy the test is terminating properly
+    #  test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
         await execute_test_case(
             test_id,
@@ -61,22 +61,23 @@ async def execute_test_case(
     )
     with output_dir.joinpath(f"Permutation{test_id}.out").open("a+") as output_file:
         print(f"Outputting dialogue to {output_file.name}")
-        while True:
-            async with Aclosing(
-                runner.run_async(
-                    user_id=user_id,
-                    session_id=session.id,
-                    new_message=types.Content(
-                        role='user', parts=[types.Part(text=test_case)]
-                    ),
-                )
-            ) as agen:
-                async for event in agen:
-                    if event.content and event.content.parts:
-                        if text := ''.join(part.text or '' for part in event.content.parts):
-                            output = f'[{event.author}]: {text}\n'
-                            output_file.writelines(f'{output}\n')
-                            print(output)
+        async with Aclosing(
+            runner.run_async(
+                user_id=user_id,
+                session_id=session.id,
+                new_message=types.Content(
+                    role='user', parts=[types.Part(text=test_case)]
+                ),
+            )
+        ) as agen:
+            async for event in agen:
+                if event.actions.escalate:
+                    await runner.close()
+                if event.content and event.content.parts:
+                    if text := ''.join(part.text or '' for part in event.content.parts):
+                        output = f'[{event.author}]: {text}\n'
+                        output_file.writelines(f'{output}\n')
+                        #  print(output) # Uncomment for developing against test runner
 
 
 def load_and_parse_test_cases():
