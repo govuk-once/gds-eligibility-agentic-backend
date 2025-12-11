@@ -5,7 +5,9 @@ from pathlib import Path
 from google.genai import types
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
-from google.adk.auth.credential_service.in_memory_credential_service import InMemoryCredentialService
+from google.adk.auth.credential_service.in_memory_credential_service import (
+    InMemoryCredentialService,
+)
 from google.adk.runners import Runner
 from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
@@ -28,7 +30,7 @@ async def main():
             session_service,
             artifact_service,
             credential_service,
-            output_dir
+            output_dir,
         )
 
 
@@ -38,8 +40,7 @@ async def execute_test_case(
     session_service: InMemorySessionService,
     artifact_service: InMemoryArtifactService,
     credential_service: InMemoryCredentialService,
-    output_dir: Path
-
+    output_dir: Path,
 ):
     """
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
@@ -48,9 +49,7 @@ async def execute_test_case(
     app_name = "evaluation_judge"
     user_id = "test_user"
     app = App(name=app_name, root_agent=review_pipeline)
-    session = await session_service.create_session(
-        app_name=app_name, user_id=user_id
-    )
+    session = await session_service.create_session(app_name=app_name, user_id=user_id)
     runner = Runner(
         app=app,
         artifact_service=artifact_service,
@@ -64,7 +63,7 @@ async def execute_test_case(
                 user_id=user_id,
                 session_id=session.id,
                 new_message=types.Content(
-                    role='user', parts=[types.Part(text=test_case)]
+                    role="user", parts=[types.Part(text=test_case)]
                 ),
             )
         ) as agen:
@@ -72,9 +71,9 @@ async def execute_test_case(
                 if event.actions.escalate:
                     await runner.close()
                 if event.content and event.content.parts:
-                    if text := ''.join(part.text or '' for part in event.content.parts):
-                        output = f'[{event.author}]: {text}\n'
-                        output_file.writelines(f'{output}\n')
+                    if text := "".join(part.text or "" for part in event.content.parts):
+                        output = f"[{event.author}]: {text}\n"
+                        output_file.writelines(f"{output}\n")
                         #  print(output) # Uncomment for developing against test runner
 
 
@@ -83,7 +82,7 @@ def load_and_parse_test_cases():
     with test_case_file.open() as f:
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)
-    test_cases = test_cases_str.split(sep='---')
+    test_cases = test_cases_str.split(sep="---")
     return test_cases
 
 
