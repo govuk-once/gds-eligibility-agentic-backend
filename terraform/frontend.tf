@@ -3,6 +3,8 @@ locals {
   environment_specific_lookup = {
     "goe-dev" = {
       account_id = "453624448465"
+      bedrock_flow_id = "VWYMY0HV2H"
+      bedrock_flow_alias_id = "24VIXRVYIE"
     }
     "goe-staging" = {
       account_id = "173331852279"
