@@ -17,7 +17,7 @@ resource "aws_apprunner_service" "adk_server" {
     image_repository {
       # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
-      image_identifier      = "261219435789.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-adk-repo:${terraform.workspace}"
+      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-adk-repo:${terraform.workspace}"
       image_repository_type = "ECR"
       image_configuration {
         runtime_environment_variables = {
@@ -35,7 +35,7 @@ resource "aws_apprunner_service" "adk_server" {
   }
   network_configuration {
     ingress_configuration {
-      is_publicly_accessible = false
+      is_publicly_accessible = true
     }
   }
   health_check_configuration {

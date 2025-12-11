@@ -1,9 +1,23 @@
 locals {
   app_ecr_repo_name = "gds-eligability-frontend-repo"
+  environment_specific_lookup = {
+    "goe-dev" = {
+      account_id = "453624448465"
+      bedrock_flow_id = "VWYMY0HV2H"
+      bedrock_flow_alias_id = "24VIXRVYIE"
+    }
+    "goe-staging" = {
+      account_id = "173331852279"
+      bedrock_flow_id = "4REUKJYSPZ" 
+      bedrock_flow_alias_id = "4F2X04KGIF"
+    }
+  }
+  account_id = local.environment_specific_lookup[terraform.workspace].account_id
+  env_specific = local.environment_specific_lookup[terraform.workspace]
 }
 
 resource "aws_ecr_repository" "frontend_app" {
-  count = terraform.workspace == "stable" ? 1 : 0
+  #count = terraform.workspace == "stable" ? 1 : 0
   name  = local.app_ecr_repo_name
 }
 
@@ -24,16 +38,15 @@ resource "aws_apprunner_service" "frontend_app" {
     image_repository {
       # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
-      image_identifier      = "261219435789.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
+      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
       image_repository_type = "ECR"
       image_configuration {
+        port = 3000
         runtime_environment_variables = {
           AWS_REGION = "eu-west-2"
-          # Both the stable and unstable frontend will point to the stable flow
-          # Can't use data source for aws_bedrockagent_flow, so have to hard code it
-          BEDROCK_FLOW_ID = "RU8U3PTJF8" # aws_bedrockagent_flow.triage.id for workspace=stable
+          BEDROCK_FLOW_ID = local.env_specific["bedrock_flow_id"]
           # THis alias needs to be created manually!
-          BEDROCK_FLOW_ALIAS_ID = "QFDTY5YJ73"
+          BEDROCK_FLOW_ALIAS_ID = local.env_specific["bedrock_flow_alias_id"]
           NODE_ENV = "production"
           PINO_LOG_LEVEL = "debug"
         }
@@ -46,7 +59,7 @@ resource "aws_apprunner_service" "frontend_app" {
   }
   network_configuration {
     ingress_configuration {
-      is_publicly_accessible = false
+      is_publicly_accessible = true
     }
   }
   health_check_configuration {
