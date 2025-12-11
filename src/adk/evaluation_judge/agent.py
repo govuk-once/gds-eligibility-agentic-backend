@@ -35,8 +35,6 @@ evaluation_judge = Agent(
 )
 
 
-# TODO are we making the test inauthentic by using A2A as the communication medium?
-# https://google.github.io/adk-docs/agents/multi-agents/#reviewcritique-pattern-generator-critic
 review_pipeline = LoopAgent(
     name="ConverseAndEvaluate",
     sub_agents=[evaluation_judge, eligibility_agent]

@@ -8,7 +8,6 @@ from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactServ
 from google.adk.auth.credential_service.in_memory_credential_service import InMemoryCredentialService
 from google.adk.runners import Runner
 from google.adk.apps.app import App
-from google.adk.sessions.session import Session
 from google.adk.utils.context_utils import Aclosing
 
 from evaluation_judge.agent import review_pipeline
@@ -31,7 +30,6 @@ async def main():
             credential_service,
             output_dir
         )
-
 
 
 async def execute_test_case(
