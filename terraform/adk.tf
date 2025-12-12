@@ -24,6 +24,7 @@ resource "aws_apprunner_service" "adk_server" {
           AWS_REGION = "eu-west-2"
           BEDROCK_AGENT_ID = "CBVQSIPNEW"
           BEDROCK_AGENT_ALIAS_ID = "JU2SFMBBHR"
+          PROMPTS_DIR = "/prompts"
         }
         port = 8000
       }
