@@ -1,5 +1,5 @@
 locals {
-  model_id = "anthropic.claude-3-7-sonnet-20250219-v1:0"
+  model_id           = "anthropic.claude-3-7-sonnet-20250219-v1:0"
   system_instruction = file("../prompts/agents/Prompt_Draft_Eligibility.md")
 }
 
@@ -159,7 +159,7 @@ resource "aws_bedrockagent_flow" "triage" {
         data {
           source_output = "agentResponse"
           # source_output = "modelCompletion"
-          target_input  = "document"
+          target_input = "document"
         }
       }
     }
