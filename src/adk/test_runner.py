@@ -17,8 +17,8 @@ from evaluation_judge.agent import review_pipeline
 
 
 async def main():
-    #  test_cohort = "child_benefit"
-    test_cohort = "skilled_worker_visa"
+    test_cohort = "child_benefit"
+    #  test_cohort = "skilled_worker_visa"
     git_commit = run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, check=True, text=True).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
     session_service = InMemorySessionService()
