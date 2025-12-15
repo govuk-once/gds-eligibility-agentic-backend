@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from subprocess import run
 from pathlib import Path
 
 from google.genai import types
@@ -18,11 +19,12 @@ from evaluation_judge.agent import review_pipeline
 async def main():
     #  test_cohort = "child_benefit"
     test_cohort = "skilled_worker_visa"
+    git_commit = run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, check=True, text=True).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
     session_service = InMemorySessionService()
     artifact_service = InMemoryArtifactService()
     credential_service = InMemoryCredentialService()
-    output_dir = Path("./.testOutputs").joinpath(test_cohort).joinpath(datetime.now().isoformat())
+    output_dir = Path("./.testOutputs").joinpath(test_cohort).joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
     output_dir.mkdir(parents=True)
     #  test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
