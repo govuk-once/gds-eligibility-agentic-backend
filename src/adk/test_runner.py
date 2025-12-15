@@ -36,6 +36,7 @@ async def main():
             credential_service,
             output_dir,
         )
+    run(["rg", "✗", output_dir, "--stats"], capture_output=False, check=True, text=True)
 
 
 async def execute_test_case(
