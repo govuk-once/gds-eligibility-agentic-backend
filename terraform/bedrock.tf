@@ -1,6 +1,6 @@
 locals {
   model_id           = "anthropic.claude-3-7-sonnet-20250219-v1:0"
-  system_instruction = file("../prompts/agents/Prompt_Draft_Eligibility.md")
+  system_instruction = file("../prompts/agents/UserResearch/December-Concept1.md")
 }
 
 resource "aws_iam_role" "bedrock_agent_role" {
