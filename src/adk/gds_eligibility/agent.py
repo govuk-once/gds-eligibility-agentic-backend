@@ -24,6 +24,6 @@ root_agent = Agent(
     description="A helpful assistant for user questions.",
     instruction=get_prompt(
         #  "agents/TechnicalHypotheses/adhoc-skilledWorkerVisa.md"
-        "agents/TechnicalHypotheses/Accuracy-ChildBenefit-v1.md"
+        "agents/TechnicalHypotheses/Accuracy-ChildBenefit-v2.md"
     ),
 )
