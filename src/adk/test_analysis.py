@@ -66,30 +66,39 @@ def extract_results_for_folder(output_dir, search_character):
 def main():
     for output_dir in Path('.testOutputs').glob('*'):
         test_case= str(output_dir.relative_to(".testOutputs"))
-        print('failures:')
+
+        #  print('failures:')
         failure_df[test_case] = extract_results_for_folder(output_dir, "✗")
-        print(failure_df[test_case].value_counts("permutation"))
-        print('successes:')
-        success_df[test_case] = extract_results_for_folder(output_dir, "✓")
-        print(success_df[test_case].value_counts("permutation"))
-
-        success_df[test_case]["Passed"] = True
         failure_df[test_case]["Passed"] = False
-        success_df[test_case]["commit"].fillna("Unknown", inplace=True)
         failure_df[test_case]["commit"].fillna("Unknown", inplace=True)
-
-        success_df[test_case].set_index(["commit", "exec_time", "permutation"], inplace=True)
         failure_df[test_case].set_index(["commit", "exec_time", "permutation"], inplace=True)
+        failure_df[test_case]["ModelSize"] = failure_df[test_case].index.get_level_values(0).map(model_size_commit_mapping[test_case])
+        #  print(failure_df[test_case].value_counts(["permutation", "ModelSize"]))
+
+        #  print('successes:')
+        success_df[test_case] = extract_results_for_folder(output_dir, "✓")
+        success_df[test_case]["Passed"] = True
+        success_df[test_case]["commit"].fillna("Unknown", inplace=True)
+        success_df[test_case].set_index(["commit", "exec_time", "permutation"], inplace=True)
+        success_df[test_case]["ModelSize"] = success_df[test_case].index.get_level_values(0).map(model_size_commit_mapping[test_case])
+        #  print(success_df[test_case].value_counts(["permutation", "ModelSize"]))
+
         combined_df[test_case] = pd.concat(
             [
                 success_df[test_case],
                 failure_df[test_case]
             ],
         )
-        combined_df[test_case]["ModelSize"] = combined_df[test_case].index.get_level_values(0).map(model_size_commit_mapping[test_case])
+
+        combined_df[test_case].set_index(["ModelSize"], inplace=True, append=True)
         print(combined_df[test_case].value_counts(["Passed", "ModelSize"]))
+        print(combined_df[test_case].value_counts(["ModelSize", "permutation"], ascending=True))
+
         success_rates_by_permutation = combined_df[test_case][combined_df[test_case]["Passed"] == True].index.get_level_values(2).value_counts() / combined_df[test_case].index.get_level_values(2).value_counts()
-        print(success_rates_by_permutation.nsmallest())
+        print(success_rates_by_permutation.nsmallest(n=15))
+
+        success_rates_by_permutation_model_size = combined_df[test_case][combined_df[test_case]["Passed"] == True].index.droplevel(0).droplevel(0).value_counts() / combined_df[test_case].index.droplevel(0).droplevel(0).value_counts()
+        print(success_rates_by_permutation_model_size.nsmallest(n=15))
 
 
 if __name__ == "__main__":
