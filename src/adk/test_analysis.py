@@ -12,8 +12,10 @@ import seaborn as sns
 failure_df = {}
 success_df = {}
 combined_df = {}
+combined_df_raw = {}
 success_rates_by_permutation = {}
 success_rates_by_permutation_model_size = {}
+large_model_improvement_by_permutation = {}
 
 def invert_mapping(dictionary: dict) -> dict:
     return {elem: k for k, v in dictionary.items() for elem in v}
@@ -88,14 +90,14 @@ def main():
         success_df[test_case]["ModelSize"] = success_df[test_case].index.get_level_values(0).map(model_size_commit_mapping[test_case])
         #  print(success_df[test_case].value_counts(["permutation", "ModelSize"]))
 
-        combined_df[test_case] = pd.concat(
+        combined_df_raw[test_case] = pd.concat(
             [
                 success_df[test_case],
                 failure_df[test_case]
             ],
         )
 
-        combined_df[test_case].set_index(["ModelSize"], inplace=True, append=True)
+        combined_df[test_case] = combined_df_raw[test_case].set_index(["ModelSize"], append=True)
         print(combined_df[test_case].value_counts(["Passed", "ModelSize"]))
         print(combined_df[test_case].value_counts(["ModelSize", "permutation"], ascending=True))
 
@@ -105,10 +107,8 @@ def main():
         success_rates_by_permutation_model_size[test_case] = 100 * combined_df[test_case][combined_df[test_case]["Passed"] == True].index.droplevel(0).droplevel(0).value_counts() / combined_df[test_case].index.droplevel(0).droplevel(0).value_counts()
         print(success_rates_by_permutation_model_size[test_case].nsmallest(n=15))
 
-
-        fig = plt.figure(test_case)
+        fig = plt.figure(f"hist_{test_case}")
         fig.clear()
-
         ax = sns.histplot(
             success_rates_by_permutation_model_size[test_case].reset_index(),
             x='count',
@@ -121,9 +121,37 @@ def main():
         ax.set_title("Accuracy of agent (according to judge) for {}".format(test_case.replace("_", " ")))
         ax.set_ylabel("Count")
         ax.set_xlabel("Percentage correctness over all executions")
+        fig.savefig(f"success_rates_by_permutation_model_size.hist.{test_case}.png")
+        large_model_improvement_by_permutation[test_case] = (
+            (
+                combined_df_raw[test_case][
+                    (combined_df_raw[test_case]["Passed"] == True)
+                    & (combined_df_raw[test_case]["ModelSize"] == "large")
+                ].index.get_level_values(2).value_counts()
+                / combined_df_raw[test_case][
+                    (combined_df_raw[test_case]["ModelSize"] == "large")
+                ].index.get_level_values(2).value_counts()
+            )
+            - (
+                combined_df_raw[test_case][
+                    (combined_df_raw[test_case]["Passed"] == True)
+                    & (combined_df_raw[test_case]["ModelSize"] == "small")
+                ].index.get_level_values(2).value_counts()
+                / combined_df_raw[test_case][
+                    (combined_df_raw[test_case]["ModelSize"] == "small")
+                ].index.get_level_values(2).value_counts()
+            )
+        )
 
-        fig.savefig(f"success_rates_by_permutation_model_size.{test_case}.png")
+        fig = plt.figure(f"improvement_{test_case}")
         fig.clear()
+        (100 * large_model_improvement_by_permutation[test_case]).hist(
+        )
+        ax = fig.get_axes()[0]
+        ax.set_title("Improvement in accuracy with model size (according to judge) for {}".format(test_case.replace("_", " ")))
+        ax.set_ylabel("Count")
+        ax.set_xlabel("Large model accuracy minus small model accuracy for a given permutation")
+        fig.savefig(f"success_rates_by_permutation_model_size.improvement.hist.{test_case}.png")
 
 
 if __name__ == "__main__":
