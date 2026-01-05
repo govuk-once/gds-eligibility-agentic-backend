@@ -1,14 +1,19 @@
 #!/usr/bin/env ipython
 import re
-import pandas as pd
 from pathlib import Path
 import subprocess
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 failure_df = {}
 success_df = {}
 combined_df = {}
-
+success_rates_by_permutation = {}
+success_rates_by_permutation_model_size = {}
 
 def invert_mapping(dictionary: dict) -> dict:
     return {elem: k for k, v in dictionary.items() for elem in v}
@@ -94,11 +99,31 @@ def main():
         print(combined_df[test_case].value_counts(["Passed", "ModelSize"]))
         print(combined_df[test_case].value_counts(["ModelSize", "permutation"], ascending=True))
 
-        success_rates_by_permutation = combined_df[test_case][combined_df[test_case]["Passed"] == True].index.get_level_values(2).value_counts() / combined_df[test_case].index.get_level_values(2).value_counts()
-        print(success_rates_by_permutation.nsmallest(n=15))
+        success_rates_by_permutation[test_case] = 100 * combined_df[test_case][combined_df[test_case]["Passed"] == True].index.get_level_values(2).value_counts() / combined_df[test_case].index.get_level_values(2).value_counts()
+        print(success_rates_by_permutation[test_case].nsmallest(n=15))
 
-        success_rates_by_permutation_model_size = combined_df[test_case][combined_df[test_case]["Passed"] == True].index.droplevel(0).droplevel(0).value_counts() / combined_df[test_case].index.droplevel(0).droplevel(0).value_counts()
-        print(success_rates_by_permutation_model_size.nsmallest(n=15))
+        success_rates_by_permutation_model_size[test_case] = 100 * combined_df[test_case][combined_df[test_case]["Passed"] == True].index.droplevel(0).droplevel(0).value_counts() / combined_df[test_case].index.droplevel(0).droplevel(0).value_counts()
+        print(success_rates_by_permutation_model_size[test_case].nsmallest(n=15))
+
+
+        fig = plt.figure(test_case)
+        fig.clear()
+
+        ax = sns.histplot(
+            success_rates_by_permutation_model_size[test_case].reset_index(),
+            x='count',
+            hue='ModelSize',
+            multiple='dodge',
+            shrink=0.7,
+            bins=20,
+            common_bins=True,
+        );
+        ax.set_title("Accuracy of agent (according to judge) for {}".format(test_case.replace("_", " ")))
+        ax.set_ylabel("Count")
+        ax.set_xlabel("Percentage correctness over all executions")
+
+        fig.savefig(f"success_rates_by_permutation_model_size.{test_case}.png")
+        fig.clear()
 
 
 if __name__ == "__main__":
