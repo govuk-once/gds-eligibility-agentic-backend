@@ -129,6 +129,7 @@ def main():
             / combined_df[test_case].index.droplevel(0).droplevel(0).value_counts()
         )
         print(success_rates_by_permutation_model_size[test_case].nsmallest(n=15))
+        print(success_rates_by_permutation_model_size[test_case].reset_index().set_index("permutation").value_counts())
 
         fig = plt.figure(f"hist_{test_case}")
         fig.clear()
@@ -192,6 +193,7 @@ def main():
         fig.savefig(
             f"success_rates_by_permutation_model_size.improvement.hist.{test_case}.png"
         )
+        print(large_model_improvement_by_permutation[test_case].value_counts())
 
 
 if __name__ == "__main__":
