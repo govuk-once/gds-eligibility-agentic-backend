@@ -6,6 +6,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 import seaborn as sns
 
 
@@ -145,12 +146,12 @@ def main():
 
         fig = plt.figure(f"improvement_{test_case}")
         fig.clear()
-        (100 * large_model_improvement_by_permutation[test_case]).hist(
-        )
+        large_model_improvement_by_permutation[test_case].hist()
         ax = fig.get_axes()[0]
-        ax.set_title("Improvement in accuracy with model size (according to judge) for {}".format(test_case.replace("_", " ")))
-        ax.set_ylabel("Count")
-        ax.set_xlabel("Large model accuracy minus small model accuracy for a given permutation")
+        ax.set_title("Difference in judged accuracy with varying model size for {}".format(test_case.replace("_", " ")))
+        ax.set_ylabel("Count of permutations")
+        ax.set_xlabel("Large model accuracy % minus small model accuracy % for a given permutation")
+        ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
         fig.savefig(f"success_rates_by_permutation_model_size.improvement.hist.{test_case}.png")
 
 
