@@ -39,7 +39,7 @@ model_size_commit_mapping = {
 }
 
 
-def extract_results_for_folder(output_dir, search_character):
+def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
     print(output_dir)
     extracted_records = []
     output = subprocess.run(
@@ -69,7 +69,7 @@ def extract_results_for_folder(output_dir, search_character):
     return pd.DataFrame.from_records(extracted_records)
 
 
-def load_and_parse_test_cases(test_cohort: str):
+def load_and_parse_test_cases(test_cohort: str) -> list[str]:
     test_case_file = Path(f"../../prompts/manual/test_cases/{test_cohort}.md")
     with test_case_file.open() as f:
         raw_test_cases = f.readlines()
@@ -78,7 +78,7 @@ def load_and_parse_test_cases(test_cohort: str):
     return test_cases
 
 
-def extract_test_cases_for_test_cohort(test_cohort):
+def extract_test_cases_for_test_cohort(test_cohort) -> pd.DataFrame:
     test_cases = load_and_parse_test_cases(test_cohort)
     extracted_records = []
     for test_case in test_cases:
@@ -122,7 +122,7 @@ def get_eligibility_case(row):
             return "NotEligible"
 
 
-def load_failure_df(output_dir, test_cohort):
+def load_failure_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('failures:')
     df = extract_results_for_folder(output_dir, "✗")
     df["Passed"] = False
@@ -135,7 +135,7 @@ def load_failure_df(output_dir, test_cohort):
     return df
 
 
-def load_success_df(output_dir, test_cohort):
+def load_success_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('successes:')
     df = extract_results_for_folder(output_dir, "✓")
     df["Passed"] = True
@@ -148,7 +148,7 @@ def load_success_df(output_dir, test_cohort):
     return df
 
 
-def get_success_rates_by_permutation(combined_df: pd.DataFrame):
+def get_success_rates_by_permutation(combined_df: pd.DataFrame) -> pd.DataFrame:
     df = (
         100
         * combined_df[combined_df["Passed"] == True]
@@ -160,7 +160,7 @@ def get_success_rates_by_permutation(combined_df: pd.DataFrame):
     return df
 
 
-def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_cohort):
+def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_cohort) -> pd.DataFrame:
     df = (
         100
         * combined_df[combined_df["Passed"] == True]
@@ -196,8 +196,9 @@ def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_
 
 
 def get_large_model_improvements_by_permutation(
-    combined_df_raw: pd.DataFrame, test_cohort
-):
+    combined_df_raw: pd.DataFrame,
+    test_cohort
+) -> pd.DataFrame:
     df = (
         combined_df_raw[
             (combined_df_raw["Passed"] == True)
@@ -245,7 +246,7 @@ def get_success_rates_by_eligibility(
     success_rates_by_permutation: pd.DataFrame,
     eligibility_df: pd.DataFrame,
     test_cohort,
-):
+) -> pd.DataFrame:
     fig = plt.figure(f"eligibility_{test_cohort}")
     fig.clear()
     df = eligibility_df.join(success_rates_by_permutation)
@@ -272,10 +273,10 @@ def get_success_rates_by_eligibility(
 
 
 def get_success_rates_by_eligibility_model_size(
-    success_rates_by_permutation_model_size,
-    eligibility_df,
+    success_rates_by_permutation_model_size: pd.DataFrame,
+    eligibility_df: pd.DataFrame,
     test_cohort,
-):
+) -> pd.DataFrame:
     fig = plt.figure(f"confusion_{test_cohort}")
     fig.clear()
     df = eligibility_df.join(success_rates_by_permutation_model_size)
