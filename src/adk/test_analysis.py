@@ -19,6 +19,7 @@ success_rates_by_permutation_model_sizes = {}
 large_model_improvement_by_permutations = {}
 eligibility_dfs = {}
 success_rates_by_eligibilitys = {}
+success_rates_by_eligibility_model_size = {}
 
 
 def invert_mapping(dictionary: dict) -> dict:
@@ -270,6 +271,37 @@ def get_success_rates_by_eligibility(
     return df
 
 
+def get_success_rates_by_eligibility_model_size(
+    success_rates_by_permutation_model_size,
+    eligibility_df,
+    test_cohort,
+):
+    fig = plt.figure(f"confusion_{test_cohort}")
+    fig.clear()
+    df = eligibility_df.join(success_rates_by_permutation_model_size)
+    df["eligibility_cat"] = df.apply(get_eligibility_case, axis=1)
+
+    df = df.reset_index().groupby(["eligibility_cat", "ModelSize"], axis=0).mean("count")
+
+    ax = sns.heatmap(
+        df.reset_index().pivot(index="ModelSize", columns="eligibility_cat", values="count"),
+        annot=True,
+        fmt=".1f"
+    )
+
+    ax.set_ylabel("Model Size")
+    ax.set_xlabel("Eligibility Category")
+    #  ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
+    ax.set_title(
+        "Average judged accuracy for model size and eligibility category for {}".format(
+            test_cohort.replace("_", " ")
+        )
+    )
+
+    fig.savefig(f"success_rates_by_eligibility.confusion.{test_cohort}.png")
+    return df
+
+
 def main():
     for output_dir in Path(".testOutputs").glob("*"):
         test_cohort = str(output_dir.relative_to(".testOutputs"))
@@ -316,6 +348,11 @@ def main():
             )
             success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
                 success_rates_by_permutations[test_cohort],
+                eligibility_dfs[test_cohort],
+                test_cohort,
+            )
+            success_rates_by_eligibility_model_size[test_cohort] = get_success_rates_by_eligibility_model_size(
+                success_rates_by_permutation_model_sizes[test_cohort],
                 eligibility_dfs[test_cohort],
                 test_cohort,
             )
