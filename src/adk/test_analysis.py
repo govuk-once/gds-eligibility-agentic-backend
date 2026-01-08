@@ -272,8 +272,6 @@ def get_success_rates_by_eligibility(
 
 def main():
     for output_dir in Path(".testOutputs").glob("*"):
-        if output_dir.name != "child_benefit":
-            continue
         test_cohort = str(output_dir.relative_to(".testOutputs"))
         failure_dfs[test_cohort] = load_failure_df(output_dir, test_cohort)
         success_dfs[test_cohort] = load_success_df(output_dir, test_cohort)
@@ -316,11 +314,11 @@ def main():
                     ["Passed", "eligible", "not_eligible"]
                 )
             )
-        success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
-            success_rates_by_permutations[test_cohort],
-            eligibility_dfs[test_cohort],
-            test_cohort,
-        )
+            success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
+                success_rates_by_permutations[test_cohort],
+                eligibility_dfs[test_cohort],
+                test_cohort,
+            )
 
 
 if __name__ == "__main__":
