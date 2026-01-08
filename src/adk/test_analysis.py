@@ -17,6 +17,8 @@ combined_df_raw = {}
 success_rates_by_permutation = {}
 success_rates_by_permutation_model_size = {}
 large_model_improvement_by_permutation = {}
+eligibility_df = {}
+success_rates_by_eligibility = {}
 
 
 def invert_mapping(dictionary: dict) -> dict:
@@ -61,12 +63,66 @@ def extract_results_for_folder(output_dir, search_character):
                     r"(?P<exec_time>[\d:T\.-]+)/Permutation(?P<permutation>\d+).out",
                     filename,
                 ).groupdict()
+            extracted_fields["permutation"] = int(extracted_fields["permutation"])
             extracted_records.append(extracted_fields)
     return pd.DataFrame.from_records(extracted_records)
 
 
+def load_and_parse_test_cases(test_cohort: str):
+    test_case_file = Path(f"../../prompts/manual/test_cases/{test_cohort}.md")
+    with test_case_file.open() as f:
+        raw_test_cases = f.readlines()
+    test_cases_str = "\n".join(raw_test_cases)
+    test_cases = test_cases_str.split(sep="---")
+    return test_cases
+
+
+def extract_test_cases_for_test_cohort(test_cohort):
+    test_cases = load_and_parse_test_cases(test_cohort)
+    extracted_records = []
+    for test_case in test_cases:
+        parsed_test_case = list(filter(len, test_case.split("\n")))
+        extracted_records.append(dict(
+            permutation=extract_permutation_number_from_test_case(parsed_test_case),
+            #  "eligible": extract_eligibility_from_test_case(parsed_test_case),
+            **extract_eligibility_from_test_case(parsed_test_case)
+        ))
+    return pd.DataFrame.from_records(extracted_records, index="permutation")
+
+
+def extract_eligibility_from_test_case(test_case):
+    outcome = test_case[-1]
+    assert "**Outcome:**" in outcome, outcome
+    #  assert outcome.count("Eligible") == 1, outcome
+
+    return {
+        "not_eligible": bool(outcome.count("Not Eligible")),
+        # If we find the words Eligible outside of the string "Not Eligible" (as the former is a substring of the latter we can just subtract occurrences) then we know the results is partial eligibility
+        "eligible": bool(outcome.count("Eligible") - outcome.count("Not Eligible"))
+    }
+
+
+def extract_permutation_number_from_test_case(test_case):
+    permutation = test_case[0]
+    p_match= re.search(
+        r"Permutation (?P<permutation_number>[\d]+):",
+        permutation
+    )
+    assert p_match and len(p_match.groups()) == 1
+    return int(p_match.groups()[0])
+
+
+def get_eligibility_case(row):
+    match (row["eligible"], row["not_eligible"]):
+        case (True, True): return "Both"
+        case (True, False): return "Eligible"
+        case (False, True): return "NotEligible"
+
+
 def main():
     for output_dir in Path(".testOutputs").glob("*"):
+        if output_dir.name != "child_benefit":
+            continue
         test_cohort = str(output_dir.relative_to(".testOutputs"))
 
         #  print('failures:')
@@ -100,6 +156,8 @@ def main():
         combined_df_raw[test_cohort] = pd.concat(
             [success_df[test_cohort], failure_df[test_cohort]],
         )
+        eligibility_df[test_cohort] = extract_test_cases_for_test_cohort(test_cohort)
+        combined_df_raw[test_cohort] = combined_df_raw[test_cohort].join(eligibility_df[test_cohort], on="permutation")
 
         combined_df[test_cohort] = combined_df_raw[test_cohort].set_index(
             ["ModelSize"], append=True
@@ -150,6 +208,7 @@ def main():
         ax.set_ylabel("Count")
         ax.set_xlabel("Percentage correctness over all executions")
         fig.savefig(f"success_rates_by_permutation_model_size.hist.{test_cohort}.png")
+
         large_model_improvement_by_permutation[test_cohort] = (
             combined_df_raw[test_cohort][
                 (combined_df_raw[test_cohort]["Passed"] == True)
@@ -194,6 +253,31 @@ def main():
             f"success_rates_by_permutation_model_size.improvement.hist.{test_cohort}.png"
         )
         print(large_model_improvement_by_permutation[test_cohort].value_counts())
+
+        fig = plt.figure(f"eligibility_{test_cohort}")
+        fig.clear()
+        print(combined_df_raw[test_cohort].value_counts(["Passed", "eligible", "not_eligible"]))
+        success_rates_by_eligibility[test_cohort] = eligibility_df[test_cohort].join(success_rates_by_permutation[test_cohort])
+        success_rates_by_eligibility[test_cohort]["eligibility_cat"] = success_rates_by_eligibility[test_cohort].apply(get_eligibility_case, axis=1)
+
+        ax = sns.histplot(
+            success_rates_by_eligibility[test_cohort],
+            x="count",
+            hue="eligibility_cat",
+            multiple="dodge",
+            shrink=0.7,
+            bins=20,
+            common_bins=True,
+        )
+        ax.set_ylabel("Count of permutations")
+        ax.set_xlabel(
+            "Model Accuracy %"
+        )
+        ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
+
+        fig.savefig(
+            f"success_rates_by_eligibility.hist.{test_cohort}.png"
+        )
 
 
 if __name__ == "__main__":
