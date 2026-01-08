@@ -19,12 +19,21 @@ from evaluation_judge.agent import review_pipeline
 async def main():
     test_cohort = "child_benefit"
     #  test_cohort = "skilled_worker_visa"
-    git_commit = run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, check=True, text=True).stdout.strip("\n")
+    git_commit = run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
     session_service = InMemorySessionService()
     artifact_service = InMemoryArtifactService()
     credential_service = InMemoryCredentialService()
-    output_dir = Path("./.testOutputs").joinpath(test_cohort).joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
+    output_dir = (
+        Path("./.testOutputs")
+        .joinpath(test_cohort)
+        .joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
+    )
     output_dir.mkdir(parents=True)
     #  test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
@@ -36,7 +45,9 @@ async def main():
             credential_service,
             output_dir,
         )
-    run(["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True) # Don't check as no results returns error
+    run(
+        ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
+    )  # Don't check as no results returns error
 
 
 async def execute_test_case(

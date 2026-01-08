@@ -82,11 +82,13 @@ def extract_test_cases_for_test_cohort(test_cohort):
     extracted_records = []
     for test_case in test_cases:
         parsed_test_case = list(filter(len, test_case.split("\n")))
-        extracted_records.append(dict(
-            permutation=extract_permutation_number_from_test_case(parsed_test_case),
-            #  "eligible": extract_eligibility_from_test_case(parsed_test_case),
-            **extract_eligibility_from_test_case(parsed_test_case)
-        ))
+        extracted_records.append(
+            dict(
+                permutation=extract_permutation_number_from_test_case(parsed_test_case),
+                #  "eligible": extract_eligibility_from_test_case(parsed_test_case),
+                **extract_eligibility_from_test_case(parsed_test_case),
+            )
+        )
     return pd.DataFrame.from_records(extracted_records, index="permutation")
 
 
@@ -98,25 +100,25 @@ def extract_eligibility_from_test_case(test_case):
     return {
         "not_eligible": bool(outcome.count("Not Eligible")),
         # If we find the words Eligible outside of the string "Not Eligible" (as the former is a substring of the latter we can just subtract occurrences) then we know the results is partial eligibility
-        "eligible": bool(outcome.count("Eligible") - outcome.count("Not Eligible"))
+        "eligible": bool(outcome.count("Eligible") - outcome.count("Not Eligible")),
     }
 
 
 def extract_permutation_number_from_test_case(test_case):
     permutation = test_case[0]
-    p_match= re.search(
-        r"Permutation (?P<permutation_number>[\d]+):",
-        permutation
-    )
+    p_match = re.search(r"Permutation (?P<permutation_number>[\d]+):", permutation)
     assert p_match and len(p_match.groups()) == 1
     return int(p_match.groups()[0])
 
 
 def get_eligibility_case(row):
     match (row["eligible"], row["not_eligible"]):
-        case (True, True): return "Both"
-        case (True, False): return "Eligible"
-        case (False, True): return "NotEligible"
+        case (True, True):
+            return "Both"
+        case (True, False):
+            return "Eligible"
+        case (False, True):
+            return "NotEligible"
 
 
 def load_failure_df(output_dir, test_cohort):
@@ -124,29 +126,22 @@ def load_failure_df(output_dir, test_cohort):
     df = extract_results_for_folder(output_dir, "✗")
     df["Passed"] = False
     df["commit"].fillna("Unknown", inplace=True)
-    df.set_index(
-        ["commit", "exec_time", "permutation"], inplace=True
-    )
-    df["ModelSize"] = (
-        df
-        .index.get_level_values(0)
-        .map(model_size_commit_mapping[test_cohort])
+    df.set_index(["commit", "exec_time", "permutation"], inplace=True)
+    df["ModelSize"] = df.index.get_level_values(0).map(
+        model_size_commit_mapping[test_cohort]
     )
     #  print(df.value_counts(["permutation", "ModelSize"]))
     return df
+
 
 def load_success_df(output_dir, test_cohort):
     #  print('successes:')
     df = extract_results_for_folder(output_dir, "✓")
     df["Passed"] = True
     df["commit"].fillna("Unknown", inplace=True)
-    df.set_index(
-        ["commit", "exec_time", "permutation"], inplace=True
-    )
-    df["ModelSize"] = (
-        df
-        .index.get_level_values(0)
-        .map(model_size_commit_mapping[test_cohort])
+    df.set_index(["commit", "exec_time", "permutation"], inplace=True)
+    df["ModelSize"] = df.index.get_level_values(0).map(
+        model_size_commit_mapping[test_cohort]
     )
     #  print(df.value_counts(["permutation", "ModelSize"]))
     return df
@@ -199,7 +194,9 @@ def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_
     return df
 
 
-def get_large_model_improvements_by_permutation(combined_df_raw: pd.DataFrame, test_cohort):
+def get_large_model_improvements_by_permutation(
+    combined_df_raw: pd.DataFrame, test_cohort
+):
     df = (
         combined_df_raw[
             (combined_df_raw["Passed"] == True)
@@ -207,9 +204,7 @@ def get_large_model_improvements_by_permutation(combined_df_raw: pd.DataFrame, t
         ]
         .index.get_level_values(2)
         .value_counts()
-        / combined_df_raw[
-            (combined_df_raw["ModelSize"] == "large")
-        ]
+        / combined_df_raw[(combined_df_raw["ModelSize"] == "large")]
         .index.get_level_values(2)
         .value_counts()
     ) - (
@@ -219,9 +214,7 @@ def get_large_model_improvements_by_permutation(combined_df_raw: pd.DataFrame, t
         ]
         .index.get_level_values(2)
         .value_counts()
-        / combined_df_raw[
-            (combined_df_raw["ModelSize"] == "small")
-        ]
+        / combined_df_raw[(combined_df_raw["ModelSize"] == "small")]
         .index.get_level_values(2)
         .value_counts()
     )
@@ -247,7 +240,11 @@ def get_large_model_improvements_by_permutation(combined_df_raw: pd.DataFrame, t
     return df
 
 
-def get_success_rates_by_eligibility(success_rates_by_permutation: pd.DataFrame, eligibility_df: pd.DataFrame, test_cohort):
+def get_success_rates_by_eligibility(
+    success_rates_by_permutation: pd.DataFrame,
+    eligibility_df: pd.DataFrame,
+    test_cohort,
+):
     fig = plt.figure(f"eligibility_{test_cohort}")
     fig.clear()
     df = eligibility_df.join(success_rates_by_permutation)
@@ -266,14 +263,10 @@ def get_success_rates_by_eligibility(success_rates_by_permutation: pd.DataFrame,
         common_bins=True,
     )
     ax.set_ylabel("Count of permutations")
-    ax.set_xlabel(
-        "Model Accuracy %"
-    )
+    ax.set_xlabel("Model Accuracy %")
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
 
-    fig.savefig(
-        f"success_rates_by_eligibility.hist.{test_cohort}.png"
-    )
+    fig.savefig(f"success_rates_by_eligibility.hist.{test_cohort}.png")
     return df
 
 
@@ -288,8 +281,12 @@ def main():
             [success_dfs[test_cohort], failure_dfs[test_cohort]],
         )
         if output_dir.name == "child_benefit":
-            eligibility_dfs[test_cohort] = extract_test_cases_for_test_cohort(test_cohort)
-            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(eligibility_dfs[test_cohort], on="permutation")
+            eligibility_dfs[test_cohort] = extract_test_cases_for_test_cohort(
+                test_cohort
+            )
+            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+                eligibility_dfs[test_cohort], on="permutation"
+            )
 
         combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
             ["ModelSize"], append=True
@@ -300,12 +297,30 @@ def main():
                 ["ModelSize", "permutation"], ascending=True
             )
         )
-        success_rates_by_permutations[test_cohort] = get_success_rates_by_permutation(combined_dfs[test_cohort])
-        success_rates_by_permutation_model_sizes[test_cohort] = get_success_rates_by_permutation_model_size(combined_dfs[test_cohort], test_cohort)
-        large_model_improvement_by_permutations[test_cohort] = get_large_model_improvements_by_permutation(combined_dfs_raw[test_cohort], test_cohort)
+        success_rates_by_permutations[test_cohort] = get_success_rates_by_permutation(
+            combined_dfs[test_cohort]
+        )
+        success_rates_by_permutation_model_sizes[test_cohort] = (
+            get_success_rates_by_permutation_model_size(
+                combined_dfs[test_cohort], test_cohort
+            )
+        )
+        large_model_improvement_by_permutations[test_cohort] = (
+            get_large_model_improvements_by_permutation(
+                combined_dfs_raw[test_cohort], test_cohort
+            )
+        )
         if output_dir.name == "child_benefit":
-            print(combined_dfs_raw[test_cohort].value_counts(["Passed", "eligible", "not_eligible"]))
-        success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(success_rates_by_permutations[test_cohort], eligibility_dfs[test_cohort], test_cohort)
+            print(
+                combined_dfs_raw[test_cohort].value_counts(
+                    ["Passed", "eligible", "not_eligible"]
+                )
+            )
+        success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
+            success_rates_by_permutations[test_cohort],
+            eligibility_dfs[test_cohort],
+            test_cohort,
+        )
 
 
 if __name__ == "__main__":
