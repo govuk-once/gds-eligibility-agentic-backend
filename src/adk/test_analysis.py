@@ -294,12 +294,10 @@ def get_success_rates_by_eligibility_model_size(
     ax.set_xlabel("Eligibility Category")
     #  ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
     ax.set_title(
-        "Average judged accuracy for model size and eligibility category for {}".format(
-            test_cohort.replace("_", " ")
-        )
+        "Average judged accuracy for model size and eligibility category"
     )
 
-    fig.savefig(f"success_rates_by_eligibility.confusion.{test_cohort}.png")
+    fig.savefig(f"success_rates_by_eligibility.modelSize.{test_cohort}.png")
     return df
 
 
