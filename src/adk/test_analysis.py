@@ -10,15 +10,15 @@ import matplotlib
 import seaborn as sns
 
 
-failure_df = {}
-success_df = {}
-combined_df = {}
-combined_df_raw = {}
-success_rates_by_permutation = {}
-success_rates_by_permutation_model_size = {}
-large_model_improvement_by_permutation = {}
-eligibility_df = {}
-success_rates_by_eligibility = {}
+failure_dfs = {}
+success_dfs = {}
+combined_dfs = {}
+combined_dfs_raw = {}
+success_rates_by_permutations = {}
+success_rates_by_permutation_model_sizes = {}
+large_model_improvement_by_permutations = {}
+eligibility_dfs = {}
+success_rates_by_eligibilitys = {}
 
 
 def invert_mapping(dictionary: dict) -> dict:
@@ -119,165 +119,193 @@ def get_eligibility_case(row):
         case (False, True): return "NotEligible"
 
 
+def load_failure_df(output_dir, test_cohort):
+    #  print('failures:')
+    df = extract_results_for_folder(output_dir, "✗")
+    df["Passed"] = False
+    df["commit"].fillna("Unknown", inplace=True)
+    df.set_index(
+        ["commit", "exec_time", "permutation"], inplace=True
+    )
+    df["ModelSize"] = (
+        df
+        .index.get_level_values(0)
+        .map(model_size_commit_mapping[test_cohort])
+    )
+    #  print(df.value_counts(["permutation", "ModelSize"]))
+    return df
+
+def load_success_df(output_dir, test_cohort):
+    #  print('successes:')
+    df = extract_results_for_folder(output_dir, "✓")
+    df["Passed"] = True
+    df["commit"].fillna("Unknown", inplace=True)
+    df.set_index(
+        ["commit", "exec_time", "permutation"], inplace=True
+    )
+    df["ModelSize"] = (
+        df
+        .index.get_level_values(0)
+        .map(model_size_commit_mapping[test_cohort])
+    )
+    #  print(df.value_counts(["permutation", "ModelSize"]))
+    return df
+
+
+def get_success_rates_by_permutation(combined_df: pd.DataFrame):
+    df = (
+        100
+        * combined_df[combined_df["Passed"] == True]
+        .index.get_level_values(2)
+        .value_counts()
+        / combined_df.index.get_level_values(2).value_counts()
+    )
+    print(df.nsmallest(n=15))
+    return df
+
+
+def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_cohort):
+    df = (
+        100
+        * combined_df[combined_df["Passed"] == True]
+        .index.droplevel(0)
+        .droplevel(0)
+        .value_counts()
+        / combined_df.index.droplevel(0).droplevel(0).value_counts()
+    )
+    print(df.nsmallest(n=15))
+    print(df.reset_index().set_index("permutation").value_counts())
+
+    fig = plt.figure(f"hist_{test_cohort}")
+    fig.clear()
+    ax = sns.histplot(
+        df.reset_index(),
+        x="count",
+        hue="ModelSize",
+        multiple="dodge",
+        shrink=0.7,
+        bins=20,
+        common_bins=True,
+    )
+    ax.set_title(
+        "Accuracy of agent (according to judge) for {}".format(
+            test_cohort.replace("_", " ")
+        )
+    )
+    ax.set_ylabel("Count")
+    ax.set_xlabel("Percentage correctness over all executions")
+    fig.savefig(f"success_rates_by_permutation_model_size.hist.{test_cohort}.png")
+
+    return df
+
+
+def get_large_model_improvements_by_permutation(combined_df_raw: pd.DataFrame, test_cohort):
+    df = (
+        combined_df_raw[
+            (combined_df_raw["Passed"] == True)
+            & (combined_df_raw["ModelSize"] == "large")
+        ]
+        .index.get_level_values(2)
+        .value_counts()
+        / combined_df_raw[
+            (combined_df_raw["ModelSize"] == "large")
+        ]
+        .index.get_level_values(2)
+        .value_counts()
+    ) - (
+        combined_df_raw[
+            (combined_df_raw["Passed"] == True)
+            & (combined_df_raw["ModelSize"] == "small")
+        ]
+        .index.get_level_values(2)
+        .value_counts()
+        / combined_df_raw[
+            (combined_df_raw["ModelSize"] == "small")
+        ]
+        .index.get_level_values(2)
+        .value_counts()
+    )
+
+    fig = plt.figure(f"improvement_{test_cohort}")
+    fig.clear()
+    df.hist()
+    ax = fig.get_axes()[0]
+    ax.set_title(
+        "Difference in judged accuracy with varying model size for {}".format(
+            test_cohort.replace("_", " ")
+        )
+    )
+    ax.set_ylabel("Count of permutations")
+    ax.set_xlabel(
+        "Large model accuracy % minus small model accuracy % for a given permutation"
+    )
+    ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
+    fig.savefig(
+        f"success_rates_by_permutation_model_size.improvement.hist.{test_cohort}.png"
+    )
+    print(df.value_counts())
+    return df
+
+
+def get_success_rates_by_eligibility(success_rates_by_permutation: pd.DataFrame, eligibility_df: pd.DataFrame, test_cohort):
+    fig = plt.figure(f"eligibility_{test_cohort}")
+    fig.clear()
+    df = eligibility_df.join(success_rates_by_permutation)
+    df["eligibility_cat"] = df.apply(get_eligibility_case, axis=1)
+
+    #  df = df.set_index(["eligible", "not_eligible"], append=True)
+    #  df.hist()
+
+    ax = sns.histplot(
+        df,
+        x="count",
+        hue="eligibility_cat",
+        multiple="dodge",
+        shrink=0.7,
+        bins=20,
+        common_bins=True,
+    )
+    ax.set_ylabel("Count of permutations")
+    ax.set_xlabel(
+        "Model Accuracy %"
+    )
+    ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
+
+    fig.savefig(
+        f"success_rates_by_eligibility.hist.{test_cohort}.png"
+    )
+    return df
+
+
 def main():
     for output_dir in Path(".testOutputs").glob("*"):
         if output_dir.name != "child_benefit":
             continue
         test_cohort = str(output_dir.relative_to(".testOutputs"))
+        failure_dfs[test_cohort] = load_failure_df(output_dir, test_cohort)
+        success_dfs[test_cohort] = load_success_df(output_dir, test_cohort)
+        combined_dfs_raw[test_cohort] = pd.concat(
+            [success_dfs[test_cohort], failure_dfs[test_cohort]],
+        )
+        if output_dir.name == "child_benefit":
+            eligibility_dfs[test_cohort] = extract_test_cases_for_test_cohort(test_cohort)
+            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(eligibility_dfs[test_cohort], on="permutation")
 
-        #  print('failures:')
-        failure_df[test_cohort] = extract_results_for_folder(output_dir, "✗")
-        failure_df[test_cohort]["Passed"] = False
-        failure_df[test_cohort]["commit"].fillna("Unknown", inplace=True)
-        failure_df[test_cohort].set_index(
-            ["commit", "exec_time", "permutation"], inplace=True
-        )
-        failure_df[test_cohort]["ModelSize"] = (
-            failure_df[test_cohort]
-            .index.get_level_values(0)
-            .map(model_size_commit_mapping[test_cohort])
-        )
-        #  print(failure_df[test_cohort].value_counts(["permutation", "ModelSize"]))
-
-        #  print('successes:')
-        success_df[test_cohort] = extract_results_for_folder(output_dir, "✓")
-        success_df[test_cohort]["Passed"] = True
-        success_df[test_cohort]["commit"].fillna("Unknown", inplace=True)
-        success_df[test_cohort].set_index(
-            ["commit", "exec_time", "permutation"], inplace=True
-        )
-        success_df[test_cohort]["ModelSize"] = (
-            success_df[test_cohort]
-            .index.get_level_values(0)
-            .map(model_size_commit_mapping[test_cohort])
-        )
-        #  print(success_df[test_cohort].value_counts(["permutation", "ModelSize"]))
-
-        combined_df_raw[test_cohort] = pd.concat(
-            [success_df[test_cohort], failure_df[test_cohort]],
-        )
-        eligibility_df[test_cohort] = extract_test_cases_for_test_cohort(test_cohort)
-        combined_df_raw[test_cohort] = combined_df_raw[test_cohort].join(eligibility_df[test_cohort], on="permutation")
-
-        combined_df[test_cohort] = combined_df_raw[test_cohort].set_index(
+        combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
             ["ModelSize"], append=True
         )
-        print(combined_df[test_cohort].value_counts(["Passed", "ModelSize"]))
+        print(combined_dfs[test_cohort].value_counts(["Passed", "ModelSize"]))
         print(
-            combined_df[test_cohort].value_counts(
+            combined_dfs[test_cohort].value_counts(
                 ["ModelSize", "permutation"], ascending=True
             )
         )
-
-        success_rates_by_permutation[test_cohort] = (
-            100
-            * combined_df[test_cohort][combined_df[test_cohort]["Passed"] == True]
-            .index.get_level_values(2)
-            .value_counts()
-            / combined_df[test_cohort].index.get_level_values(2).value_counts()
-        )
-        print(success_rates_by_permutation[test_cohort].nsmallest(n=15))
-
-        success_rates_by_permutation_model_size[test_cohort] = (
-            100
-            * combined_df[test_cohort][combined_df[test_cohort]["Passed"] == True]
-            .index.droplevel(0)
-            .droplevel(0)
-            .value_counts()
-            / combined_df[test_cohort].index.droplevel(0).droplevel(0).value_counts()
-        )
-        print(success_rates_by_permutation_model_size[test_cohort].nsmallest(n=15))
-        print(success_rates_by_permutation_model_size[test_cohort].reset_index().set_index("permutation").value_counts())
-
-        fig = plt.figure(f"hist_{test_cohort}")
-        fig.clear()
-        ax = sns.histplot(
-            success_rates_by_permutation_model_size[test_cohort].reset_index(),
-            x="count",
-            hue="ModelSize",
-            multiple="dodge",
-            shrink=0.7,
-            bins=20,
-            common_bins=True,
-        )
-        ax.set_title(
-            "Accuracy of agent (according to judge) for {}".format(
-                test_cohort.replace("_", " ")
-            )
-        )
-        ax.set_ylabel("Count")
-        ax.set_xlabel("Percentage correctness over all executions")
-        fig.savefig(f"success_rates_by_permutation_model_size.hist.{test_cohort}.png")
-
-        large_model_improvement_by_permutation[test_cohort] = (
-            combined_df_raw[test_cohort][
-                (combined_df_raw[test_cohort]["Passed"] == True)
-                & (combined_df_raw[test_cohort]["ModelSize"] == "large")
-            ]
-            .index.get_level_values(2)
-            .value_counts()
-            / combined_df_raw[test_cohort][
-                (combined_df_raw[test_cohort]["ModelSize"] == "large")
-            ]
-            .index.get_level_values(2)
-            .value_counts()
-        ) - (
-            combined_df_raw[test_cohort][
-                (combined_df_raw[test_cohort]["Passed"] == True)
-                & (combined_df_raw[test_cohort]["ModelSize"] == "small")
-            ]
-            .index.get_level_values(2)
-            .value_counts()
-            / combined_df_raw[test_cohort][
-                (combined_df_raw[test_cohort]["ModelSize"] == "small")
-            ]
-            .index.get_level_values(2)
-            .value_counts()
-        )
-
-        fig = plt.figure(f"improvement_{test_cohort}")
-        fig.clear()
-        large_model_improvement_by_permutation[test_cohort].hist()
-        ax = fig.get_axes()[0]
-        ax.set_title(
-            "Difference in judged accuracy with varying model size for {}".format(
-                test_cohort.replace("_", " ")
-            )
-        )
-        ax.set_ylabel("Count of permutations")
-        ax.set_xlabel(
-            "Large model accuracy % minus small model accuracy % for a given permutation"
-        )
-        ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
-        fig.savefig(
-            f"success_rates_by_permutation_model_size.improvement.hist.{test_cohort}.png"
-        )
-        print(large_model_improvement_by_permutation[test_cohort].value_counts())
-
-        fig = plt.figure(f"eligibility_{test_cohort}")
-        fig.clear()
-        print(combined_df_raw[test_cohort].value_counts(["Passed", "eligible", "not_eligible"]))
-        success_rates_by_eligibility[test_cohort] = eligibility_df[test_cohort].join(success_rates_by_permutation[test_cohort])
-        success_rates_by_eligibility[test_cohort]["eligibility_cat"] = success_rates_by_eligibility[test_cohort].apply(get_eligibility_case, axis=1)
-
-        ax = sns.histplot(
-            success_rates_by_eligibility[test_cohort],
-            x="count",
-            hue="eligibility_cat",
-            multiple="dodge",
-            shrink=0.7,
-            bins=20,
-            common_bins=True,
-        )
-        ax.set_ylabel("Count of permutations")
-        ax.set_xlabel(
-            "Model Accuracy %"
-        )
-        ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
-
-        fig.savefig(
-            f"success_rates_by_eligibility.hist.{test_cohort}.png"
-        )
+        success_rates_by_permutations[test_cohort] = get_success_rates_by_permutation(combined_dfs[test_cohort])
+        success_rates_by_permutation_model_sizes[test_cohort] = get_success_rates_by_permutation_model_size(combined_dfs[test_cohort], test_cohort)
+        large_model_improvement_by_permutations[test_cohort] = get_large_model_improvements_by_permutation(combined_dfs_raw[test_cohort], test_cohort)
+        if output_dir.name == "child_benefit":
+            print(combined_dfs_raw[test_cohort].value_counts(["Passed", "eligible", "not_eligible"]))
+        success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(success_rates_by_permutations[test_cohort], eligibility_dfs[test_cohort], test_cohort)
 
 
 if __name__ == "__main__":
