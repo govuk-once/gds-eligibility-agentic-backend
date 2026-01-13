@@ -15,15 +15,12 @@ resource "aws_apprunner_service" "adk_server" {
       access_role_arn = aws_iam_role.frontend_app_ecr.arn
     }
     image_repository {
-      # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
       image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-adk-repo:${terraform.workspace}"
       image_repository_type = "ECR"
       image_configuration {
         runtime_environment_variables = {
-          AWS_REGION = "eu-west-2"
-          BEDROCK_AGENT_ID = "CBVQSIPNEW"
-          BEDROCK_AGENT_ALIAS_ID = "JU2SFMBBHR"
+          PROMPTS_DIR = "/prompts"
         }
         port = 8000
       }
@@ -31,7 +28,7 @@ resource "aws_apprunner_service" "adk_server" {
     auto_deployments_enabled = true
   }
   instance_configuration {
-    instance_role_arn = aws_iam_role.frontend_app_service.arn
+    instance_role_arn = aws_iam_role.adk_app_service.arn
   }
   network_configuration {
     ingress_configuration {
@@ -44,3 +41,43 @@ resource "aws_apprunner_service" "adk_server" {
 
   }
 }
+
+resource "aws_iam_role" "adk_app_service" {
+  name = "gds-eligability-adk-app-service-${terraform.workspace}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "tasks.apprunner.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "adk_app_service_apprunner" {
+  role       = aws_iam_role.adk_app_service.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSAppRunnerFullAccess"
+}
+
+resource "aws_iam_role_policy" "adk_app_service_bedrock" {
+  role = aws_iam_role.adk_app_service.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+

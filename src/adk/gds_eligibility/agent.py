@@ -17,11 +17,13 @@ def get_prompt(rel_path: str) -> str:
 
 
 root_agent = Agent(
-    model=LiteLlm(model="bedrock/converse/google.gemma-3-4b-it"),
+    model=LiteLlm(model="bedrock/converse/google.gemma-3-4b-it"),  # Small model
+    #  model=LiteLlm(model="bedrock/converse/google.gemma-3-27b-it"), # Large model
     #  model = LiteLlm(model=f"bedrock/agent/{agent_id}/{agent_alias_id}"),
     name="root_agent",
     description="A helpful assistant for user questions.",
     instruction=get_prompt(
-        "agents/TechnicalHypotheses/Accuracy-ChildBenefit-SmallModel.md"
+        #  "agents/TechnicalHypotheses/adhoc-skilledWorkerVisa.md"
+        "agents/TechnicalHypotheses/Accuracy-ChildBenefit-v2.md"
     ),
 )
