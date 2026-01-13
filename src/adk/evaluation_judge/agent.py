@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from google.adk.agents import LoopAgent
+from google.adk.agents import LoopAgent, SequentialAgent
 from google.adk.agents.llm_agent import Agent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.tool_context import ToolContext
@@ -30,12 +30,25 @@ def exit_loop(tool_context: ToolContext):
 evaluation_judge = Agent(
     model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
     name="evaluation_judge",
+    description="When given a transcript, outputs a judgement",
+    instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly.md"),
+)
+
+
+actor = Agent(
+    model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
+    name="actor",
     description="When given a context, it will role-play as a user in order to test another agent",
-    instruction=get_prompt("agents/Ancillary/EvaluationJudge.md"),
+    instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md"),
     tools=[exit_loop],  # Provide the exit_loop tool
 )
 
 
-review_pipeline = LoopAgent(
-    name="ConverseAndEvaluate", sub_agents=[evaluation_judge, eligibility_agent]
+conversation_pipeline = LoopAgent(
+    name="Converse", sub_agents=[actor, eligibility_agent]
+)
+
+
+review_pipeline = SequentialAgent(
+    name="ConverseAndEvaluate", sub_agents=[conversation_pipeline, evaluation_judge]
 )
