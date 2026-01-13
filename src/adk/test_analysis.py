@@ -43,7 +43,7 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
     print(output_dir)
     extracted_records = []
     output = subprocess.run(
-        ["rg", search_character, "-c", "--hidden"],
+        ["rg", search_character, "--hidden"],
         capture_output=True,
         check=False,
         text=True,
@@ -51,20 +51,34 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
     )
     for filename in output.stdout.strip().split("\n"):
         if filename:
+            with_commit = (
+                r"(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+).*"
+                #  + ur":\[evaluation_judge\]: "
+                + search_character + r"(?P<reasoning>.*)"
+            )
             if re.match(
-                r"(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+).*",
+                with_commit,
                 filename,
+                re.UNICODE
             ):
                 extracted_fields = re.search(
-                    r"(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+).*",
+                    with_commit,
                     filename,
+                    re.UNICODE
                 ).groupdict()
             else:
+                without_commit = (
+                    r"(?P<exec_time>[\d:T\.-]+)/Permutation(?P<permutation>\d+).out.*"
+                    #  + ur":\[evaluation_judge\]: "
+                    + search_character + r"(?P<reasoning>.*)"
+                )
                 extracted_fields = re.search(
-                    r"(?P<exec_time>[\d:T\.-]+)/Permutation(?P<permutation>\d+).out",
+                    without_commit,
                     filename,
+                    re.UNICODE
                 ).groupdict()
             extracted_fields["permutation"] = int(extracted_fields["permutation"])
+            extracted_fields["reasoning"] = str(extracted_fields["reasoning"])
             extracted_records.append(extracted_fields)
     return pd.DataFrame.from_records(extracted_records)
 
@@ -355,6 +369,7 @@ def main():
                 eligibility_dfs[test_cohort],
                 test_cohort,
             )
+            combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
 
 
 if __name__ == "__main__":
