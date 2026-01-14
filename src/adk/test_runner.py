@@ -18,6 +18,7 @@ from evaluation_judge.agent import review_pipeline
 
 async def main():
     test_cohort = "child_benefit"
+    hypothesis_name = f"{test_cohort}__stressTestAgent"
     #  test_cohort = "skilled_worker_visa"
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -31,7 +32,7 @@ async def main():
     credential_service = InMemoryCredentialService()
     output_dir = (
         Path("./.testOutputs")
-        .joinpath(test_cohort)
+        .joinpath(hypothesis_name)
         .joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
     )
     output_dir.mkdir(parents=True)
@@ -88,7 +89,7 @@ async def execute_test_case(
                     await runner.close()
                 if event.content and event.content.parts:
                     if text := "".join(part.text or "" for part in event.content.parts):
-                        output = f"[{event.author}]: {text}\n"
+                        output = f"{datetime.now().isoformat()} [{event.author}]: {text}\n"
                         output_file.writelines(f"{output}\n")
                         #  print(output) # Uncomment for developing against test runner
 
