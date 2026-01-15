@@ -27,9 +27,6 @@ async def main():
         text=True,
     ).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
-    session_service = InMemorySessionService()
-    artifact_service = InMemoryArtifactService()
-    credential_service = InMemoryCredentialService()
     output_dir = (
         Path("./.testOutputs")
         .joinpath(hypothesis_name)
@@ -38,6 +35,9 @@ async def main():
     output_dir.mkdir(parents=True)
     #  test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
+        session_service = InMemorySessionService()
+        artifact_service = InMemoryArtifactService()
+        credential_service = InMemoryCredentialService()
         await execute_test_case(
             test_id,
             test_case,

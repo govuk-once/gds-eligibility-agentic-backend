@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 from pathlib import Path
 
@@ -27,14 +28,14 @@ def exit_loop(tool_context: ToolContext):
     return {}
 
 
-evaluation_judge = Agent(
-    model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
-    name="evaluation_judge",
-    description="When given a transcript, outputs a judgement",
-    instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly.md"),
-)
-
 def get_review_pipeline(test_case):
+    evaluation_judge = Agent(
+        model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
+        name="evaluation_judge",
+        description="When given a transcript, outputs a judgement",
+        instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly.md"),
+    )
+
     actor = Agent(
         model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
         name="actor",
@@ -47,7 +48,9 @@ def get_review_pipeline(test_case):
 
 
     conversation_pipeline = LoopAgent(
-        name="Converse", sub_agents=[eligibility_agent, actor]
+        # Any agent instantiated outside the scope of this function should be deep-copied, as said
+        # agent instance remembers its parent from previous invocations 
+        name="Converse", sub_agents=[deepcopy(eligibility_agent), actor]
     )
 
 
