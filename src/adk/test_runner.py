@@ -100,7 +100,18 @@ def load_and_parse_test_cases(test_cohort: str):
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)
     test_cases = test_cases_str.split(sep="---")
+    test_cases = remove_outcome_from_test_cases(test_cases)
     return test_cases
+
+
+def remove_outcome_from_test_cases(test_cases: list[str]) -> list[str]:
+    truncated_test_cases = []
+    for test_case in test_cases:
+        outcome_index = test_case.lower().find("outcome")
+        truncated_test_case = test_case[:outcome_index]
+        assert "outcome" not in truncated_test_case.lower()
+        truncated_test_cases.append(truncated_test_case)
+    return truncated_test_cases
 
 
 if __name__ == "__main__":
