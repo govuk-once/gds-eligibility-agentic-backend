@@ -34,21 +34,24 @@ evaluation_judge = Agent(
     instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly.md"),
 )
 
-
-actor = Agent(
-    model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
-    name="actor",
-    description="When given a context, it will role-play as a user in order to test another agent",
-    instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md"),
-    tools=[exit_loop],  # Provide the exit_loop tool
-)
-
-
-conversation_pipeline = LoopAgent(
-    name="Converse", sub_agents=[actor, eligibility_agent]
-)
+def get_review_pipeline(test_case):
+    actor = Agent(
+        model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
+        name="actor",
+        description="When given a context, it will role-play as a user in order to test another agent",
+        #static_instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md"),
+        #instruction=test_case,
+        instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md") + "\n" + test_case,
+        tools=[exit_loop],  # Provide the exit_loop tool
+    )
 
 
-review_pipeline = SequentialAgent(
-    name="ConverseAndEvaluate", sub_agents=[conversation_pipeline, evaluation_judge]
-)
+    conversation_pipeline = LoopAgent(
+        name="Converse", sub_agents=[eligibility_agent, actor]
+    )
+
+
+    review_pipeline = SequentialAgent(
+        name="ConverseAndEvaluate", sub_agents=[conversation_pipeline, evaluation_judge]
+    )
+    return review_pipeline

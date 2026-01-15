@@ -13,7 +13,7 @@ from google.adk.runners import Runner
 from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
 
-from evaluation_judge.agent import review_pipeline
+from evaluation_judge.agent import get_review_pipeline
 
 
 async def main():
@@ -45,6 +45,7 @@ async def main():
             artifact_service,
             credential_service,
             output_dir,
+            test_cohort,
         )
     run(
         ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
@@ -58,6 +59,7 @@ async def execute_test_case(
     artifact_service: InMemoryArtifactService,
     credential_service: InMemoryCredentialService,
     output_dir: Path,
+    test_cohort: str,
 ):
     """
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
@@ -65,7 +67,7 @@ async def execute_test_case(
     """
     app_name = "evaluation_judge"
     user_id = "test_user"
-    app = App(name=app_name, root_agent=review_pipeline)
+    app = App(name=app_name, root_agent=get_review_pipeline(test_case))
     session = await session_service.create_session(app_name=app_name, user_id=user_id)
     runner = Runner(
         app=app,
@@ -80,7 +82,7 @@ async def execute_test_case(
                 user_id=user_id,
                 session_id=session.id,
                 new_message=types.Content(
-                    role="user", parts=[types.Part(text=test_case)]
+                    role="user", parts=[types.Part(text=f"am I eligible for {test_cohort.replace('_', ' ')}")]
                 ),
             )
         ) as agen:
