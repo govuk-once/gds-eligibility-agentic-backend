@@ -1,4 +1,5 @@
 #!/usr/bin/env ipython
+from collections import defaultdict
 import re
 from pathlib import Path
 import subprocess
@@ -37,6 +38,7 @@ model_size_commit_mapping = {
     "skilled_worker_visa": invert_mapping(
         {"small": ["Unknown", "db37bc9", "df1795d", "71b1d7c"], "large": ["8ed3c90"]}
     ),
+    "child_benefit__stressTestAgent": defaultdict(lambda: "large"),
 }
 
 
@@ -141,7 +143,8 @@ def load_failure_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('failures:')
     df = extract_results_for_folder(output_dir, "✗")
     df["Passed"] = False
-    df["commit"].fillna("Unknown", inplace=True)
+    if len(df) > 0:
+        df["commit"].fillna("Unknown", inplace=True)
     df.set_index(["commit", "exec_time", "permutation"], inplace=True)
     df["ModelSize"] = df.index.get_level_values(0).map(
         model_size_commit_mapping[test_cohort]
@@ -154,7 +157,8 @@ def load_success_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('successes:')
     df = extract_results_for_folder(output_dir, "✓")
     df["Passed"] = True
-    df["commit"].fillna("Unknown", inplace=True)
+    if len(df) > 0:
+        df["commit"].fillna("Unknown", inplace=True)
     df.set_index(["commit", "exec_time", "permutation"], inplace=True)
     df["ModelSize"] = df.index.get_level_values(0).map(
         model_size_commit_mapping[test_cohort]
