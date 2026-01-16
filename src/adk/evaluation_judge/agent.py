@@ -33,7 +33,7 @@ def get_review_pipeline(test_case):
         model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
         name="evaluation_judge",
         description="When given a transcript, outputs a judgement",
-        instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly.md"),
+        instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly-v2.md"),
     )
 
     actor = Agent(
@@ -42,7 +42,7 @@ def get_review_pipeline(test_case):
         description="When given a context, it will role-play as a user in order to test another agent",
         #static_instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md"),
         #instruction=test_case,
-        instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md") + "\n" + test_case,
+        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v2.md") + "\n" + test_case,
         tools=[exit_loop],  # Provide the exit_loop tool
     )
 
