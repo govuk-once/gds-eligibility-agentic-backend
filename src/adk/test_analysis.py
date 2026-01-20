@@ -27,18 +27,26 @@ success_rates_by_eligibility_model_size = {}
 def invert_mapping(dictionary: dict) -> dict:
     return {elem: k for k, v in dictionary.items() for elem in v}
 
+model_sizes_hypothesis_mapping = {
+    "child_benefit": {"baseline": "gemma4B", "improved": "gemma27B"},
+    "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
+    "child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
+}
 
 model_size_commit_mapping = {
-    "child_benefit": invert_mapping(
-        {
-            "small": ["Unknown", "fc922c5", "9493282", "f2dc127"],
-            "large": ["575b5e9"],
-        }
-    ),
-    "skilled_worker_visa": invert_mapping(
-        {"small": ["Unknown", "db37bc9", "df1795d", "71b1d7c"], "large": ["8ed3c90"]}
-    ),
-    "child_benefit__stressTestAgent": defaultdict(lambda: "large"),
+    "child_benefit": invert_mapping({
+        "gemma4B": ["Unknown", "fc922c5", "9493282", "f2dc127"],
+        "gemma27B": ["575b5e9"],
+    }),
+    "skilled_worker_visa": invert_mapping({
+        "gemma4B": ["Unknown", "db37bc9", "df1795d", "71b1d7c"], 
+        "gemma27B": ["8ed3c90"]
+    }),
+    "child_benefit__stressTestAgent": invert_mapping({
+        "gemma27B": ["1012a61", "976499a", "74e8834"], 
+        "claude37Sonnet": ["e680f99"]
+    }),
+    #defaultdict(lambda: "large"),
 }
 
 
@@ -221,21 +229,21 @@ def get_large_model_improvements_by_permutation(
     df = (
         combined_df_raw[
             (combined_df_raw["Passed"] == True)
-            & (combined_df_raw["ModelSize"] == "large")
+            & (combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["improved"])
         ]
         .index.get_level_values(2)
         .value_counts()
-        / combined_df_raw[(combined_df_raw["ModelSize"] == "large")]
+        / combined_df_raw[(combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["improved"])]
         .index.get_level_values(2)
         .value_counts()
     ) - (
         combined_df_raw[
             (combined_df_raw["Passed"] == True)
-            & (combined_df_raw["ModelSize"] == "small")
+            & (combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["baseline"])
         ]
         .index.get_level_values(2)
         .value_counts()
-        / combined_df_raw[(combined_df_raw["ModelSize"] == "small")]
+        / combined_df_raw[(combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["baseline"])]
         .index.get_level_values(2)
         .value_counts()
     )

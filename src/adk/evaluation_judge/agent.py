@@ -46,13 +46,11 @@ def get_review_pipeline(test_case):
         tools=[exit_loop],  # Provide the exit_loop tool
     )
 
-
     conversation_pipeline = LoopAgent(
         # Any agent instantiated outside the scope of this function should be deep-copied, as said
         # agent instance remembers its parent from previous invocations 
         name="Converse", sub_agents=[deepcopy(eligibility_agent), actor]
     )
-
 
     review_pipeline = SequentialAgent(
         name="ConverseAndEvaluate", sub_agents=[conversation_pipeline, evaluation_judge]
