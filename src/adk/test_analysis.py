@@ -95,7 +95,7 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
 
 
 def load_and_parse_test_cases(test_cohort: str) -> list[str]:
-    test_case_file = Path(f"../../prompts/manual/test_cases/{test_cohort}.md")
+    test_case_file = Path(f"../../prompts/manual/test_cases/").joinpath(test_cohort.split("__")[0] + ".md")
     with test_case_file.open() as f:
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)
@@ -345,7 +345,7 @@ def analyse_cohort(output_dir: Path):
     combined_dfs_raw[test_cohort] = pd.concat(
         [success_dfs[test_cohort], failure_dfs[test_cohort]],
     )
-    if output_dir.name == "child_benefit":
+    if output_dir.name.startswith("child_benefit"):
         eligibility_dfs[test_cohort] = extract_test_cases_for_test_cohort(
             test_cohort
         )
@@ -375,7 +375,7 @@ def analyse_cohort(output_dir: Path):
             combined_dfs_raw[test_cohort], test_cohort
         )
     )
-    if output_dir.name == "child_benefit":
+    if output_dir.name.startswith("child_benefit"):
         print(
             combined_dfs_raw[test_cohort].value_counts(
                 ["Passed", "eligible", "not_eligible"]
