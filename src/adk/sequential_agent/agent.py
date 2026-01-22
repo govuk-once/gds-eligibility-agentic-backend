@@ -1,9 +1,7 @@
 from typing import Literal, Dict, Any, List, Optional
 
-from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 from google.adk.agents.llm_agent import Agent
 from google.adk.agents import SequentialAgent
-from google.adk.agents.remote_a2a_agent import AGENT_CARD_WELL_KNOWN_PATH
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.models.lite_llm import LiteLlm
 from google.genai import types
@@ -54,7 +52,7 @@ universal_credit_agent = Agent(
 
 personal_independence_payment_agent = Agent(
     model=LiteLlm(model="bedrock/converse/openai.gpt-oss-120b-1:0"),
-    name="universal_credit_agent",
+    name="personal_independence_payment_agent",
     description="An agent that can determine the likelihood of a user being eligible for universal credit",
     instruction=personal_independence_payment_agent_prompt(),
 )
@@ -148,8 +146,8 @@ user_agent = Agent(
     description="An agent that helps users",
     instruction=user_agent_prompt(UserAgentToElicitation.model_json_schema()),
     tools=[
-        (AgentTool(universal_credit_agent)), 
-        (AgentTool(personal_independence_payment_agent)),
+        AgentTool(universal_credit_agent), 
+        AgentTool(personal_independence_payment_agent),
         update_question_and_answers,
         sign_in
     ],
