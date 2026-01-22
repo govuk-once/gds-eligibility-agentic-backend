@@ -1,29 +1,19 @@
+from typing import Literal, Dict, Any
+
 from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 from google.adk.agents.llm_agent import Agent
 from google.adk.agents import SequentialAgent
 from google.adk.agents.remote_a2a_agent import AGENT_CARD_WELL_KNOWN_PATH
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.models.lite_llm import LiteLlm
-from pydantic import BaseModel, Field
 from google.genai import types
-from typing import Literal, Dict, Any
 from google.adk.tools.tool_context import ToolContext
-from sequential_agent.prompts import user_agent_prompt, elicitation_agent_prompt
+from pydantic import BaseModel, Field
 
-def get_state(tool_context: ToolContext ) -> Dict[str, Any]:
-    """Gets state.
-    
-    Args:
-       tool_context: Automatically injected by ADK
-        
-    Returns:
-        dict: answer provided
-    """
-    print("TOOL CALLED")
-    print(tool_context.state._value)
-    return tool_context.state._value
+from sequential_agent.prompts import user_agent_prompt, elicitation_agent_prompt, personal_independence_payment_agent_prompt, universal_credit_agent_prompt
 
-def update_questionnaire(question: str, provided_answer: str, tool_context: ToolContext ) -> Dict[str, Any]:
+
+def update_question_and_answers(question: str, provided_answer: str, tool_context: ToolContext ) -> Dict[str, Any]:
     """Update questionnaire.
     
     Args:
@@ -34,34 +24,45 @@ def update_questionnaire(question: str, provided_answer: str, tool_context: Tool
     Returns:
         dict: state
     """
-    tool_context.state[question] = provided_answer
-
+    questions_and_responses = tool_context.state.setdefault("questions_and_responses", {})
+    print(questions_and_responses)
+    questions_and_responses[question] = provided_answer
+    print(questions_and_responses)
+    tool_context.state["questions_and_responses"] = questions_and_responses
+    
     return {
-        "state": tool_context.state._value
+        "state": tool_context.state.to_dict()
     }
 
-def sign_in(tool_context: ToolContext) -> Dict[str, Any]:
-    tool_context.state["What is your age?"] = "39"
-    tool_context.state["How much do you earn per annum net tax?"] = "£12,452"
+
+def sign_in(tool_context: ToolContext) -> None:
+    questions_and_responses = tool_context.state.setdefault("questions_and_responses", {})
+    questions_and_responses["What is your age?"] = "39"
+    questions_and_responses["How much do you earn per annum net tax?"] = "£12,452"
+    tool_context.state["questions_and_responses"] = questions_and_responses
 
     return {
-        "state": tool_context.state._value
+        "state": tool_context.state.to_dict()
     }
 
-universal_credit_agent = RemoteA2aAgent(
+universal_credit_agent = Agent(
+    model=LiteLlm(model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="universal_credit_agent",
-    description="Agent that can work out if someone is eligible for universal credit benefit",
-    agent_card=(f"http://localhost:8001/a2a/universal_credit_agent{AGENT_CARD_WELL_KNOWN_PATH}"),
+    description="An agent that can determine if a user would be eligible for universal credit",
+    instruction=universal_credit_agent_prompt(),
 )
 
-personal_independence_payments_agent = RemoteA2aAgent(
-    name="personal_independence_payments_agent",
-    description="Agent that can determine how likely it is that someone is eligible for personal independence payments",
-    agent_card=(f"http://localhost:8001/a2a/personal_independence_payments_agent{AGENT_CARD_WELL_KNOWN_PATH}"),
+personal_independence_payment_agent = Agent(
+    model=LiteLlm(model="bedrock/converse/openai.gpt-oss-120b-1:0"),
+    name="universal_credit_agent",
+    description="An agent that can determine the likelihood of a user being eligible for universal credit",
+    instruction=personal_independence_payment_agent_prompt(),
 )
+
 
 reply_types = Literal["yes_no", "choice_multiple", "choice_single", "free_text", "none"]
 sources = Literal["benefit_agent", "user_agent"]
+
 
 class UserAgentToElicitation(BaseModel):
     content:str
@@ -70,15 +71,18 @@ class UserAgentToElicitation(BaseModel):
     reply_type: reply_types
     choices: list[str] | None = None
 
+
 class ElicitationAction(BaseModel):
     label: str = Field(description='The text to display on a user modality (i.e. a button)')
     payload: str = Field(description='The message to send to the agent if the user chooses this option - this can be more detailed than the label')
+
 
 class ElicitationResponse(BaseModel):
     content: str = Field(description='The free text to display to the user - this is always required')
     source: sources
     reply_type: reply_types
     actions: list[ElicitationAction]| None = None
+
 
 elicitation_agent = Agent(
     name="elicitation_agent", 
@@ -87,13 +91,13 @@ elicitation_agent = Agent(
         # model="bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0",
         # it is not clear if LiteLLM/Google ADK is picking up the following response format
         response_format={
-        "type": "json_schema",
-        "json_schema": {
-            "name": "response",
-            "schema": ElicitationResponse.model_json_schema(),
-            "strict": True,
+            "type": "json_schema",
+            "json_schema": {
+                "name": "response",
+                "schema": ElicitationResponse.model_json_schema(),
+                "strict": True,
+            },
         },
-    },
     ),
     description="An agent to process responses for possible elicitation",
     generate_content_config=types.GenerateContentConfig(
@@ -123,9 +127,8 @@ user_agent = Agent(
     instruction=user_agent_prompt(UserAgentToElicitation.model_json_schema()),
     tools=[
         (AgentTool(universal_credit_agent)), 
-        (AgentTool(personal_independence_payments_agent)),
-        update_questionnaire,
-        get_state,
+        (AgentTool(personal_independence_payment_agent)),
+        update_question_and_answers,
         sign_in
     ],
     output_schema=UserAgentToElicitation
