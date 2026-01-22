@@ -1,7 +1,9 @@
 #!/usr/bin/env ipython
+from collections import defaultdict
 import re
 from pathlib import Path
 import subprocess
+import sys
 
 import numpy as np
 import pandas as pd
@@ -25,17 +27,26 @@ success_rates_by_eligibility_model_size = {}
 def invert_mapping(dictionary: dict) -> dict:
     return {elem: k for k, v in dictionary.items() for elem in v}
 
+model_sizes_hypothesis_mapping = {
+    "child_benefit": {"baseline": "gemma4B", "improved": "gemma27B"},
+    "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
+    "child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
+}
 
 model_size_commit_mapping = {
-    "child_benefit": invert_mapping(
-        {
-            "small": ["Unknown", "fc922c5", "9493282", "f2dc127"],
-            "large": ["575b5e9"],
-        }
-    ),
-    "skilled_worker_visa": invert_mapping(
-        {"small": ["Unknown", "db37bc9", "df1795d", "71b1d7c"], "large": ["8ed3c90"]}
-    ),
+    "child_benefit": invert_mapping({
+        "gemma4B": ["Unknown", "fc922c5", "9493282", "f2dc127"],
+        "gemma27B": ["575b5e9"],
+    }),
+    "skilled_worker_visa": invert_mapping({
+        "gemma4B": ["Unknown", "db37bc9", "df1795d", "71b1d7c"], 
+        "gemma27B": ["8ed3c90"]
+    }),
+    "child_benefit__stressTestAgent": invert_mapping({
+        "gemma27B": ["1012a61", "976499a", "74e8834"], 
+        "claude37Sonnet": ["e680f99"]
+    }),
+    #defaultdict(lambda: "large"),
 }
 
 
@@ -84,7 +95,7 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
 
 
 def load_and_parse_test_cases(test_cohort: str) -> list[str]:
-    test_case_file = Path(f"../../prompts/manual/test_cases/{test_cohort}.md")
+    test_case_file = Path(f"../../prompts/manual/test_cases/").joinpath(test_cohort.split("__")[0] + ".md")
     with test_case_file.open() as f:
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)
@@ -140,7 +151,8 @@ def load_failure_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('failures:')
     df = extract_results_for_folder(output_dir, "✗")
     df["Passed"] = False
-    df["commit"].fillna("Unknown", inplace=True)
+    if len(df) > 0:
+        df["commit"].fillna("Unknown", inplace=True)
     df.set_index(["commit", "exec_time", "permutation"], inplace=True)
     df["ModelSize"] = df.index.get_level_values(0).map(
         model_size_commit_mapping[test_cohort]
@@ -153,7 +165,8 @@ def load_success_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('successes:')
     df = extract_results_for_folder(output_dir, "✓")
     df["Passed"] = True
-    df["commit"].fillna("Unknown", inplace=True)
+    if len(df) > 0:
+        df["commit"].fillna("Unknown", inplace=True)
     df.set_index(["commit", "exec_time", "permutation"], inplace=True)
     df["ModelSize"] = df.index.get_level_values(0).map(
         model_size_commit_mapping[test_cohort]
@@ -216,21 +229,21 @@ def get_large_model_improvements_by_permutation(
     df = (
         combined_df_raw[
             (combined_df_raw["Passed"] == True)
-            & (combined_df_raw["ModelSize"] == "large")
+            & (combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["improved"])
         ]
         .index.get_level_values(2)
         .value_counts()
-        / combined_df_raw[(combined_df_raw["ModelSize"] == "large")]
+        / combined_df_raw[(combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["improved"])]
         .index.get_level_values(2)
         .value_counts()
     ) - (
         combined_df_raw[
             (combined_df_raw["Passed"] == True)
-            & (combined_df_raw["ModelSize"] == "small")
+            & (combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["baseline"])
         ]
         .index.get_level_values(2)
         .value_counts()
-        / combined_df_raw[(combined_df_raw["ModelSize"] == "small")]
+        / combined_df_raw[(combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["baseline"])]
         .index.get_level_values(2)
         .value_counts()
     )
@@ -315,62 +328,71 @@ def get_success_rates_by_eligibility_model_size(
     return df
 
 
-def main():
-    for output_dir in Path(".testOutputs").glob("*"):
-        test_cohort = str(output_dir.relative_to(".testOutputs"))
-        failure_dfs[test_cohort] = load_failure_df(output_dir, test_cohort)
-        success_dfs[test_cohort] = load_success_df(output_dir, test_cohort)
-        combined_dfs_raw[test_cohort] = pd.concat(
-            [success_dfs[test_cohort], failure_dfs[test_cohort]],
-        )
-        if output_dir.name == "child_benefit":
-            eligibility_dfs[test_cohort] = extract_test_cases_for_test_cohort(
-                test_cohort
-            )
-            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-                eligibility_dfs[test_cohort], on="permutation"
-            )
+def main(argv):
+    if len(argv) > 1:
+        output_dir = Path(".testOutputs").joinpath(argv[1])
+        assert output_dir.exists()
+        analyse_cohort(output_dir)
+    else:
+        for output_dir in Path(".testOutputs").glob("*"):
+            analyse_cohort(output_dir)
 
-        combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
-            ["ModelSize"], append=True
+
+def analyse_cohort(output_dir: Path):
+    test_cohort = str(output_dir.relative_to(".testOutputs"))
+    failure_dfs[test_cohort] = load_failure_df(output_dir, test_cohort)
+    success_dfs[test_cohort] = load_success_df(output_dir, test_cohort)
+    combined_dfs_raw[test_cohort] = pd.concat(
+        [success_dfs[test_cohort], failure_dfs[test_cohort]],
+    )
+    if output_dir.name.startswith("child_benefit"):
+        eligibility_dfs[test_cohort] = extract_test_cases_for_test_cohort(
+            test_cohort
         )
-        print(combined_dfs[test_cohort].value_counts(["Passed", "ModelSize"]))
+        combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+            eligibility_dfs[test_cohort], on="permutation"
+        )
+
+    combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
+        ["ModelSize"], append=True
+    )
+    print(combined_dfs[test_cohort].value_counts(["Passed", "ModelSize"]))
+    print(
+        combined_dfs[test_cohort].value_counts(
+            ["ModelSize", "permutation"], ascending=True
+        )
+    )
+    success_rates_by_permutations[test_cohort] = get_success_rates_by_permutation(
+        combined_dfs[test_cohort]
+    )
+    success_rates_by_permutation_model_sizes[test_cohort] = (
+        get_success_rates_by_permutation_model_size(
+            combined_dfs[test_cohort], test_cohort
+        )
+    )
+    large_model_improvement_by_permutations[test_cohort] = (
+        get_large_model_improvements_by_permutation(
+            combined_dfs_raw[test_cohort], test_cohort
+        )
+    )
+    if output_dir.name.startswith("child_benefit"):
         print(
-            combined_dfs[test_cohort].value_counts(
-                ["ModelSize", "permutation"], ascending=True
+            combined_dfs_raw[test_cohort].value_counts(
+                ["Passed", "eligible", "not_eligible"]
             )
         )
-        success_rates_by_permutations[test_cohort] = get_success_rates_by_permutation(
-            combined_dfs[test_cohort]
+        success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
+            success_rates_by_permutations[test_cohort],
+            eligibility_dfs[test_cohort],
+            test_cohort,
         )
-        success_rates_by_permutation_model_sizes[test_cohort] = (
-            get_success_rates_by_permutation_model_size(
-                combined_dfs[test_cohort], test_cohort
-            )
+        success_rates_by_eligibility_model_size[test_cohort] = get_success_rates_by_eligibility_model_size(
+            success_rates_by_permutation_model_sizes[test_cohort],
+            eligibility_dfs[test_cohort],
+            test_cohort,
         )
-        large_model_improvement_by_permutations[test_cohort] = (
-            get_large_model_improvements_by_permutation(
-                combined_dfs_raw[test_cohort], test_cohort
-            )
-        )
-        if output_dir.name == "child_benefit":
-            print(
-                combined_dfs_raw[test_cohort].value_counts(
-                    ["Passed", "eligible", "not_eligible"]
-                )
-            )
-            success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
-                success_rates_by_permutations[test_cohort],
-                eligibility_dfs[test_cohort],
-                test_cohort,
-            )
-            success_rates_by_eligibility_model_size[test_cohort] = get_success_rates_by_eligibility_model_size(
-                success_rates_by_permutation_model_sizes[test_cohort],
-                eligibility_dfs[test_cohort],
-                test_cohort,
-            )
-            combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
+        combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
