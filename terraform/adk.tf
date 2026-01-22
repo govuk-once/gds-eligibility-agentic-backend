@@ -8,7 +8,7 @@ resource "aws_ecr_repository" "adk_server" {
 }
 
 resource "aws_apprunner_service" "adk_server" {
-  service_name = "gds-eligability-adk-server-${terraform.workspace}"
+  service_name = "gds-eligability-adk-server"
 
   source_configuration {
     authentication_configuration {
@@ -16,7 +16,7 @@ resource "aws_apprunner_service" "adk_server" {
     }
     image_repository {
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
-      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-adk-repo:${terraform.workspace}"
+      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-adk-repo:latest"
       image_repository_type = "ECR"
       image_configuration {
         runtime_environment_variables = {
@@ -43,7 +43,7 @@ resource "aws_apprunner_service" "adk_server" {
 }
 
 resource "aws_iam_role" "adk_app_service" {
-  name = "gds-eligability-adk-app-service-${terraform.workspace}"
+  name = "gds-eligability-adk-app-service"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
