@@ -11,22 +11,12 @@ from pydantic import BaseModel, Field
 from sequential_agent.prompts import user_agent_prompt, elicitation_agent_prompt, personal_independence_payment_agent_prompt, universal_credit_agent_prompt
 
 
-def update_question_and_answers(question: str, provided_answer: str, tool_context: ToolContext ) -> Dict[str, Any]:
-    """Update questionnaire.
-    
-    Args:
-       question_and_number: the question asked without a numeric identifier, e.g. "Do you live in the UK?"
-       provided_answer: the answer to the question, e.g. "Yes, I live in the UK"
-       tool_context: Automatically injected by ADK
-        
-    Returns:
-        dict: state
-    """
-    questions_and_responses = tool_context.state.setdefault("questions_and_responses", {})
-    print(questions_and_responses)
-    questions_and_responses[question] = provided_answer
-    print(questions_and_responses)
-    tool_context.state["questions_and_responses"] = questions_and_responses
+def update_question_and_answers(question: str, answer: str, tool_context: ToolContext ) -> Dict[str, Any]:
+    questions_and_answers = tool_context.state.setdefault("questions_and_answers", {})
+    print(questions_and_answers)
+    questions_and_answers[question] = answer
+    print(questions_and_answers)
+    tool_context.state["questions_and_answers"] = questions_and_answers
     
     return {
         "state": tool_context.state.to_dict()
@@ -34,14 +24,10 @@ def update_question_and_answers(question: str, provided_answer: str, tool_contex
 
 
 def sign_in(tool_context: ToolContext) -> None:
-    questions_and_responses = tool_context.state.setdefault("questions_and_responses", {})
-    questions_and_responses["What is your age?"] = "39"
-    questions_and_responses["How much do you earn per annum net tax?"] = "£12,452"
-    tool_context.state["questions_and_responses"] = questions_and_responses
-
-    return {
-        "state": tool_context.state.to_dict()
-    }
+    questions_and_answers = tool_context.state.setdefault("questions_and_answers", {})
+    questions_and_answers["What is your age?"] = "39"
+    questions_and_answers["How much do you earn per annum net tax?"] = "£12,452"
+    tool_context.state["questions_and_answers"] = questions_and_answers
 
 universal_credit_agent = Agent(
     model=LiteLlm(model="bedrock/converse/openai.gpt-oss-120b-1:0"),
