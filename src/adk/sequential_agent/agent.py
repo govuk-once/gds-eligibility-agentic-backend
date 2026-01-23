@@ -30,14 +30,16 @@ def sign_in(tool_context: ToolContext) -> None:
     tool_context.state["questions_and_answers"] = questions_and_answers
 
 universal_credit_agent = Agent(
-    model=LiteLlm(model="bedrock/converse/openai.gpt-oss-120b-1:0"),
+    model=LiteLlm(model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    # model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="universal_credit_agent",
     description="An agent that can determine if a user would be eligible for universal credit",
     instruction=universal_credit_agent_prompt(),
 )
 
 personal_independence_payment_agent = Agent(
-    model=LiteLlm(model="bedrock/converse/openai.gpt-oss-120b-1:0"),
+    model=LiteLlm(model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    # model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="personal_independence_payment_agent",
     description="An agent that can determine the likelihood of a user being eligible for universal credit",
     instruction=personal_independence_payment_agent_prompt(),
@@ -103,7 +105,6 @@ elicitation_agent = Agent(
     name="elicitation_agent", 
     model=LiteLlm(
         model="bedrock/openai.gpt-oss-120b-1:0",
-        # model="bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0",
     ),
     description="An agent to process responses for possible elicitation",
     tools=[emit_elicitation_response],
@@ -118,15 +119,16 @@ elicitation_agent = Agent(
  
 user_agent = Agent(
     model=LiteLlm(
-        model="bedrock/openai.gpt-oss-120b-1:0", 
-        response_format={
-            "type": "json_schema",
-            "json_schema": {
-                "name": "response",
-                "schema": UserAgentToElicitation.model_json_schema(),
-                "strict": True,
-            },
-        }
+        model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        # response_format causes this bug with claude: https://github.com/BerriAI/litellm/issues/18381
+        # response_format={
+        #     "type": "json_schema",
+        #     "json_schema": {
+        #         "name": "response",
+        #         "schema": UserAgentToElicitation.model_json_schema(),
+        #         "strict": True,
+        #     },
+        # }
     ),
     name="user_agent",
     description="An agent that helps users",
