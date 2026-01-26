@@ -3,13 +3,9 @@ locals {
   environment_specific_lookup = {
     "goe-dev" = {
       account_id            = "453624448465"
-      bedrock_flow_id       = "VWYMY0HV2H"
-      bedrock_flow_alias_id = "24VIXRVYIE"
     }
     "goe-staging" = {
       account_id            = "173331852279"
-      bedrock_flow_id       = "4REUKJYSPZ"
-      bedrock_flow_alias_id = "4F2X04KGIF"
     }
   }
   account_id   = local.environment_specific_lookup[terraform.workspace].account_id
@@ -29,7 +25,7 @@ resource "aws_ecr_repository" "frontend_app" {
 # }
 
 resource "aws_apprunner_service" "frontend_app" {
-  service_name = "gds-eligability-frontend-app-${terraform.workspace}"
+  service_name = "gds-eligability-frontend-app"
 
   source_configuration {
     authentication_configuration {
@@ -38,17 +34,16 @@ resource "aws_apprunner_service" "frontend_app" {
     image_repository {
       # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
-      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:${terraform.workspace}"
+      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:latest"
       image_repository_type = "ECR"
       image_configuration {
         port = 3000
         runtime_environment_variables = {
-          AWS_REGION      = "eu-west-2"
-          BEDROCK_FLOW_ID = local.env_specific["bedrock_flow_id"]
-          # THis alias needs to be created manually!
-          BEDROCK_FLOW_ALIAS_ID = local.env_specific["bedrock_flow_alias_id"]
-          NODE_ENV              = "production"
-          PINO_LOG_LEVEL        = "debug"
+          AWS_REGION         = "eu-west-2"
+          PINO_LOG_LEVEL     = "debug"
+          PUBLIC_ADK_API_URL = "https://${aws_apprunner_service.adk_server.service_url}"
+          ADK_APP_NAME       = "sequential_agent"
+          ADK_USER_ID        = "user"
         }
       }
     }
@@ -69,7 +64,7 @@ resource "aws_apprunner_service" "frontend_app" {
 }
 
 resource "aws_iam_role" "frontend_app_service" {
-  name = "gds-eligability-frontend-app-service-${terraform.workspace}"
+  name = "gds-eligability-frontend-app-service"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -85,7 +80,7 @@ resource "aws_iam_role" "frontend_app_service" {
 }
 
 resource "aws_iam_role" "frontend_app_ecr" {
-  name = "gds-eligability-frontend-app-ecr-${terraform.workspace}"
+  name = "gds-eligability-frontend-app-ecr"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
