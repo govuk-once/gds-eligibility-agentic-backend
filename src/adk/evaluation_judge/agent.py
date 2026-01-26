@@ -42,7 +42,7 @@ def get_review_pipeline(test_case):
         description="When given a context, it will role-play as a user in order to test another agent",
         #static_instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md"),
         #instruction=test_case,
-        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v2.md") + "\n" + test_case,
+        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v0.md") + "\n" + test_case,
         tools=[exit_loop],  # Provide the exit_loop tool
     )
 
