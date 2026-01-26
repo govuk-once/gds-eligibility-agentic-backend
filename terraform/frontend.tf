@@ -34,14 +34,14 @@ resource "aws_apprunner_service" "frontend_app" {
     image_repository {
       # image_identifier      = data.aws_ecr_image.frontend_app.image_uri
       # Hardcode image to remove dependency loop imposed by image management being handled outside of terraform
-      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:goe-staging"
+      image_identifier      = "${local.account_id}.dkr.ecr.eu-west-2.amazonaws.com/gds-eligability-frontend-repo:latest"
       image_repository_type = "ECR"
       image_configuration {
         port = 3000
         runtime_environment_variables = {
           AWS_REGION         = "eu-west-2"
           PINO_LOG_LEVEL     = "debug"
-          PUBLIC_ADK_API_URL = aws_apprunner_service.adk_server.service_url
+          PUBLIC_ADK_API_URL = "https://${aws_apprunner_service.adk_server.service_url}"
           ADK_APP_NAME       = "sequential_agent"
           ADK_USER_ID        = "user"
         }
