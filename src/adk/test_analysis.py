@@ -30,7 +30,8 @@ def invert_mapping(dictionary: dict) -> dict:
 model_sizes_hypothesis_mapping = {
     "child_benefit": {"baseline": "gemma4B", "improved": "gemma27B"},
     "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
-    "child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
+    #"child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
+    "child_benefit__stressTestAgent": {"baseline": "claude37Sonnet", "improved": "claude37SonnetOriginalPrompt"},
 }
 
 model_size_commit_mapping = {
@@ -44,7 +45,8 @@ model_size_commit_mapping = {
     }),
     "child_benefit__stressTestAgent": invert_mapping({
         "gemma27B": ["1012a61", "976499a", "74e8834"], 
-        "claude37Sonnet": ["e680f99"]
+        "claude37Sonnet": ["e680f99"],
+        "claude37SonnetOriginalPrompt": ["21506e4"]
     }),
     #defaultdict(lambda: "large"),
 }
@@ -353,6 +355,12 @@ def analyse_cohort(output_dir: Path):
             eligibility_dfs[test_cohort], on="permutation"
         )
 
+    # Assume that we only want to include data from the baseline and improved commit sets, and any other results should be excluded
+    combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort][
+        combined_dfs_raw[test_cohort]["ModelSize"].isin(
+            list(model_sizes_hypothesis_mapping[test_cohort].values())
+        )
+    ]
     combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
         ["ModelSize"], append=True
     )
