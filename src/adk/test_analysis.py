@@ -77,18 +77,18 @@ figure_annotations = {
             "xlabel": "Percentage correctness over all executions"
         },
         "success_rates_by_permutation_model_size.improvement.hist": {
-            "title": "Difference in judged accuracy with varying model size for child benefit",
+            "title": "Difference in judged accuracy with varying actor prompt for child benefit",
             "ylabel": "Count of permutations",
-            "xlabel": "Large model accuracy % minus small model accuracy % for a given permutation",
+            "xlabel": "Helpful Actor accuracy % minus Realistic Actor accuracy % for a given permutation",
         },
         "success_rates_by_eligibility.hist": {
             "ylabel": "Count of permutations",
-            "xlabel": "Model Accuracy %"
+            "xlabel": "Accuracy %"
         },
         "success_rates_by_eligibility.modelSize": {
-            "ylabel": "Model Size",
+            "ylabel": "Actor",
             "xlabel": "Eligibility Category",
-            "title": "Average judged accuracy for model size and eligibility category",
+            "title": "Average judged accuracy for Actor Prompt and Eligibility Category",
         },
     },
 }
@@ -97,7 +97,7 @@ model_sizes_hypothesis_mapping = {
     "child_benefit": {"baseline": "gemma4B", "improved": "gemma27B"},
     "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
     #"child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
-    "child_benefit__stressTestAgent": {"baseline": "claude37Sonnet", "improved": "claude37SonnetOriginalPrompt"},
+    "child_benefit__stressTestAgent": {"baseline": "Realistic", "improved": "Helpful"},
 }
 
 model_size_commit_mapping = {
@@ -111,8 +111,10 @@ model_size_commit_mapping = {
     }),
     "child_benefit__stressTestAgent": invert_mapping({
         "gemma27B": ["1012a61", "976499a", "74e8834"], 
-        "claude37Sonnet": ["e680f99"],
-        "claude37SonnetOriginalPrompt": ["21506e4"]
+        #"claude37Sonnet": ["e680f99"],
+        #"claude37SonnetOriginalPrompt": ["21506e4"]
+        "Realistic": ["e680f99"],
+        "Helpful": ["21506e4"]
     }),
     #defaultdict(lambda: "large"),
 }
