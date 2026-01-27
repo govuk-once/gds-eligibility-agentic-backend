@@ -13,12 +13,17 @@ from gds_eligibility.agent import root_agent as eligibility_agent
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
 
-def get_prompt(rel_path: str) -> str:
+def get_prompt(rel_path: str, **kwargs) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
-    return "\n".join(prompt_lines)
-
+    prompt_string = "\n".join(prompt_lines)
+    if kwargs:
+        for format_key in kwargs.keys():
+            # str.format() will fail silently if args/kwargs are not present in the string templating syntax
+            assert ("{" + format_key + "}") in prompt_string
+        prompt_string = prompt_string.format(**kwargs)
+    return prompt_string
 
 def exit_loop(tool_context: ToolContext):
     """Call this function ONLY when the judge indicates no further conversation is needed, signaling the iterative process should end."""
@@ -28,13 +33,17 @@ def exit_loop(tool_context: ToolContext):
     return {}
 
 
-def get_review_pipeline(test_case):
-    evaluation_judge = Agent(
+def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
+    return Agent(
         model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
-        name="evaluation_judge",
+        name=name,
         description="When given a transcript, outputs a judgement",
-        instruction=get_prompt("agents/Ancillary/EvaluationJudge-EvaluationOnly-v2.md"),
+        instruction=get_prompt(prompt_filepath, **kwargs),
     )
+
+
+def get_review_pipeline(test_case: str, expected_outcome: str):
+    evaluation_judge = get_judge_agent("evaluation_judge", "agents/Ancillary/EvaluationJudge-EvaluationOnly-v3.md", expected_outcome=expected_outcome)
 
     actor = Agent(
         model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
