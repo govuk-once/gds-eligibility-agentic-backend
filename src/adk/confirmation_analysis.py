@@ -22,15 +22,15 @@ async def main():
     test_cohort = "child_benefit"
     hypothesis_name = f"{test_cohort}__stressTestAgent"
     #  test_cohort = "skilled_worker_visa"
-    git_commit = 'ffd4b17'
+    git_commit = '21506e4'
     test_cases = load_and_parse_test_cases(test_cohort)
     current_datetime = datetime.now().isoformat()
     input_dirs = list(
         Path("./.testOutputs")
         .joinpath(hypothesis_name)
+        #.glob("2026-01-27T17:16:06.069548__RepoCommit=ffd4b17")
         .glob(f"*__RepoCommit={git_commit}")
     )
-    
     print('Looking in', input_dirs)
     for input_dir in input_dirs:
         print('Looking in', input_dirs)
