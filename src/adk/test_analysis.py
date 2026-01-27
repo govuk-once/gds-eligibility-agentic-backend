@@ -27,6 +27,72 @@ success_rates_by_eligibility_model_size = {}
 def invert_mapping(dictionary: dict) -> dict:
     return {elem: k for k, v in dictionary.items() for elem in v}
 
+figure_annotations = {
+    "child_benefit": {
+        "success_rates_by_permutation_model_size.hist": {
+            "title": "Accuracy of agent (according to judge) for child benefit",
+            "ylabel": "Count",
+            "xlabel": "Percentage correctness over all executions"
+        },
+        "success_rates_by_permutation_model_size.improvement.hist": {
+            "title": "Difference in judged accuracy with varying model size for child benefit",
+            "ylabel": "Count of permutations",
+            "xlabel": "Large model accuracy % minus small model accuracy % for a given permutation",
+        },
+        "success_rates_by_eligibility.hist": {
+            "ylabel": "Count of permutations",
+            "xlabel": "Model Accuracy %"
+        },
+        "success_rates_by_eligibility.modelSize": {
+            "ylabel": "Model Size",
+            "xlabel": "Eligibility Category",
+            "title": "Average judged accuracy for model size and eligibility category",
+        },
+    },
+    "skilled_worker_visa": {
+        "success_rates_by_permutation_model_size.hist": {
+            "title": "Accuracy of agent (according to judge) for skilled worker visa",
+            "ylabel": "Count",
+            "xlabel": "Percentage correctness over all executions"
+        },
+        "success_rates_by_permutation_model_size.improvement.hist": {
+            "title": "Difference in judged accuracy with varying model size for skilled worker visa",
+            "ylabel": "Count of permutations",
+            "xlabel": "Large model accuracy % minus small model accuracy % for a given permutation",
+        },
+        "success_rates_by_eligibility.hist": {
+            "ylabel": "Count of permutations",
+            "xlabel": "Model Accuracy %"
+        },
+        "success_rates_by_eligibility.modelSize": {
+            "ylabel": "Model Size",
+            "xlabel": "Eligibility Category",
+            "title": "Average judged accuracy for model size and eligibility category",
+        },
+    },
+    "child_benefit__stressTestAgent": {
+        "success_rates_by_permutation_model_size.hist": {
+            "title": "Accuracy of agent (according to judge) for child benefit",
+            "ylabel": "Count",
+            "xlabel": "Percentage correctness over all executions"
+        },
+        "success_rates_by_permutation_model_size.improvement.hist": {
+            "title": "Difference in judged accuracy with varying model size for child benefit",
+            "ylabel": "Count of permutations",
+            "xlabel": "Large model accuracy % minus small model accuracy % for a given permutation",
+        },
+        "success_rates_by_eligibility.hist": {
+            "ylabel": "Count of permutations",
+            "xlabel": "Model Accuracy %"
+        },
+        "success_rates_by_eligibility.modelSize": {
+            "ylabel": "Model Size",
+            "xlabel": "Eligibility Category",
+            "title": "Average judged accuracy for model size and eligibility category",
+        },
+    },
+}
+
 model_sizes_hypothesis_mapping = {
     "child_benefit": {"baseline": "gemma4B", "improved": "gemma27B"},
     "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
@@ -201,6 +267,7 @@ def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_
     print(df.nsmallest(n=15))
     print(df.reset_index().set_index("permutation").value_counts())
 
+    fig_name = "success_rates_by_permutation_model_size.hist"
     fig = plt.figure(f"hist_{test_cohort}")
     fig.clear()
     ax = sns.histplot(
@@ -213,13 +280,11 @@ def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_
         common_bins=True,
     )
     ax.set_title(
-        "Accuracy of agent (according to judge) for {}".format(
-            test_cohort.replace("_", " ")
-        )
+        figure_annotations[test_cohort][fig_name]["title"]
     )
-    ax.set_ylabel("Count")
-    ax.set_xlabel("Percentage correctness over all executions")
-    fig.savefig(f"success_rates_by_permutation_model_size.hist.{test_cohort}.png")
+    ax.set_ylabel(figure_annotations[test_cohort][fig_name]["ylabel"])
+    ax.set_xlabel(figure_annotations[test_cohort][fig_name]["xlabel"])
+    fig.savefig(f"{fig_name}.{test_cohort}.png")
 
     return df
 
@@ -250,22 +315,21 @@ def get_large_model_improvements_by_permutation(
         .value_counts()
     )
 
+    fig_name = "success_rates_by_permutation_model_size.improvement.hist"
     fig = plt.figure(f"improvement_{test_cohort}")
     fig.clear()
     df.hist()
     ax = fig.get_axes()[0]
     ax.set_title(
-        "Difference in judged accuracy with varying model size for {}".format(
-            test_cohort.replace("_", " ")
-        )
+        figure_annotations[test_cohort][fig_name]["title"]
     )
-    ax.set_ylabel("Count of permutations")
+    ax.set_ylabel(figure_annotations[test_cohort][fig_name]["ylabel"])
     ax.set_xlabel(
-        "Large model accuracy % minus small model accuracy % for a given permutation"
+        figure_annotations[test_cohort][fig_name]["xlabel"]
     )
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
     fig.savefig(
-        f"success_rates_by_permutation_model_size.improvement.hist.{test_cohort}.png"
+        f"{fig_name}.{test_cohort}.png"
     )
     print(df.value_counts())
     return df
@@ -276,6 +340,7 @@ def get_success_rates_by_eligibility(
     eligibility_df: pd.DataFrame,
     test_cohort,
 ) -> pd.DataFrame:
+    fig_name = "success_rates_by_eligibility.hist"
     fig = plt.figure(f"eligibility_{test_cohort}")
     fig.clear()
     df = eligibility_df.join(success_rates_by_permutation)
@@ -293,11 +358,11 @@ def get_success_rates_by_eligibility(
         bins=20,
         common_bins=True,
     )
-    ax.set_ylabel("Count of permutations")
-    ax.set_xlabel("Model Accuracy %")
+    ax.set_ylabel(figure_annotations[test_cohort][fig_name]["ylabel"])
+    ax.set_xlabel(figure_annotations[test_cohort][fig_name]["xlabel"])
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
 
-    fig.savefig(f"success_rates_by_eligibility.hist.{test_cohort}.png")
+    fig.savefig(f"{fig_name}.{test_cohort}.png")
     return df
 
 
@@ -306,6 +371,7 @@ def get_success_rates_by_eligibility_model_size(
     eligibility_df: pd.DataFrame,
     test_cohort,
 ) -> pd.DataFrame:
+    fig_name = "success_rates_by_eligibility.modelSize"
     fig = plt.figure(f"confusion_{test_cohort}")
     fig.clear()
     df = eligibility_df.join(success_rates_by_permutation_model_size)
@@ -319,14 +385,14 @@ def get_success_rates_by_eligibility_model_size(
         fmt=".1f"
     )
 
-    ax.set_ylabel("Model Size")
-    ax.set_xlabel("Eligibility Category")
+    ax.set_ylabel(figure_annotations[test_cohort][fig_name]["ylabel"])
+    ax.set_xlabel(figure_annotations[test_cohort][fig_name]["xlabel"])
     #  ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
     ax.set_title(
-        "Average judged accuracy for model size and eligibility category"
+        figure_annotations[test_cohort][fig_name]["title"]
     )
 
-    fig.savefig(f"success_rates_by_eligibility.modelSize.{test_cohort}.png")
+    fig.savefig(f"{fig_name}.{test_cohort}.png")
     return df
 
 
