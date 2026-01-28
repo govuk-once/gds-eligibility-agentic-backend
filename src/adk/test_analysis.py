@@ -22,6 +22,9 @@ large_model_improvement_by_permutations = {}
 eligibility_dfs = {}
 success_rates_by_eligibilitys = {}
 success_rates_by_eligibility_model_size = {}
+rejudgement_agree_dfs = {}
+rejudgement_disagree_dfs = {}
+combined_rejudgement_dfs_raw = {}
 
 
 def invert_mapping(dictionary: dict) -> dict:
@@ -118,6 +121,38 @@ model_size_commit_mapping = {
     }),
     #defaultdict(lambda: "large"),
 }
+
+def extract_judgement_results_for_folder(output_dir, search_character) -> pd.DataFrame:
+    print(output_dir)
+    extracted_records = []
+    output = subprocess.run(
+        ["rg", search_character, "--hidden"],
+        capture_output=True,
+        check=False,
+        text=True,
+        cwd=output_dir,
+    )
+    for filename in output.stdout.strip().split("\n"):
+        if filename:
+            with_commit = (
+                r"(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+)__rejudgement_(?P<rejudgement_time>[\d:T\.-]+).*"
+                #  + ur":\[evaluation_judge\]: "
+                + search_character + r"(?P<rejudgement_reasoning>.*)"
+            )
+            if re.match(
+                with_commit,
+                filename,
+                re.UNICODE
+            ):
+                extracted_fields = re.search(
+                    with_commit,
+                    filename,
+                    re.UNICODE
+                ).groupdict()
+            extracted_fields["permutation"] = int(extracted_fields["permutation"])
+            extracted_fields["rejudgement_reasoning"] = str(extracted_fields["rejudgement_reasoning"])
+            extracted_records.append(extracted_fields)
+    return pd.DataFrame.from_records(extracted_records)
 
 
 def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
@@ -230,6 +265,17 @@ def load_failure_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print(df.value_counts(["permutation", "ModelSize"]))
     return df
 
+def load_disagree_judgements_df(output_dir, test_cohort) -> pd.DataFrame:
+    df = extract_judgement_results_for_folder(output_dir, "☹")
+    df["RejudgementAgree"] = False
+    df.set_index(["commit", "exec_time", "permutation"], inplace=True)
+    return df
+
+def load_agree_judgements_df(output_dir, test_cohort) -> pd.DataFrame:
+    df = extract_judgement_results_for_folder(output_dir, "☺")
+    df["RejudgementAgree"] = True
+    df.set_index(["commit", "exec_time", "permutation"], inplace=True)
+    return df
 
 def load_success_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('successes:')
@@ -429,10 +475,27 @@ def analyse_cohort(output_dir: Path):
             list(model_sizes_hypothesis_mapping[test_cohort].values())
         )
     ]
+
+    rejudgement_agree_dfs[test_cohort] = load_agree_judgements_df(output_dir, test_cohort)
+    rejudgement_disagree_dfs[test_cohort] = load_disagree_judgements_df(output_dir, test_cohort)
+    combined_rejudgement_dfs_raw[test_cohort] = pd.concat(
+        [rejudgement_agree_dfs[test_cohort], rejudgement_disagree_dfs[test_cohort]],
+    )
+    combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+        combined_rejudgement_dfs_raw[test_cohort],
+    )
+    combined_dfs_raw[test_cohort]["RejudgementPassed"] = combined_dfs_raw[test_cohort].apply(
+        # To find whether the rejudge believes the case should have passed
+        # If the rejudgement agrees with the original judgement, use the original judgement
+        # If the rejudgement disagrees with the original judgement use the opposite of the original judgment
+        lambda row: row["Passed"] if row["RejudgementAgree"] == True else (not row["Passed"]),
+        axis=1
+    )
+
     combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
         ["ModelSize"], append=True
     )
-    print(combined_dfs[test_cohort].value_counts(["Passed", "ModelSize"]))
+    print(combined_dfs[test_cohort].value_counts([success_column, "ModelSize"]))
     print(
         combined_dfs[test_cohort].value_counts(
             ["ModelSize", "permutation"], ascending=True
