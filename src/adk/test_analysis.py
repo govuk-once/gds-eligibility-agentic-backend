@@ -12,6 +12,7 @@ import matplotlib
 import seaborn as sns
 
 success_column = "Passed"
+#success_column = "RejudgementPassed"
 
 failure_dfs = {}
 success_dfs = {}
@@ -26,6 +27,9 @@ success_rates_by_eligibility_model_size = {}
 rejudgement_agree_dfs = {}
 rejudgement_disagree_dfs = {}
 combined_rejudgement_dfs_raw = {}
+rejudgement_passed_dfs = {}
+rejudgement_failed_dfs = {}
+combined_passfail_rejudgement_dfs_raw = {}
 
 
 def invert_mapping(dictionary: dict) -> dict:
@@ -278,6 +282,18 @@ def load_agree_judgements_df(output_dir, test_cohort) -> pd.DataFrame:
     df.set_index(["commit", "exec_time", "permutation"], inplace=True)
     return df
 
+def load_failed_judgements_df(output_dir, test_cohort) -> pd.DataFrame:
+    df = extract_judgement_results_for_folder(output_dir, "👎")
+    df["RejudgementPassed"] = False
+    df.set_index(["commit", "exec_time", "permutation"], inplace=True)
+    return df
+
+def load_passed_judgements_df(output_dir, test_cohort) -> pd.DataFrame:
+    df = extract_judgement_results_for_folder(output_dir, "👍")
+    df["RejudgementPassed"] = True
+    df.set_index(["commit", "exec_time", "permutation"], inplace=True)
+    return df
+
 def load_success_df(output_dir, test_cohort) -> pd.DataFrame:
     #  print('successes:')
     df = extract_results_for_folder(output_dir, "✓")
@@ -484,13 +500,23 @@ def analyse_cohort(output_dir: Path):
     )
     combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
         combined_rejudgement_dfs_raw[test_cohort],
+        rsuffix="__agree"
     )
-    combined_dfs_raw[test_cohort]["RejudgementPassed"] = combined_dfs_raw[test_cohort].apply(
-        # To find whether the rejudge believes the case should have passed
+    combined_dfs_raw[test_cohort]["ConsensusPassed"] = combined_dfs_raw[test_cohort].apply(
+         # To find whether the rejudge believes the case should have passed
         # If the rejudgement agrees with the original judgement, use the original judgement
         # If the rejudgement disagrees with the original judgement use the opposite of the original judgment
         lambda row: row["Passed"] if row["RejudgementAgree"] == True else (not row["Passed"]),
         axis=1
+    )
+    rejudgement_passed_dfs[test_cohort] = load_passed_judgements_df(output_dir, test_cohort)
+    rejudgement_failed_dfs[test_cohort] = load_failed_judgements_df(output_dir, test_cohort)
+    combined_passfail_rejudgement_dfs_raw[test_cohort] = pd.concat(
+        [rejudgement_passed_dfs[test_cohort], rejudgement_failed_dfs[test_cohort]],
+    )
+    combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+        combined_passfail_rejudgement_dfs_raw[test_cohort],
+        rsuffix="__passfail"
     )
 
     combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
