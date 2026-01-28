@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns
 
+success_column = "Passed"
 
 failure_dfs = {}
 success_dfs = {}
@@ -294,7 +295,7 @@ def load_success_df(output_dir, test_cohort) -> pd.DataFrame:
 def get_success_rates_by_permutation(combined_df: pd.DataFrame) -> pd.DataFrame:
     df = (
         100
-        * combined_df[combined_df["Passed"] == True]
+        * combined_df[combined_df[success_column] == True]
         .index.get_level_values(2)
         .value_counts()
         / combined_df.index.get_level_values(2).value_counts()
@@ -306,7 +307,7 @@ def get_success_rates_by_permutation(combined_df: pd.DataFrame) -> pd.DataFrame:
 def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_cohort) -> pd.DataFrame:
     df = (
         100
-        * combined_df[combined_df["Passed"] == True]
+        * combined_df[combined_df[success_column] == True]
         .index.droplevel(0)
         .droplevel(0)
         .value_counts()
@@ -343,7 +344,7 @@ def get_large_model_improvements_by_permutation(
 ) -> pd.DataFrame:
     df = (
         combined_df_raw[
-            (combined_df_raw["Passed"] == True)
+            (combined_df_raw[success_column] == True)
             & (combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["improved"])
         ]
         .index.get_level_values(2)
@@ -353,7 +354,7 @@ def get_large_model_improvements_by_permutation(
         .value_counts()
     ) - (
         combined_df_raw[
-            (combined_df_raw["Passed"] == True)
+            (combined_df_raw[success_column] == True)
             & (combined_df_raw["ModelSize"] == model_sizes_hypothesis_mapping[test_cohort]["baseline"])
         ]
         .index.get_level_values(2)
@@ -517,7 +518,7 @@ def analyse_cohort(output_dir: Path):
     if output_dir.name.startswith("child_benefit"):
         print(
             combined_dfs_raw[test_cohort].value_counts(
-                ["Passed", "eligible", "not_eligible"]
+                [success_column, "eligible", "not_eligible"]
             )
         )
         success_rates_by_eligibilitys[test_cohort] = get_success_rates_by_eligibility(
