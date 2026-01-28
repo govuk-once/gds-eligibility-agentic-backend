@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns
+from matplotlib_venn import venn3
 
 success_column = "Passed"
 #success_column = "RejudgementPassed"
@@ -557,7 +558,34 @@ def analyse_cohort(output_dir: Path):
             eligibility_dfs[test_cohort],
             test_cohort,
         )
-        combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
+
+        print(combined_dfs_raw[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
+        fig_name = "venn_true"
+        fig = plt.figure(f"venn_true_{test_cohort}")
+        fig.clear()
+        v = venn3(
+            [
+                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == True].index),
+                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == True].index),
+                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == True].index)
+            ],
+            ("Passed", "RejudgementPassed", "ConsensusPassed")
+        )
+        fig.savefig(f"{fig_name}.{test_cohort}.png")
+        
+        fig_name = "venn_false"
+        fig = plt.figure(f"venn_true_{test_cohort}")
+        fig.clear()
+        v = venn3(
+            [
+                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == False].index),
+                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == False].index),
+                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == False].index)
+            ],
+            ("Passed", "RejudgementPassed", "ConsensusPassed")
+        )
+        fig.savefig(f"{fig_name}.{test_cohort}.png")
+        #combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
 
 
 if __name__ == "__main__":
