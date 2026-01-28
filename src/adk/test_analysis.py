@@ -14,6 +14,7 @@ from matplotlib_venn import venn3
 
 success_column = "Passed"
 #success_column = "RejudgementPassed"
+#success_column = "ConsensusPassed"
 
 failure_dfs = {}
 success_dfs = {}
@@ -499,10 +500,18 @@ def analyse_cohort(output_dir: Path):
     combined_rejudgement_dfs_raw[test_cohort] = pd.concat(
         [rejudgement_agree_dfs[test_cohort], rejudgement_disagree_dfs[test_cohort]],
     )
-    combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-        combined_rejudgement_dfs_raw[test_cohort],
-        rsuffix="__agree"
-    )
+    try:
+        combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+            combined_rejudgement_dfs_raw[test_cohort],
+            rsuffix="__agree",
+            how="inner",
+            validate="1:1",
+        )
+    except pd.errors.MergeError as e:
+        print(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()])
+        print(combined_rejudgement_dfs_raw[test_cohort][combined_rejudgement_dfs_raw[test_cohort].index.duplicated()])
+        raise e
+
     combined_dfs_raw[test_cohort]["ConsensusPassed"] = combined_dfs_raw[test_cohort].apply(
          # To find whether the rejudge believes the case should have passed
         # If the rejudgement agrees with the original judgement, use the original judgement
@@ -515,10 +524,17 @@ def analyse_cohort(output_dir: Path):
     combined_passfail_rejudgement_dfs_raw[test_cohort] = pd.concat(
         [rejudgement_passed_dfs[test_cohort], rejudgement_failed_dfs[test_cohort]],
     )
-    combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-        combined_passfail_rejudgement_dfs_raw[test_cohort],
-        rsuffix="__passfail"
-    )
+    try:
+        combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+            combined_passfail_rejudgement_dfs_raw[test_cohort],
+            rsuffix="__passfail",
+            how="inner",
+            validate="1:1",
+        )
+    except pd.errors.MergeError as e:
+        print(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()])
+        print(combined_passfail_rejudgement_dfs_raw[test_cohort][combined_passfail_rejudgement_dfs_raw[test_cohort].index.duplicated()])
+        raise e
 
     combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
         ["ModelSize"], append=True
