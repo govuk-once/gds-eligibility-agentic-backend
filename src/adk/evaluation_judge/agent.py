@@ -35,7 +35,7 @@ def exit_loop(tool_context: ToolContext):
 
 def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
     return Agent(
-        model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
+        model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
         name=name,
         description="When given a transcript, outputs a judgement",
         instruction=get_prompt(prompt_filepath, **kwargs),
@@ -46,12 +46,11 @@ def get_review_pipeline(test_case: str, expected_outcome: str):
     evaluation_judge = get_judge_agent("evaluation_judge", "agents/Ancillary/EvaluationJudge-EvaluationOnly-v3.md", expected_outcome=expected_outcome)
 
     actor = Agent(
-        model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
+        model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
-        #static_instruction=get_prompt("agents/Ancillary/Actor-Humanlike.md"),
-        #instruction=test_case,
-        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v0.md") + "\n" + test_case,
+        #instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v0.md") + "\n" + test_case,
+        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v3.md") + "\n" + test_case,
         tools=[exit_loop],  # Provide the exit_loop tool
     )
 

@@ -68,7 +68,10 @@ async def execute_test_case(
     app_name = "evaluation_judge"
     user_id = "test_user"
     test_case_without_outcome, expected_outcome = split_outcome_from_test_case(test_case)
-    app = App(name=app_name, root_agent=get_review_pipeline(test_case_without_outcome))
+    app = App(
+        name=app_name, 
+        root_agent=get_review_pipeline(test_case_without_outcome, expected_outcome=expected_outcome)
+    )
     session = await session_service.create_session(app_name=app_name, user_id=user_id)
     runner = Runner(
         app=app,
