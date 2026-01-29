@@ -43,7 +43,7 @@ def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
 
 
 def get_review_pipeline(test_case: str, expected_outcome: str):
-    evaluation_judge = get_judge_agent("evaluation_judge", "agents/Ancillary/EvaluationJudge-EvaluationOnly-v3.md", expected_outcome=expected_outcome)
+    evaluation_judge = get_judge_agent("evaluation_judge", "agents/Ancillary/EvaluationJudge-EvaluationOnly-v4.md", expected_outcome=expected_outcome)
 
     actor = Agent(
         model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),

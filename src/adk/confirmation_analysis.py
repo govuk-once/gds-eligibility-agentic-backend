@@ -62,9 +62,9 @@ async def main():
                     output_file,
                     test_cohort,
                 )
-    #run(
-    #    ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
-    #)  # Don't check as no results returns error
+    run(
+        ["rg", "👎", str(input_dir) + "/Permutation*__rejudgement_{current_datetime}", "--stats"], capture_output=False, check=False, text=True
+    )  # Don't check as no results returns error
 
 
 async def execute_test_case(
@@ -86,7 +86,7 @@ async def execute_test_case(
     test_case_without_outcome, expected_outcome = split_outcome_from_test_case(test_case)
     evaluation_judge = get_judge_agent(
         app_name,
-        "agents/Ancillary/EvaluationJudge-confirmation-v2.md", 
+        "agents/Ancillary/EvaluationJudge-confirmation-v3.md", 
         test_case_without_outcome=test_case_without_outcome,
         expected_outcome=expected_outcome
     )
