@@ -49,8 +49,8 @@ def get_review_pipeline(test_case: str, expected_outcome: str):
         model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
-        #instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v0.md") + "\n" + test_case,
-        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v3.md") + "\n" + test_case,
+        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v0.md") + "\n" + test_case,
+        #instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v3.md") + "\n" + test_case,
         tools=[exit_loop],  # Provide the exit_loop tool
     )
 
