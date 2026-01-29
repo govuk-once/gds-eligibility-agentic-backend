@@ -86,7 +86,7 @@ async def execute_test_case(
     test_case_without_outcome, expected_outcome = split_outcome_from_test_case(test_case)
     evaluation_judge = get_judge_agent(
         app_name,
-        "agents/Ancillary/EvaluationJudge-confirmation-v1.md", 
+        "agents/Ancillary/EvaluationJudge-confirmation-v2.md", 
         test_case_without_outcome=test_case_without_outcome,
         expected_outcome=expected_outcome
     )

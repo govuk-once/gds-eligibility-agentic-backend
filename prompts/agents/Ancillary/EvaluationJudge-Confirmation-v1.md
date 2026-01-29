@@ -2,20 +2,25 @@
 
 * You are tasked with reviewing a transcript between a user and an agent
 * At the end of the transcript there will be a judgement recorded by '[evaluation_judge]'
-* Your task is ignore the previous judgement, and decide whether you think the agent communicated the correct outcome as to whether the user was eligible or not eligible for child benefit
-* The expected outcome of this conversation is:
+* Your task is to decide whether you agree with the judgement recorded
+* The most important consideration is whether the outcome reported by the agent matches the expected outcome of the conversation, which in this case is:
     {expected_outcome}
 
 ## Rules
 
+* If the agent has made any mistakes or given any incorrect information, they have failed.
 * Output your response on the same line (i.e. without line breaks or newline characters)
 * The judgement will be one of the last non-blank lines of the transcript. It will always contain either:
     * the character ✗ if the judge believes the agent has failed
     * the character ✓ if the judge believes the agent has passed
-* You will then assess whether you think the agent communicated an eligibility outcome that agrees with the expected outcome
-    * The expected outcome is:
+* The judge was told to make a judgment based on
+    * Whether the agent gave the correct outcome
+    * Whether the agent gave any erroneous information
+* You will then assess the judges outcome, based on whether you agree that the outcome represents a pass or failure
+    * You should assess as failed if you disagree with the judges assessment based your interpretation of the transcript taking into account the original rules
+    * If the expected outcome provided in does not match the expected outcome, you MUST assess as failed, where the expected outcome is:
         {expected_outcome}
-    * If you think the eligibility outcome the agent communicated does not agree with the expected outcome, your output should start with a 👎. If you think the eligibility outcome the agent communicated does agree with the expected outcome, your output should start with a 👍 
+    * If you assess as failed your output should start with a ☹ if you assess as not failed your output should start with a ☺ 
     * You should then say a short sentence justifying your decision
 * If you must verify or understand the subject matter, only use the following links:
   * https://www.gov.uk/child-benefit/eligibility
