@@ -107,7 +107,8 @@ model_sizes_hypothesis_mapping = {
     "child_benefit": {"baseline": "gemma4B", "improved": "gemma27B"},
     "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
     #"child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
-    "child_benefit__stressTestAgent": {"baseline": "Realistic", "improved": "Helpful"},
+    #"child_benefit__stressTestAgent": {"baseline": "claude37Sonnet__Realistic", "improved": "claude37Sonnet__Helpful"},
+    "child_benefit__stressTestAgent": {"baseline": "claude45Sonnet__Realistic", "improved": "claude45Sonnet__Helpful"},
 }
 
 model_size_commit_mapping = {
@@ -121,12 +122,17 @@ model_size_commit_mapping = {
     }),
     "child_benefit__stressTestAgent": invert_mapping({
         "gemma27B": ["1012a61", "976499a", "74e8834"], 
-        #"claude37Sonnet": ["e680f99"],
-        #"claude37SonnetOriginalPrompt": ["21506e4"]
-        "Realistic": ["e680f99"],
-        "Helpful": ["21506e4"]
+        "claude37Sonnet": ["e680f99"],
+        "claude37SonnetOriginalPrompt": ["21506e4"],
+        "claude45Sonnet__Realistic": ["10c6f19"],
+        "claude45Sonnet__Helpful": ["d6dfd9f"],
     }),
     #defaultdict(lambda: "large"),
+}
+
+# TODO extract this from model_sizes_hypothesis mapping and model_sizes_commit_mapping
+commits_to_filter = {
+    "child_benefit__stressTestAgent": ["10c6f19", "d6dfd9f"],
 }
 
 def extract_judgement_results_for_folder(output_dir, search_character) -> pd.DataFrame:
@@ -159,7 +165,8 @@ def extract_judgement_results_for_folder(output_dir, search_character) -> pd.Dat
             extracted_fields["permutation"] = int(extracted_fields["permutation"])
             extracted_fields["rejudgement_reasoning"] = str(extracted_fields["rejudgement_reasoning"])
             extracted_records.append(extracted_fields)
-    return pd.DataFrame.from_records(extracted_records)
+    df = pd.DataFrame.from_records(extracted_records)
+    return df[df['commit'].isin(commits_to_filter[output_dir.name])]
 
 
 def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
@@ -203,7 +210,8 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
             extracted_fields["permutation"] = int(extracted_fields["permutation"])
             extracted_fields["reasoning"] = str(extracted_fields["reasoning"])
             extracted_records.append(extracted_fields)
-    return pd.DataFrame.from_records(extracted_records)
+    df = pd.DataFrame.from_records(extracted_records)
+    return df[df['commit'].isin(commits_to_filter[output_dir.name])]
 
 
 def load_and_parse_test_cases(test_cohort: str) -> list[str]:
@@ -500,41 +508,43 @@ def analyse_cohort(output_dir: Path):
     combined_rejudgement_dfs_raw[test_cohort] = pd.concat(
         [rejudgement_agree_dfs[test_cohort], rejudgement_disagree_dfs[test_cohort]],
     )
-    try:
-        combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-            combined_rejudgement_dfs_raw[test_cohort],
-            rsuffix="__agree",
-            how="inner",
-            validate="1:1",
-        )
-    except pd.errors.MergeError as e:
-        print(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()])
-        print(combined_rejudgement_dfs_raw[test_cohort][combined_rejudgement_dfs_raw[test_cohort].index.duplicated()])
-        raise e
+    if len(combined_rejudgement_dfs_raw[test_cohort]):
+        try:
+            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+                combined_rejudgement_dfs_raw[test_cohort],
+                rsuffix="__agree",
+                #how="inner",
+                validate="1:1",
+            )
+        except pd.errors.MergeError as e:
+            print(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()])
+            print(combined_rejudgement_dfs_raw[test_cohort][combined_rejudgement_dfs_raw[test_cohort].index.duplicated()])
+            raise e
 
-    combined_dfs_raw[test_cohort]["ConsensusPassed"] = combined_dfs_raw[test_cohort].apply(
-         # To find whether the rejudge believes the case should have passed
-        # If the rejudgement agrees with the original judgement, use the original judgement
-        # If the rejudgement disagrees with the original judgement use the opposite of the original judgment
-        lambda row: row["Passed"] if row["RejudgementAgree"] == True else (not row["Passed"]),
-        axis=1
-    )
+        combined_dfs_raw[test_cohort]["ConsensusPassed"] = combined_dfs_raw[test_cohort].apply(
+            # To find whether the rejudge believes the case should have passed
+            # If the rejudgement agrees with the original judgement, use the original judgement
+            # If the rejudgement disagrees with the original judgement use the opposite of the original judgment
+            lambda row: row["Passed"] if row["RejudgementAgree"] == True else (not row["Passed"]),
+            axis=1
+        )
     rejudgement_passed_dfs[test_cohort] = load_passed_judgements_df(output_dir, test_cohort)
     rejudgement_failed_dfs[test_cohort] = load_failed_judgements_df(output_dir, test_cohort)
     combined_passfail_rejudgement_dfs_raw[test_cohort] = pd.concat(
         [rejudgement_passed_dfs[test_cohort], rejudgement_failed_dfs[test_cohort]],
     )
-    try:
-        combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-            combined_passfail_rejudgement_dfs_raw[test_cohort],
-            rsuffix="__passfail",
-            how="inner",
-            validate="1:1",
-        )
-    except pd.errors.MergeError as e:
-        print(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()])
-        print(combined_passfail_rejudgement_dfs_raw[test_cohort][combined_passfail_rejudgement_dfs_raw[test_cohort].index.duplicated()])
-        raise e
+    if len(combined_passfail_rejudgement_dfs_raw[test_cohort]):
+        try:
+            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+                combined_passfail_rejudgement_dfs_raw[test_cohort],
+                rsuffix="__passfail",
+                #how="inner",
+                validate="1:1",
+            )
+        except pd.errors.MergeError as e:
+            print(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()])
+            print(combined_passfail_rejudgement_dfs_raw[test_cohort][combined_passfail_rejudgement_dfs_raw[test_cohort].index.duplicated()])
+            raise e
 
     combined_dfs[test_cohort] = combined_dfs_raw[test_cohort].set_index(
         ["ModelSize"], append=True
@@ -575,33 +585,34 @@ def analyse_cohort(output_dir: Path):
             test_cohort,
         )
 
-        print(combined_dfs_raw[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
-        fig_name = "venn_true"
-        fig = plt.figure(f"venn_true_{test_cohort}")
-        fig.clear()
-        v = venn3(
-            [
-                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == True].index),
-                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == True].index),
-                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == True].index)
-            ],
-            ("Passed", "RejudgementPassed", "ConsensusPassed")
-        )
-        fig.savefig(f"{fig_name}.{test_cohort}.png")
-        
-        fig_name = "venn_false"
-        fig = plt.figure(f"venn_true_{test_cohort}")
-        fig.clear()
-        v = venn3(
-            [
-                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == False].index),
-                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == False].index),
-                set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == False].index)
-            ],
-            ("Passed", "RejudgementPassed", "ConsensusPassed")
-        )
-        fig.savefig(f"{fig_name}.{test_cohort}.png")
-        #combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
+        if len(combined_passfail_rejudgement_dfs_raw[test_cohort]) and len(combined_rejudgement_dfs_raw[test_cohort]):
+            print(combined_dfs_raw[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
+            fig_name = "venn_true"
+            fig = plt.figure(f"venn_true_{test_cohort}")
+            fig.clear()
+            v = venn3(
+                [
+                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == True].index),
+                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == True].index),
+                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == True].index)
+                ],
+                ("Passed", "RejudgementPassed", "ConsensusPassed")
+            )
+            fig.savefig(f"{fig_name}.{test_cohort}.png")
+            
+            fig_name = "venn_false"
+            fig = plt.figure(f"venn_true_{test_cohort}")
+            fig.clear()
+            v = venn3(
+                [
+                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == False].index),
+                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == False].index),
+                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == False].index)
+                ],
+                ("Passed", "RejudgementPassed", "ConsensusPassed")
+            )
+            fig.savefig(f"{fig_name}.{test_cohort}.png")
+            #combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
 
 
 if __name__ == "__main__":
