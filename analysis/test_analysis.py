@@ -142,8 +142,8 @@ model_size_commit_mapping = {
 # TODO extract this from model_sizes_hypothesis mapping and model_sizes_commit_mapping
 commits_to_filter = {
     "child_benefit__stressTestAgent": ["10c6f19", "d6dfd9f"],
-    "skilled_worker_visa": ["Unknown", "db37bc9", "df1795d", "71b1d7c", "8ed3c90"],
-    "child_benefit": ["Unknown", "fc922c5", "9493282", "f2dc127", "575b5e9"],
+    #"skilled_worker_visa": ["Unknown", "db37bc9", "df1795d", "71b1d7c", "8ed3c90"],
+    #"child_benefit": ["Unknown", "fc922c5", "9493282", "f2dc127", "575b5e9"],
 }
 
 def extract_judgement_results_for_folder(output_dir, search_character) -> pd.DataFrame:
@@ -180,7 +180,9 @@ def extract_judgement_results_for_folder(output_dir, search_character) -> pd.Dat
         extracted_records,
         columns=["exec_time", "commit", "permutation", "rejudgement_time", "rejudgement_reasoning"]
     )
-    return df[df['commit'].isin(commits_to_filter[output_dir.name])]
+    if "child_benefit__stressTestAgent" in str(output_dir): 
+       df = df[df['commit'].isin(commits_to_filter[output_dir.name])]
+    return df
 
 
 def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
@@ -228,7 +230,9 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
         extracted_records,
         columns=["exec_time", "commit", "permutation", "reasoning"]
     )
-    return df[df['commit'].isin(commits_to_filter[output_dir.name])]
+    if "child_benefit__stressTestAgent" in str(output_dir): 
+       df = df[df['commit'].isin(commits_to_filter[output_dir.name])]
+    return df
 
 
 def load_and_parse_test_cases(test_cohort: str) -> list[str]:
