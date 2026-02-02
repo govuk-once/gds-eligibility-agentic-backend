@@ -1,4 +1,12 @@
 #!/usr/bin/env ipython
+
+# TODO
+# * Figure out what to do about issues like .testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
+# * Move this file and graphs out into a top level `analysis` folder
+# * Add docstrings
+# * Move to ipython notebook
+# * (stretch goal) Move .testOutputs out to top level folder, and update transcription and analysis functionality accordingly
+
 from collections import defaultdict
 import re
 from pathlib import Path
