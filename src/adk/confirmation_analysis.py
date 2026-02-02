@@ -31,9 +31,9 @@ async def main():
     test_cases = load_and_parse_test_cases(test_cohort)
     current_datetime = datetime.now().isoformat()
     input_dirs = list(
-        Path("./.testOutputs")
+        Path("../../") # Repository root
+        .joinpath("analysis/.testOutputs")
         .joinpath(hypothesis_name)
-        #.glob("2026-01-27T17:16:06.069548__RepoCommit=ffd4b17")
         .glob(f"*__RepoCommit={git_commit}")
     )
     print('Looking in', input_dirs)
@@ -50,7 +50,6 @@ async def main():
             artifact_service = InMemoryArtifactService()
             credential_service = InMemoryCredentialService()
             with (
-                #input_dir.joinpath(f"Permutation{permutation_number}.out").open("r") as input_file, 
                 input_filepath.open("r") as input_file, 
                 input_dir.joinpath(f"Permutation{permutation_number}__rejudgement_{current_datetime}").open("a+") as output_file
             ):
@@ -121,7 +120,10 @@ async def execute_test_case(
 
 
 def load_and_parse_test_cases(test_cohort: str):
-    test_case_file = Path(f"../../prompts/manual/test_cases/{test_cohort}.md")
+    test_case_file = (
+        Path("../../") # Repository root
+        .joinpath(f"prompts/manual/test_cases/{test_cohort}.md")
+    )
     with test_case_file.open() as f:
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)

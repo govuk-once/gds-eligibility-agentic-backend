@@ -1,11 +1,11 @@
 #!/usr/bin/env ipython
 
 # TODO
-# * Figure out what to do about issues like .testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
-# * Move this file and graphs out into a top level `analysis` folder
-# * Add docstrings
-# * Move to ipython notebook
-# * (stretch goal) Move .testOutputs out to top level folder, and update transcription and analysis functionality accordingly
+# * [ ] Figure out what to do about issues like .testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
+# * [x] Move this file and graphs out into a top level `analysis` folder
+# * [ ] Add docstrings
+# * [ ] Move to ipython notebook
+# * [x] (stretch goal) Move .testOutputs out to top level folder, and update transcription and analysis functionality accordingly
 
 from collections import defaultdict
 import re
@@ -224,7 +224,11 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
 
 
 def load_and_parse_test_cases(test_cohort: str) -> list[str]:
-    test_case_file = Path(f"../../prompts/manual/test_cases/").joinpath(test_cohort.split("__")[0] + ".md")
+    test_case_file = (
+        Path("../") # Repository root
+        .joinpath(f"prompts/manual/test_cases/")
+        .joinpath(test_cohort.split("__")[0] + ".md")
+    )
     with test_case_file.open() as f:
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)
