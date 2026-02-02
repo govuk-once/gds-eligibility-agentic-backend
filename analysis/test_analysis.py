@@ -142,6 +142,8 @@ model_size_commit_mapping = {
 # TODO extract this from model_sizes_hypothesis mapping and model_sizes_commit_mapping
 commits_to_filter = {
     "child_benefit__stressTestAgent": ["10c6f19", "d6dfd9f"],
+    "skilled_worker_visa": ["Unknown", "db37bc9", "df1795d", "71b1d7c", "8ed3c90"],
+    "child_benefit": ["Unknown", "fc922c5", "9493282", "f2dc127", "575b5e9"],
 }
 
 def extract_judgement_results_for_folder(output_dir, search_character) -> pd.DataFrame:
@@ -174,7 +176,10 @@ def extract_judgement_results_for_folder(output_dir, search_character) -> pd.Dat
             extracted_fields["permutation"] = int(extracted_fields["permutation"])
             extracted_fields["rejudgement_reasoning"] = str(extracted_fields["rejudgement_reasoning"])
             extracted_records.append(extracted_fields)
-    df = pd.DataFrame.from_records(extracted_records)
+    df = pd.DataFrame.from_records(
+        extracted_records,
+        columns=["exec_time", "commit", "permutation", "rejudgement_time", "rejudgement_reasoning"]
+    )
     return df[df['commit'].isin(commits_to_filter[output_dir.name])]
 
 
@@ -219,7 +224,10 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
             extracted_fields["permutation"] = int(extracted_fields["permutation"])
             extracted_fields["reasoning"] = str(extracted_fields["reasoning"])
             extracted_records.append(extracted_fields)
-    df = pd.DataFrame.from_records(extracted_records)
+    df = pd.DataFrame.from_records(
+        extracted_records,
+        columns=["exec_time", "commit", "permutation", "reasoning"]
+    )
     return df[df['commit'].isin(commits_to_filter[output_dir.name])]
 
 
@@ -509,7 +517,8 @@ def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
         df["RejudgementAgreeCount"] = df[df["RejudgementAgree"] == True].groupby(["commit", "exec_time", "permutation"]).agg({
             "RejudgementAgree": 'count'
         })
-    df = df.drop_duplicates(subset=["rejudgement_time", "rejudgement_reasoning"])
+    if "rejudgment_time" in df and "rejudgement_reasoning" in df:
+        df = df.drop_duplicates(subset=["rejudgement_time", "rejudgement_reasoning"])
     return df
 
 
