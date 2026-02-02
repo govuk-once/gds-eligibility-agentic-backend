@@ -583,111 +583,118 @@ def analyse_cohort(output_dir: Path):
             test_cohort,
         )
 
-        rejudgement_agree_dfs[test_cohort] = load_agree_judgements_df(output_dir, test_cohort)
-        rejudgement_disagree_dfs[test_cohort] = load_disagree_judgements_df(output_dir, test_cohort)
-        combined_agree_rejudgement_dfs_raw[test_cohort] = pd.concat(
-            [rejudgement_agree_dfs[test_cohort], rejudgement_disagree_dfs[test_cohort]],
-        )
-        if len(combined_agree_rejudgement_dfs_raw[test_cohort]):
-            try:
-                combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-                    combined_agree_rejudgement_dfs_raw[test_cohort],
-                    rsuffix="__agree",
-                    ##how="inner",
-                    #validate="1:1",
-                    validate="1:m",
-                )
-            except pd.errors.MergeError as e:
-                left = combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()]
-                right = combined_agree_rejudgement_dfs_raw[test_cohort][combined_agree_rejudgement_dfs_raw[test_cohort].index.duplicated()]
-                import pdb; pdb.set_trace()
-                print('LEFT DUPLICATES', left)
-                print('RIGHT DUPLCIATES', right)
-                raise e
-
-            combined_dfs_raw[test_cohort]["ConsensusPassed"] = combined_dfs_raw[test_cohort].apply(
-                # To find whether the rejudge believes the case should have passed
-                # If the rejudgement agrees with the original judgement, use the original judgement
-                # If the rejudgement disagrees with the original judgement use the opposite of the original judgment
-                lambda row: row["Passed"] if row["RejudgementAgree"] == True else (not row["Passed"]),
-                axis=1
-            )
-        rejudgement_passed_dfs[test_cohort] = load_passed_judgements_df(output_dir, test_cohort)
-        rejudgement_failed_dfs[test_cohort] = load_failed_judgements_df(output_dir, test_cohort)
-        combined_passfail_rejudgement_dfs_raw[test_cohort] = pd.concat(
-            [rejudgement_passed_dfs[test_cohort], rejudgement_failed_dfs[test_cohort]],
-        )
-        if len(combined_passfail_rejudgement_dfs_raw[test_cohort]):
-            try:
-                combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
-                    combined_passfail_rejudgement_dfs_raw[test_cohort],
-                    rsuffix="__passfail",
-                    ##how="inner",
-                    ##validate="1:1",
-                    #validate="1:m",
-                )
-            except pd.errors.MergeError as e:
-                left = combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()]
-                right = combined_passfail_rejudgement_dfs_raw[test_cohort][combined_passfail_rejudgement_dfs_raw[test_cohort].index.duplicated()]
-                import pdb; pdb.set_trace()
-                print('LEFT DUPLICATES', left)
-                print('RIGHT DUPLCIATES', right)
-                raise e
-
+        combined_dfs_raw[test_cohort] = load_and_join_rejudgements(output_dir, test_cohort) 
         combined_dfs_by_run[test_cohort] = deduplicate_rejudgements(combined_dfs_raw[test_cohort].copy())
+        plot_venn_diagrams(test_cohort)
+    
 
-        if len(combined_passfail_rejudgement_dfs_raw[test_cohort]) and len(combined_agree_rejudgement_dfs_raw[test_cohort]):
-            print(combined_dfs_by_run[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
-            fig_name = "venn3_true"
-            fig = plt.figure(f"{fig_name}_{test_cohort}")
-            fig.clear()
-            v = venn3(
-                [
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == True].index),
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == True].index),
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["ConsensusPassed"] == True].index)
-                ],
-                ("Passed", "RejudgementPassed", "ConsensusPassed")
+def load_and_join_rejudgements(output_dir, test_cohort):
+    rejudgement_agree_dfs[test_cohort] = load_agree_judgements_df(output_dir, test_cohort)
+    rejudgement_disagree_dfs[test_cohort] = load_disagree_judgements_df(output_dir, test_cohort)
+    combined_agree_rejudgement_dfs_raw[test_cohort] = pd.concat(
+        [rejudgement_agree_dfs[test_cohort], rejudgement_disagree_dfs[test_cohort]],
+    )
+    if len(combined_agree_rejudgement_dfs_raw[test_cohort]):
+        try:
+            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+                combined_agree_rejudgement_dfs_raw[test_cohort],
+                rsuffix="__agree",
+                ##how="inner",
+                #validate="1:1",
+                validate="1:m",
             )
-            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
-            
-            fig_name = "venn3_false"
-            fig = plt.figure(f"{fig_name}_{test_cohort}")
-            fig.clear()
-            v = venn3(
-                [
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == False].index),
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == False].index),
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["ConsensusPassed"] == False].index)
-                ],
-                ("Passed", "RejudgementPassed", "ConsensusPassed")
+        except pd.errors.MergeError as e:
+            left = combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()]
+            right = combined_agree_rejudgement_dfs_raw[test_cohort][combined_agree_rejudgement_dfs_raw[test_cohort].index.duplicated()]
+            import pdb; pdb.set_trace()
+            print('LEFT DUPLICATES', left)
+            print('RIGHT DUPLCIATES', right)
+            raise e
+
+        combined_dfs_raw[test_cohort]["ConsensusPassed"] = combined_dfs_raw[test_cohort].apply(
+            # To find whether the rejudge believes the case should have passed
+            # If the rejudgement agrees with the original judgement, use the original judgement
+            # If the rejudgement disagrees with the original judgement use the opposite of the original judgment
+            lambda row: row["Passed"] if row["RejudgementAgree"] == True else (not row["Passed"]),
+            axis=1
+        )
+    rejudgement_passed_dfs[test_cohort] = load_passed_judgements_df(output_dir, test_cohort)
+    rejudgement_failed_dfs[test_cohort] = load_failed_judgements_df(output_dir, test_cohort)
+    combined_passfail_rejudgement_dfs_raw[test_cohort] = pd.concat(
+        [rejudgement_passed_dfs[test_cohort], rejudgement_failed_dfs[test_cohort]],
+    )
+    if len(combined_passfail_rejudgement_dfs_raw[test_cohort]):
+        try:
+            combined_dfs_raw[test_cohort] = combined_dfs_raw[test_cohort].join(
+                combined_passfail_rejudgement_dfs_raw[test_cohort],
+                rsuffix="__passfail",
+                ##how="inner",
+                ##validate="1:1",
+                #validate="1:m",
             )
-            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
-            #combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
-        elif len(combined_passfail_rejudgement_dfs_raw[test_cohort]):
-            fig_name = "venn2_true"
-            fig = plt.figure(f"{fig_name}_{test_cohort}")
-            fig.clear()
-            v = venn2(
-                [
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == True].index),
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == True].index),
-                ],
-                ("Passed", "RejudgementPassed")
-            )
-            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
-            
-            fig_name = "venn2_false"
-            fig = plt.figure(f"{fig_name}_{test_cohort}")
-            fig.clear()
-            v = venn2(
-                [
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == False].index),
-                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == False].index),
-                ],
-                ("Passed", "RejudgementPassed")
-            )
-            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
+        except pd.errors.MergeError as e:
+            left = combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort].index.duplicated()]
+            right = combined_passfail_rejudgement_dfs_raw[test_cohort][combined_passfail_rejudgement_dfs_raw[test_cohort].index.duplicated()]
+            import pdb; pdb.set_trace()
+            print('LEFT DUPLICATES', left)
+            print('RIGHT DUPLCIATES', right)
+            raise e
+    return combined_dfs_raw
+
+
+def plot_venn_diagrams(test_cohort):
+    if "RejudgementPassed" in combined_dfs_by_run[test_cohort] and "ConsensusPassed" in combined_dfs_by_run[test_cohort]:
+        print(combined_dfs_by_run[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
+        fig_name = "venn3_true"
+        fig = plt.figure(f"{fig_name}_{test_cohort}")
+        fig.clear()
+        v = venn3(
+            [
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == True].index),
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == True].index),
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["ConsensusPassed"] == True].index)
+            ],
+            ("Passed", "RejudgementPassed", "ConsensusPassed")
+        )
+        fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
+        
+        fig_name = "venn3_false"
+        fig = plt.figure(f"{fig_name}_{test_cohort}")
+        fig.clear()
+        v = venn3(
+            [
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == False].index),
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == False].index),
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["ConsensusPassed"] == False].index)
+            ],
+            ("Passed", "RejudgementPassed", "ConsensusPassed")
+        )
+        fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
+        #combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
+    elif "RejudgementPassed" in combined_dfs_by_run[test_cohort]:
+        fig_name = "venn2_true"
+        fig = plt.figure(f"{fig_name}_{test_cohort}")
+        fig.clear()
+        v = venn2(
+            [
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == True].index),
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == True].index),
+            ],
+            ("Passed", "RejudgementPassed")
+        )
+        fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
+        
+        fig_name = "venn2_false"
+        fig = plt.figure(f"{fig_name}_{test_cohort}")
+        fig.clear()
+        v = venn2(
+            [
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == False].index),
+                set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == False].index),
+            ],
+            ("Passed", "RejudgementPassed")
+        )
+        fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
 
 
 if __name__ == "__main__":
