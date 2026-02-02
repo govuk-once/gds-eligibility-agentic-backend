@@ -372,7 +372,7 @@ def get_success_rates_by_permutation_model_size(combined_df: pd.DataFrame, test_
     )
     ax.set_ylabel(figure_annotations[test_cohort][fig_name]["ylabel"])
     ax.set_xlabel(figure_annotations[test_cohort][fig_name]["xlabel"])
-    fig.savefig(f"{fig_name}.{test_cohort}.png")
+    fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
 
     return df
 
@@ -417,7 +417,7 @@ def get_large_model_improvements_by_permutation(
     )
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
     fig.savefig(
-        f"{fig_name}.{test_cohort}.png"
+        f"figures/{fig_name}.{test_cohort}.png"
     )
     print(df.value_counts())
     return df
@@ -450,7 +450,7 @@ def get_success_rates_by_eligibility(
     ax.set_xlabel(figure_annotations[test_cohort][fig_name]["xlabel"])
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(100.0))
 
-    fig.savefig(f"{fig_name}.{test_cohort}.png")
+    fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
     return df
 
 
@@ -480,7 +480,7 @@ def get_success_rates_by_eligibility_model_size(
         figure_annotations[test_cohort][fig_name]["title"]
     )
 
-    fig.savefig(f"{fig_name}.{test_cohort}.png")
+    fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
     return df
 
 
@@ -640,7 +640,7 @@ def analyse_cohort(output_dir: Path):
                 ],
                 ("Passed", "RejudgementPassed", "ConsensusPassed")
             )
-            fig.savefig(f"{fig_name}.{test_cohort}.png")
+            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
             
             fig_name = "venn3_false"
             fig = plt.figure(f"{fig_name}_{test_cohort}")
@@ -653,7 +653,7 @@ def analyse_cohort(output_dir: Path):
                 ],
                 ("Passed", "RejudgementPassed", "ConsensusPassed")
             )
-            fig.savefig(f"{fig_name}.{test_cohort}.png")
+            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
             #combined_dfs[test_cohort]["correct_outcome"] = combined_dfs[test_cohort]["reasoning"].str.contains(r"The agent (?:\w+ |\w+ the )?correct", regex=True)
         elif len(combined_passfail_rejudgement_dfs_raw[test_cohort]):
             fig_name = "venn2_true"
@@ -666,7 +666,7 @@ def analyse_cohort(output_dir: Path):
                 ],
                 ("Passed", "RejudgementPassed")
             )
-            fig.savefig(f"{fig_name}.{test_cohort}.png")
+            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
             
             fig_name = "venn2_false"
             fig = plt.figure(f"{fig_name}_{test_cohort}")
@@ -678,7 +678,7 @@ def analyse_cohort(output_dir: Path):
                 ],
                 ("Passed", "RejudgementPassed")
             )
-            fig.savefig(f"{fig_name}.{test_cohort}.png")
+            fig.savefig(f"figures/{fig_name}.{test_cohort}.png")
 
 
 if __name__ == "__main__":
