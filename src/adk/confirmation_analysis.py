@@ -23,9 +23,10 @@ async def main():
     hypothesis_name = f"{test_cohort}__stressTestAgent"
     #  test_cohort = "skilled_worker_visa"
     
-    ##git_commit = "e680f99"
-    #git_commit = '21506e4'
-    git_commit = '10c6f19'
+    ###git_commit = "e680f99"                                                                                    
+    ##git_commit = '21506e4'                                                                                     
+    #git_commit = '10c6f19'                                                                                      
+    git_commit = 'd6dfd9f'                                                                                       
     
     test_cases = load_and_parse_test_cases(test_cohort)
     current_datetime = datetime.now().isoformat()

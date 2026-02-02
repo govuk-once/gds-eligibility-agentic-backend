@@ -19,7 +19,7 @@ success_column = "Passed"
 failure_dfs = {}
 success_dfs = {}
 combined_dfs = {}
-combined_dfs_raw = {}
+combined_dfs_raw = {} # TODO rename this to something more appropriate
 success_rates_by_permutations = {}
 success_rates_by_permutation_model_sizes = {}
 large_model_improvement_by_permutations = {}
@@ -32,6 +32,7 @@ combined_agree_rejudgement_dfs_raw = {}
 rejudgement_passed_dfs = {}
 rejudgement_failed_dfs = {}
 combined_passfail_rejudgement_dfs_raw = {}
+combined_dfs_by_run = {}
 
 
 def invert_mapping(dictionary: dict) -> dict:
@@ -136,7 +137,7 @@ commits_to_filter = {
 }
 
 def extract_judgement_results_for_folder(output_dir, search_character) -> pd.DataFrame:
-    print(output_dir)
+    #print(output_dir)
     extracted_records = []
     output = subprocess.run(
         ["rg", search_character, "--hidden"],
@@ -481,6 +482,25 @@ def main(argv):
             analyse_cohort(output_dir)
 
 
+def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
+    if "RejudgementPassed" in df:
+        df["RejudgementFailedCount"] = df[df["RejudgementPassed"] == False].groupby(["commit", "exec_time", "permutation"]).agg({
+            "RejudgementPassed": 'count'
+        })
+        df["RejudgementPassedCount"] = df[df["RejudgementPassed"] == True].groupby(["commit", "exec_time", "permutation"]).agg({
+            "RejudgementPassed": 'count'
+        })
+    if "RejudgementAgree" in df:
+        df["RejudgementDisagreeCount"] = df[df["RejudgementAgree"] == False].groupby(["commit", "exec_time", "permutation"]).agg({
+            "RejudgementAgree": 'count'
+        })
+        df["RejudgementAgreeCount"] = df[df["RejudgementAgree"] == True].groupby(["commit", "exec_time", "permutation"]).agg({
+            "RejudgementAgree": 'count'
+        })
+    df = df.drop_duplicates(subset=["rejudgement_time", "rejudgement_reasoning"])
+    return df
+
+
 def analyse_cohort(output_dir: Path):
     test_cohort = str(output_dir.relative_to(".testOutputs"))
     failure_dfs[test_cohort] = load_failure_df(output_dir, test_cohort)
@@ -593,16 +613,18 @@ def analyse_cohort(output_dir: Path):
                 print('RIGHT DUPLCIATES', right)
                 raise e
 
+        combined_dfs_by_run[test_cohort] = deduplicate_rejudgements(combined_dfs_raw[test_cohort].copy())
+
         if len(combined_passfail_rejudgement_dfs_raw[test_cohort]) and len(combined_agree_rejudgement_dfs_raw[test_cohort]):
-            print(combined_dfs_raw[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
+            print(combined_dfs_by_run[test_cohort].value_counts(["Passed", "RejudgementPassed", "ConsensusPassed"]))
             fig_name = "venn3_true"
             fig = plt.figure(f"{fig_name}_{test_cohort}")
             fig.clear()
             v = venn3(
                 [
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == True].index),
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == True].index),
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == True].index)
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == True].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == True].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["ConsensusPassed"] == True].index)
                 ],
                 ("Passed", "RejudgementPassed", "ConsensusPassed")
             )
@@ -613,9 +635,9 @@ def analyse_cohort(output_dir: Path):
             fig.clear()
             v = venn3(
                 [
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == False].index),
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == False].index),
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["ConsensusPassed"] == False].index)
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == False].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == False].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["ConsensusPassed"] == False].index)
                 ],
                 ("Passed", "RejudgementPassed", "ConsensusPassed")
             )
@@ -627,8 +649,8 @@ def analyse_cohort(output_dir: Path):
             fig.clear()
             v = venn2(
                 [
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == True].index),
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == True].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == True].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == True].index),
                 ],
                 ("Passed", "RejudgementPassed")
             )
@@ -639,13 +661,12 @@ def analyse_cohort(output_dir: Path):
             fig.clear()
             v = venn2(
                 [
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["Passed"] == False].index),
-                    set(combined_dfs_raw[test_cohort][combined_dfs_raw[test_cohort]["RejudgementPassed"] == False].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["Passed"] == False].index),
+                    set(combined_dfs_by_run[test_cohort][combined_dfs_by_run[test_cohort]["RejudgementPassed"] == False].index),
                 ],
                 ("Passed", "RejudgementPassed")
             )
             fig.savefig(f"{fig_name}.{test_cohort}.png")
-
 
 
 if __name__ == "__main__":
