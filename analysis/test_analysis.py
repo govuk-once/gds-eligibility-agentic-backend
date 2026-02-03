@@ -132,12 +132,19 @@ def extract_judgement_results_for_folder(output_dir, search_character) -> pd.Dat
     #print(output_dir)
     extracted_records = []
     output = subprocess.run(
-        ["rg", search_character, "--hidden"],
+        [
+            "rg", 
+            search_character, 
+            #".", 
+            "--hidden"
+        ],
         capture_output=True,
         check=False,
         text=True,
         cwd=output_dir,
     )
+    print(output.stderr)
+    #output.check_returncode()
     for filename in output.stdout.strip().split("\n"):
         if filename:
             with_commit = (
@@ -171,12 +178,17 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
     print(output_dir)
     extracted_records = []
     output = subprocess.run(
-        ["rg", search_character, "--hidden"],
+        [
+            "rg", 
+            search_character, 
+            "--hidden"
+        ],
         capture_output=True,
         check=False,
         text=True,
         cwd=output_dir,
     )
+    #output.check_returncode()
     for filename in output.stdout.strip().split("\n"):
         if filename:
             with_commit = (
@@ -479,8 +491,8 @@ def get_success_rates_by_eligibility_model_size(
 
 
 def main(argv):
-    if len(argv) > 1:
-        output_dir = Path(".testOutputs").joinpath(argv[1])
+    if len(argv) > 0:
+        output_dir = Path(".testOutputs").joinpath(argv[0])
         assert output_dir.exists()
         analyse_cohort(output_dir)
     else:
@@ -684,4 +696,4 @@ def plot_venn_diagrams(test_cohort, combined_dfs_by_run):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main(sys.argv[1:])
