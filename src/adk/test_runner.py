@@ -28,7 +28,8 @@ async def main():
     ).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
     output_dir = (
-        Path("./.testOutputs")
+        Path("../../") # Repository root
+        .joinpath("analysis/.testOutputs")
         .joinpath(hypothesis_name)
         .joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
     )
@@ -67,7 +68,11 @@ async def execute_test_case(
     """
     app_name = "evaluation_judge"
     user_id = "test_user"
-    app = App(name=app_name, root_agent=get_review_pipeline(test_case))
+    test_case_without_outcome, expected_outcome = split_outcome_from_test_case(test_case)
+    app = App(
+        name=app_name, 
+        root_agent=get_review_pipeline(test_case_without_outcome, expected_outcome=expected_outcome)
+    )
     session = await session_service.create_session(app_name=app_name, user_id=user_id)
     runner = Runner(
         app=app,
@@ -102,18 +107,16 @@ def load_and_parse_test_cases(test_cohort: str):
         raw_test_cases = f.readlines()
     test_cases_str = "\n".join(raw_test_cases)
     test_cases = test_cases_str.split(sep="---")
-    test_cases = remove_outcome_from_test_cases(test_cases)
     return test_cases
 
 
-def remove_outcome_from_test_cases(test_cases: list[str]) -> list[str]:
-    truncated_test_cases = []
-    for test_case in test_cases:
-        outcome_index = test_case.lower().find("outcome")
-        truncated_test_case = test_case[:outcome_index]
-        assert "outcome" not in truncated_test_case.lower()
-        truncated_test_cases.append(truncated_test_case)
-    return truncated_test_cases
+def split_outcome_from_test_case(test_case: str) -> str:
+    outcome_index = test_case.lower().find("outcome")
+    truncated_test_case = test_case[:outcome_index]
+    outcome = test_case[outcome_index:]
+    assert "outcome" not in truncated_test_case.lower()
+    assert "outcome" in outcome.lower()
+    return truncated_test_case, outcome
 
 
 if __name__ == "__main__":
