@@ -1,9 +1,9 @@
 # terraform/redshift.tf
 
 resource "aws_redshiftserverless_namespace" "bedrock_kb" {
-  namespace_name       = "bedrock-kb"
-  db_name              = "eligibility"
-  admin_username       = "adminuser"
+  namespace_name        = "bedrock-kb"
+  db_name               = "eligibility"
+  admin_username        = "adminuser"
   manage_admin_password = true
 }
 

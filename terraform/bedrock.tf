@@ -35,10 +35,10 @@ resource "aws_bedrockagent_knowledge_base" "structured" {
 }
 
 resource "aws_bedrockagent_agent" "eligibility" {
-  agent_name                = "eligibility-agent"
-  foundation_model          = var.bedrock_agent_foundation_model
-  instruction               = "You are a helpful agent that can answer questions about user eligibility for government services."
-  agent_resource_role_arn   = aws_iam_role.bedrock_agent_role.arn
+  agent_name              = "eligibility-agent"
+  foundation_model        = var.bedrock_agent_foundation_model
+  instruction             = "You are a helpful agent that can answer questions about user eligibility for government services."
+  agent_resource_role_arn = aws_iam_role.bedrock_agent_role.arn
 }
 
 resource "aws_bedrockagent_agent_knowledge_base_association" "eligibility_kb_association" {
