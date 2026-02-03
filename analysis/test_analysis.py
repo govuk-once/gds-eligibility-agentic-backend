@@ -9,6 +9,7 @@
 
 from collections import defaultdict
 import re
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -135,20 +136,19 @@ def extract_judgement_results_for_folder(output_dir, search_character) -> pd.Dat
         [
             "rg", 
             search_character, 
-            #".", 
+            Path(os.getcwd()).joinpath(output_dir),
             "--hidden"
         ],
         capture_output=True,
         check=False,
         text=True,
-        cwd=output_dir,
+        #cwd=output_dir,
     )
-    print(output.stderr)
-    #output.check_returncode()
+    #print(output.stderr)
     for filename in output.stdout.strip().split("\n"):
         if filename:
             with_commit = (
-                r"(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+)__rejudgement_(?P<rejudgement_time>[\d:T\.-]+).*"
+                r".*(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+)__rejudgement_(?P<rejudgement_time>[\d:T\.-]+).*"
                 #  + ur":\[evaluation_judge\]: "
                 + search_character + r"(?P<rejudgement_reasoning>.*)"
             )
@@ -181,18 +181,18 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
         [
             "rg", 
             search_character, 
-            "--hidden"
+            "--hidden",
+            Path(os.getcwd()).joinpath(output_dir),
         ],
         capture_output=True,
         check=False,
         text=True,
-        cwd=output_dir,
+        #cwd=output_dir,
     )
-    #output.check_returncode()
     for filename in output.stdout.strip().split("\n"):
         if filename:
             with_commit = (
-                r"(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+).*"
+                r".*(?P<exec_time>[\d:T\.-]+)__RepoCommit=(?P<commit>[a-f0-9]+)/Permutation(?P<permutation>\d+).*"
                 #  + ur":\[evaluation_judge\]: "
                 + search_character + r"(?P<reasoning>.*)"
             )
@@ -208,7 +208,7 @@ def extract_results_for_folder(output_dir, search_character) -> pd.DataFrame:
                 ).groupdict()
             else:
                 without_commit = (
-                    r"(?P<exec_time>[\d:T\.-]+)/Permutation(?P<permutation>\d+).out.*"
+                    r".*(?P<exec_time>[\d:T\.-]+)/Permutation(?P<permutation>\d+).out.*"
                     #  + ur":\[evaluation_judge\]: "
                     + search_character + r"(?P<reasoning>.*)"
                 )
