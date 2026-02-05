@@ -8,7 +8,7 @@ ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 RUN uv venv /app/.venv && uv sync --locked
 EXPOSE 8000
 ENTRYPOINT ["uv", "run"]
-CMD ["adk", "api_server", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["adk", "api_server", "--a2a", "--port", "8000", "--host", "0.0.0.0"]
 
 FROM api_server AS web
 CMD ["adk", "web", "--port", "8000", "--host", "0.0.0.0"]
