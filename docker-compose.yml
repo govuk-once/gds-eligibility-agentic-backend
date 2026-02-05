@@ -1,6 +1,7 @@
 services:
   adk:
     build:
+      context: .
       dockerfile: Dockerfile
       target: web
     platform: linux/amd64
@@ -16,7 +17,93 @@ services:
     - UV_LINK_MODE=copy
     - PROMPTS_DIR=/prompts
     volumes:
-      - ./src/adk/:/app/src
+      - ./src/adk/gds_eligibility:/app/src/gds_eligibility
       - ./prompts/:/prompts
     ports:
+      - 12345:8000
+  root:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/root/:/app/src/root
+      - ./agent_cards/root/://app/src/root/agent_cards
+    ports:
       - 8000:8000
+  eligibility:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/eligibility/:/app/src/eligibility
+      - ./agent_cards/eligibility://app/src/root/eligibility/agent_cards
+    ports:
+      - 8001:8000
+  fishing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/fishing_licence/:/app/src/fishing_licence
+  pip:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server 
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/pip/:/app/src/pip
+  taxation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server 
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/taxation/:/app/src/taxation
+      - ./agent_cards/taxation/://app/src/root/taxation/agent_cards/
+
+  tax_code:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server 
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/tax_code/:/app/src/tax_code
