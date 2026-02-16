@@ -33,8 +33,10 @@ services:
     - AWS_REGION
     - UV_LINK_MODE=copy
     volumes:
-      - ./src/adk/root/:/app/src/root
-      - ./agent_cards/root/://app/src/root/agent_cards
+      - ./src/adk/root/agent.py/:/app/src/root/agent.py
+      - ./src/adk/eligibility/agent.json:/app/src/root/agent_cards/eligibility.json
+      - ./src/adk/fishing_licence/agent.json:/app/src/root/agent_cards/fishing_licence.json
+      - ./src/adk/taxation/agent.json:/app/src/root/agent_cards/taxation.json
     ports:
       - 8000:8000
   eligibility:
@@ -50,7 +52,7 @@ services:
     - UV_LINK_MODE=copy
     volumes:
       - ./src/adk/eligibility/:/app/src/eligibility
-      - ./agent_cards/eligibility://app/src/root/eligibility/agent_cards
+      - ./src/adk/pip/agent.json:/app/src/root/eligibility/agent_cards/pip.json
     ports:
       - 8001:8000
   fishing:
@@ -92,7 +94,7 @@ services:
     - UV_LINK_MODE=copy
     volumes:
       - ./src/adk/taxation/:/app/src/taxation
-      - ./agent_cards/taxation/://app/src/root/taxation/agent_cards/
+      - ./src/adk/tax_code/agent.json:/app/src/root/taxation/agent_cards/tax_codes.json
 
   tax_code:
     build:
