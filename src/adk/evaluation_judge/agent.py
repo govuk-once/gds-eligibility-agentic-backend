@@ -26,6 +26,28 @@ def get_prompt(rel_path: str, **kwargs) -> str:
     return prompt_string
 
 
+def conversation_judgement_outcome(
+        outcome_agrees_with_expected_outcome: bool, 
+        outcome_disagrees_with_expected_outcome: bool, 
+        outcome_partly_agrees_with_expected_outcome: bool, 
+        erroneous_info_given_by_eligibility_agent_without_realising: bool, 
+        erroneous_info_given_by_eligibility_agent_but_later_realised: bool, 
+        reasoning_for_conversation_judgement: str, 
+        tool_context: ToolContext
+    ):
+    """Call this function ONLY when you have an outcome to report as to eligibility."""
+    print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
+    tool_context.actions.escalate = True
+    return {
+        "outcome_agrees_with_expected_outcome": outcome_agrees_with_expected_outcome,
+        "outcome_disagrees_with_expected_outcome": outcome_disagrees_with_expected_outcome,
+        "outcome_partly_agrees_with_expected_outcome": outcome_partly_agrees_with_expected_outcome,
+        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising, 
+        "erroneous_info_given_by_eligibility_agent_but_later_realised": erroneous_info_given_by_eligibility_agent_but_later_realised,
+        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement, 
+    }
+
+
 def exit_loop(tool_context: ToolContext):
     """Call this function ONLY when the judge indicates no further conversation is needed, signaling the iterative process should end."""
     print(f"  [Tool Call] exit_loop triggered by {tool_context.agent_name}")
@@ -40,6 +62,7 @@ def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
         name=name,
         description="When given a transcript, outputs a judgement",
         instruction=get_prompt(prompt_filepath, **kwargs),
+        tools=[conversation_judgement_outcome]
     )
 
 
