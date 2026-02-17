@@ -41,7 +41,7 @@ async def main():
     print('Looking in', input_dirs)
     for input_dir in input_dirs:
         print('Looking in', input_dirs)
-        for input_filepath in input_dir.glob("Permutation*.json"):
+        for input_filepath in input_dir.glob("Permutation*.conversation.json"):
             permutation_number = int(re.search(
                 r"Permutation(?P<permutation>\d+)", 
                 input_filepath.name
@@ -119,15 +119,15 @@ async def execute_test_case(
             async for event in agen:
                 if any([part.function_response for part in event.content.parts]):
                     assert len(event.content.parts) == 1
+                    assert f"{event.author}_payload" not in payload
                     payload.update({f"{event.author}_payload": event.content.parts[0].function_response.dict()})
                 if event.actions.escalate:
                     await runner.close()
                 if event.content and event.content.parts:
                     if text := "".join(part.text or "" for part in event.content.parts):
-                        
                         output = f"{datetime.now().isoformat()} [{event.author}]: {text}\n"
                         #output_file.writelines(f"{output}\n")
-                        print(output) # Uncomment for developing against test runner
+                        #print(output) # Uncomment for developing against test runner
         finally:
             json.dump(payload, output_file, indent=4)
 
