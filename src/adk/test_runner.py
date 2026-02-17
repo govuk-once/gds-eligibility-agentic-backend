@@ -85,7 +85,7 @@ async def execute_test_case(
         credential_service=credential_service,
     )
     payload = defaultdict(conversation=list())
-    with output_dir.joinpath(f"Permutation{test_id}.json").open("a+") as output_file:
+    with output_dir.joinpath(f"Permutation{test_id}.conversation.json").open("a+") as output_file:
         print(f"Outputting dialogue to {output_file.name}")
         async with Aclosing(
             runner.run_async(
