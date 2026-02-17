@@ -17,12 +17,15 @@ def get_prompt(rel_path: str) -> str:
 # TODO add tool for retrieving website content
 
 def eligibility_judgement_outcome(
-        would_application_be_eligible: bool, would_application_be_ineligible: bool, 
+        would_application_be_eligible: bool, 
+        would_application_be_ineligible: bool, 
         would_application_be_eligible_in_part: bool, 
-        reasoning_for_eligibility_judgement, str, tool_context: ToolContext
+        reasoning_for_eligibility_judgement: str, 
+        tool_context: ToolContext
     ):
     """Call this function ONLY when you have an outcome to report as to eligibility."""
-    print(f"  [Tool Call] judgement_outcome triggered by {tool_context.agent_name}")
+    print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
+    tool_context.actions.escalate = True
     return {
         "would_application_be_eligible": would_application_be_eligible,
         "would_application_be_ineligible": would_application_be_ineligible,
@@ -36,8 +39,8 @@ root_agent = Agent(
     #model=LiteLlm(model="bedrock/converse/google.gemma-3-27b-it"), # Large model
     #model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
     model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
-    name="root_agent",
-    description="A helpful assistant for user questions.",
+    name="eligibility_agent",
+    description="A helpful assistant for determining eligibility for benefits.",
     instruction=get_prompt(
         #  "agents/TechnicalHypotheses/adhoc-skilledWorkerVisa.md"
         #"agents/TechnicalHypotheses/Accuracy-ChildBenefit-v3.md"
