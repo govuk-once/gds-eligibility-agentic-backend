@@ -15,7 +15,7 @@ from google.adk.runners import Runner
 from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
 
-from evaluation_judge.agent import get_review_pipeline
+from evaluation_judge.agent import get_review_pipeline, get_conversation_pipeline
 
 
 async def main():
@@ -74,7 +74,8 @@ async def execute_test_case(
     test_case_without_outcome, expected_outcome = split_outcome_from_test_case(test_case)
     app = App(
         name=app_name, 
-        root_agent=get_review_pipeline(test_case_without_outcome, expected_outcome=expected_outcome)
+        #root_agent=get_review_pipeline(test_case_without_outcome, expected_outcome=expected_outcome)
+        root_agent=get_conversation_pipeline(test_case_without_outcome)
     )
     session = await session_service.create_session(app_name=app_name, user_id=user_id)
     runner = Runner(
