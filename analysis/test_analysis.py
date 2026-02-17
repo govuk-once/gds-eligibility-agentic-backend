@@ -1,11 +1,11 @@
 #!/usr/bin/env ipython
 
 # TODO
-# * [ ] Figure out what to do about issues like .testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
+# * [ ] Figure out what to do about issues like testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
 # * [x] Move this file and graphs out into a top level `analysis` folder
 # * [ ] Add docstrings
 # * [ ] Move to ipython notebook
-# * [x] (stretch goal) Move .testOutputs out to top level folder, and update transcription and analysis functionality accordingly
+# * [x] (stretch goal) Move testOutputs out to top level folder, and update transcription and analysis functionality accordingly
 
 from collections import defaultdict
 import re
@@ -492,11 +492,11 @@ def get_success_rates_by_eligibility_model_size(
 
 def main(argv):
     if len(argv) > 0:
-        output_dir = Path(".testOutputs").joinpath(argv[0])
+        output_dir = Path("testOutputs").joinpath(argv[0])
         assert output_dir.exists()
         analyse_cohort(output_dir)
     else:
-        for output_dir in Path(".testOutputs").glob("*"):
+        for output_dir in Path("testOutputs").glob("*"):
             analyse_cohort(output_dir)
 
 
@@ -521,7 +521,7 @@ def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def analyse_cohort(output_dir: Path):
-    test_cohort = str(output_dir.relative_to(".testOutputs"))
+    test_cohort = str(output_dir.relative_to("testOutputs"))
     failure_dfs = load_failure_df(output_dir, test_cohort)
     success_dfs = load_success_df(output_dir, test_cohort)
     combined_dfs_raw = pd.concat(
