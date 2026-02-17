@@ -32,7 +32,7 @@ async def main():
     current_datetime = datetime.now().isoformat()
     input_dirs = list(
         Path("../../") # Repository root
-        .joinpath("analysis/.testOutputs")
+        .joinpath("analysis/testOutputs")
         .joinpath(hypothesis_name)
         .glob(f"*__RepoCommit={git_commit}")
     )

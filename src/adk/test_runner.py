@@ -32,7 +32,7 @@ async def main():
     test_cases = load_and_parse_test_cases(test_cohort)
     output_dir = (
         Path("../../") # Repository root
-        .joinpath("analysis/.testOutputs")
+        .joinpath("analysis/testOutputs")
         .joinpath(hypothesis_name)
         .joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
     )
