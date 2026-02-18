@@ -37,15 +37,18 @@ async def main():
         .joinpath(hypothesis_name)
         .joinpath(execution_datetime + f"__RepoCommit={git_commit}")
     )
-    meta = {
-        "commit": git_commit,
-        "hypothesis_name": hypothesis_name,
-        "test_cohort": test_cohort,
-        "execution_datetime":  execution_datetime,
-    }
+    
     output_dir.mkdir(parents=True)
-    test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
+    #test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
+        meta = {
+            "permutation": test_id,
+            "test_case": test_case,
+            "commit": git_commit,
+            "hypothesis_name": hypothesis_name,
+            "test_cohort": test_cohort,
+            "execution_datetime":  execution_datetime,
+        }
         session_service = InMemorySessionService()
         artifact_service = InMemoryArtifactService()
         credential_service = InMemoryCredentialService()
@@ -125,7 +128,7 @@ async def execute_test_case(
                                 }
                             )
                             output = f"{datetime.now().isoformat()} [{event.author}]: {text}\n"
-                            print(output) # Uncomment for developing against test runner
+                            #print(output) # Uncomment for developing against test runner
             finally:
                 json.dump(payload, output_file, indent=4)
 

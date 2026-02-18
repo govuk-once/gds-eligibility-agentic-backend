@@ -8,6 +8,7 @@
 # * [x] (stretch goal) Move testOutputs out to top level folder, and update transcription and analysis functionality accordingly
 
 from collections import defaultdict
+import json
 import re
 import os
 from pathlib import Path
@@ -547,6 +548,20 @@ def load_legacy_cohort(output_dir: Path):
     analyse_cohort(combined_dfs_raw, test_cohort, output_dir)
 
 
+def load_results_from_json(output_dir: Path):
+    files_to_load = output_dir.glob("**/Permutation*__judgement_*.json")
+    list_of_json_dataframes = []
+    for file_to_load in files_to_load:
+        with file_to_load.open() as f:
+            list_of_json_dataframes.append(
+                pd.json_normalize(
+                    json.load(f)
+                )
+            )
+    df = pd.concat(list_of_json_dataframes)
+    return df
+
+
 def analyse_cohort(
     combined_dfs_raw: pd.DataFrame, test_cohort: str, output_dir: Path,
     eligibility_dfs: pd.DataFrame, 
@@ -705,4 +720,5 @@ def plot_venn_diagrams(test_cohort, combined_dfs_by_run):
 
 
 if __name__ == "__main__":
-    legacy_main(sys.argv[1:])
+    #legacy_main(sys.argv[1:])
+    df = load_results_from_json(Path('./testOutputs/child_benefit'))
