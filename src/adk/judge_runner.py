@@ -25,8 +25,8 @@ async def main():
     #hypothesis_name = f"{test_cohort}__stressTestAgent"
     #  test_cohort = "skilled_worker_visa"
     
-    git_commit = '339fcf5'
-    #git_commit = "*"
+    #git_commit = '339fcf5'
+    git_commit = "*"
     
     test_cases = load_and_parse_test_cases(test_cohort)
     current_datetime = datetime.now().isoformat()
@@ -36,6 +36,13 @@ async def main():
         .joinpath(hypothesis_name)
         .glob(f"*__RepoCommit={git_commit}")
     )
+    judge_commit = run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.strip("\n")
+    test_cases = load_and_parse_test_cases(test_cohort)
     print('Looking in', input_dirs)
     for input_dir in input_dirs:
         print('Looking in', input_dirs)
@@ -46,6 +53,15 @@ async def main():
             ).groupdict().get("permutation"))
             print("directory", input_dir, " permutation ", permutation_number)
             test_case = test_cases[permutation_number - 1]
+
+            meta = {
+                "permutation": permutation_number,
+                "test_case": test_case,
+                "commit": judge_commit,
+                "hypothesis_name": hypothesis_name,
+                "test_cohort": test_cohort,
+                "execution_datetime": current_datetime,
+            }
             session_service = InMemorySessionService()
             artifact_service = InMemoryArtifactService()
             credential_service = InMemoryCredentialService()
@@ -62,6 +78,7 @@ async def main():
                     input_file,
                     output_file,
                     test_cohort,
+                    meta
                 )
     #run(
     #    ["rg", "👎", str(input_dir) + "/Permutation*__rejudgement_{current_datetime}", "--stats"], capture_output=False, check=False, text=True
@@ -77,6 +94,7 @@ async def execute_test_case(
     input_file: TextIO,
     output_file: TextIO,
     test_cohort: str,
+    meta: dict[str,str]
 ):
     """
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
@@ -104,6 +122,7 @@ async def execute_test_case(
     payload = json.load(input_file)
     #output_payload = input_payload
     payload['expected_outcome'] = expected_outcome
+    payload["meta"]["judgement"] = meta
     async with Aclosing(
         runner.run_async(
             user_id=user_id,
