@@ -30,14 +30,21 @@ async def main():
         text=True,
     ).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
+    execution_datetime = datetime.now().isoformat() 
     output_dir = (
         Path("../../") # Repository root
         .joinpath("analysis/testOutputs")
         .joinpath(hypothesis_name)
-        .joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
+        .joinpath(execution_datetime + f"__RepoCommit={git_commit}")
     )
+    meta = {
+        "commit": git_commit,
+        "hypothesis_name": hypothesis_name,
+        "test_cohort": test_cohort,
+        "execution_datetime":  execution_datetime,
+    }
     output_dir.mkdir(parents=True)
-    #  test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
+    test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
         session_service = InMemorySessionService()
         artifact_service = InMemoryArtifactService()
@@ -50,6 +57,7 @@ async def main():
             credential_service,
             output_dir,
             test_cohort,
+            meta
         )
     #run(
     #    ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
@@ -64,6 +72,7 @@ async def execute_test_case(
     credential_service: InMemoryCredentialService,
     output_dir: Path,
     test_cohort: str,
+    meta: dict[str, str],
 ):
     """
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
@@ -85,6 +94,7 @@ async def execute_test_case(
         credential_service=credential_service,
     )
     payload = defaultdict(conversation=list())
+    payload["meta"] = { "conversation": meta }
     with output_dir.joinpath(f"Permutation{test_id}.conversation.json").open("a+") as output_file:
         print(f"Outputting dialogue to {output_file.name}")
         async with Aclosing(
