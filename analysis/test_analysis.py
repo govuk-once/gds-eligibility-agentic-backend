@@ -493,14 +493,14 @@ def get_success_rates_by_eligibility_model_size(
     return df
 
 
-def main(argv):
+def legacy_main(argv):
     if len(argv) > 0:
         output_dir = Path("testOutputs").joinpath(argv[0])
         assert output_dir.exists()
-        analyse_cohort(output_dir)
+        load_legacy_cohort(output_dir)
     else:
         for output_dir in Path("testOutputs").glob("*"):
-            analyse_cohort(output_dir)
+            load_legacy_cohort(output_dir)
 
 
 def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
@@ -523,7 +523,7 @@ def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def analyse_cohort(output_dir: Path):
+def load_legacy_cohort(output_dir: Path):
     test_cohort = str(output_dir.relative_to("testOutputs"))
     failure_dfs = load_failure_df(output_dir, test_cohort)
     success_dfs = load_success_df(output_dir, test_cohort)
@@ -544,7 +544,13 @@ def analyse_cohort(output_dir: Path):
             list(model_sizes_hypothesis_mapping[test_cohort].values())
         )
     ]
+    analyse_cohort(combined_dfs_raw, test_cohort, output_dir)
 
+
+def analyse_cohort(
+    combined_dfs_raw: pd.DataFrame, test_cohort: str, output_dir: Path,
+    eligibility_dfs: pd.DataFrame, 
+):
     combined_dfs = combined_dfs_raw.set_index(
         ["ModelSize"], append=True
     )
@@ -699,4 +705,4 @@ def plot_venn_diagrams(test_cohort, combined_dfs_by_run):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    legacy_main(sys.argv[1:])
