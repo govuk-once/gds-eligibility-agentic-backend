@@ -547,18 +547,68 @@ def load_legacy_cohort(output_dir: Path):
     ]
     analyse_cohort(combined_dfs_raw, test_cohort, output_dir)
 
-
-def load_results_from_json(output_dir: Path):
+def load_results_from_json(output_dir: Path, impatient=False):
     files_to_load = output_dir.glob("**/Permutation*__judgement_*.json")
     list_of_json_dataframes = []
     for file_to_load in files_to_load:
         with file_to_load.open() as f:
-            list_of_json_dataframes.append(
-                pd.json_normalize(
-                    json.load(f)
+            try:
+                #print(f'Trying {file_to_load.absolute()}')
+                list_of_json_dataframes.append(
+                    pd.json_normalize(
+                        json.load(f),
+                        meta=[
+                            'conversation', 
+                            'expected_outcome', 
+
+                            'meta.judgement.permutation',
+                            'meta.judgement.test_case',
+                            'meta.judgement.commit',
+                            'meta.judgement.hypothesis_name', 
+                            'meta.judgement.test_cohort',
+                            'meta.judgement.execution_datetime',
+
+                            'meta.conversation.permutation',
+                            'meta.conversation.test_case',
+                            'meta.conversation.commit',
+                            'meta.conversation.hypothesis_name', 
+                            'meta.conversation.test_cohort',
+                            'meta.conversation.execution_datetime',
+
+                            'eligibility_agent_payload.response.would_application_be_eligible',
+                            'eligibility_agent_payload.response.would_application_be_ineligible',
+                            'eligibility_agent_payload.response.would_application_be_eligible_in_part',
+                            'eligibility_agent_payload.response.reasoning_for_eligibility_judgement',
+
+                            'confirmation_judge_payload.response.outcome_agrees_with_expected_outcome',
+                            'confirmation_judge_payload.response.outcome_disagrees_with_expected_outcome',
+                            'confirmation_judge_payload.response.outcome_partly_agrees_with_expected_outcome',
+                            'confirmation_judge_payload.response.erroneous_info_given_by_eligibility_agent_without_realising',
+                            'confirmation_judge_payload.response.erroneous_info_given_by_eligibility_agent_but_later_realised',
+                            'confirmation_judge_payload.response.reasoning_for_conversation_judgement',
+                        ],
+                        errors='raise'
+                    ).set_index(
+                        [
+                            # Unique per conversation
+                            "meta.conversation.permutation",
+                            "meta.conversation.execution_datetime",
+                            # Unique per judgement
+                            "meta.judgement.execution_datetime",
+                        ]
+                    )
                 )
-            )
-    df = pd.concat(list_of_json_dataframes)
+            except json.JSONDecodeError as e:
+                if impatient:
+                    print(f'Skipping {file_to_load.absolute()} as it is not valid JSON')
+                    continue
+                else:
+                    raise e
+
+    df = pd.concat(
+        list_of_json_dataframes,
+        verify_integrity=True
+    )
     return df
 
 
