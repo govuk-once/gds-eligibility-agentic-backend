@@ -1,6 +1,7 @@
 services:
   adk:
     build:
+      context: .
       dockerfile: Dockerfile
       target: web
     platform: linux/amd64
@@ -16,7 +17,107 @@ services:
     - UV_LINK_MODE=copy
     - PROMPTS_DIR=/prompts
     volumes:
-      - ./src/adk/:/app/src
+      - ./src/adk/gds_eligibility:/app/src/gds_eligibility
       - ./prompts/:/prompts
     ports:
+      - 12345:8000
+  root:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+      args:
+        ADK_DIR: ./src/adk/root
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/root/agent.py/:/app/src/root/agent.py
+      - ./src/adk/eligibility/agent.json:/app/agent_cards/eligibility.json
+      - ./src/adk/fishing_licence/agent.json:/app/agent_cards/fishing_licence.json
+      - ./src/adk/taxation/agent.json:/app/agent_cards/taxation.json
+    ports:
       - 8000:8000
+  eligibility:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server
+      args:
+        ADK_DIR: ./src/adk/eligibility
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/eligibility/:/app/src/eligibility
+      - ./src/adk/pip/agent.json:/app/agent_cards/pip.json
+    ports:
+      - 8001:8000
+  fishing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server
+      args:
+        ADK_DIR: ./src/adk/fishing_licence
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/fishing_licence/:/app/src/fishing_licence
+  pip:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server 
+      args:
+        ADK_DIR: ./src/adk/pip
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/pip/:/app/src/pip
+  taxation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server 
+      args:
+        ADK_DIR: ./src/adk/taxation
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/taxation/:/app/src/taxation
+      - ./src/adk/tax_code/agent.json:/app/agent_cards/tax_codes.json
+
+  tax_code:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api_server 
+      args:
+        ADK_DIR: ./src/adk/tax_code
+    environment:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_SESSION_TOKEN
+    - AWS_REGION
+    - UV_LINK_MODE=copy
+    volumes:
+      - ./src/adk/tax_code/:/app/src/tax_code
