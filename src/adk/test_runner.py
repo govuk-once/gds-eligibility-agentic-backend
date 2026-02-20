@@ -1,5 +1,7 @@
 import asyncio
+from collections import defaultdict
 from datetime import datetime
+import json
 from subprocess import run
 from pathlib import Path
 
@@ -13,12 +15,13 @@ from google.adk.runners import Runner
 from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
 
-from evaluation_judge.agent import get_review_pipeline
+from evaluation_judge.agent import get_review_pipeline, get_conversation_pipeline
 
 
 async def main():
     test_cohort = "child_benefit"
-    hypothesis_name = f"{test_cohort}__stressTestAgent"
+    hypothesis_name = test_cohort
+    #hypothesis_name = f"{test_cohort}__stressTestAgent"
     #  test_cohort = "skilled_worker_visa"
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -27,15 +30,25 @@ async def main():
         text=True,
     ).stdout.strip("\n")
     test_cases = load_and_parse_test_cases(test_cohort)
+    execution_datetime = datetime.now().isoformat() 
     output_dir = (
         Path("../../") # Repository root
-        .joinpath("analysis/.testOutputs")
+        .joinpath("analysis/testOutputs")
         .joinpath(hypothesis_name)
-        .joinpath(datetime.now().isoformat() + f"__RepoCommit={git_commit}")
+        .joinpath(execution_datetime + f"__RepoCommit={git_commit}")
     )
+    
     output_dir.mkdir(parents=True)
-    #  test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
+    #test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
+        meta = {
+            "permutation": test_id,
+            "test_case": test_case,
+            "commit": git_commit,
+            "hypothesis_name": hypothesis_name,
+            "test_cohort": test_cohort,
+            "execution_datetime":  execution_datetime,
+        }
         session_service = InMemorySessionService()
         artifact_service = InMemoryArtifactService()
         credential_service = InMemoryCredentialService()
@@ -47,10 +60,11 @@ async def main():
             credential_service,
             output_dir,
             test_cohort,
+            meta
         )
-    run(
-        ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
-    )  # Don't check as no results returns error
+    #run(
+    #    ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
+    #)  # Don't check as no results returns error
 
 
 async def execute_test_case(
@@ -61,6 +75,7 @@ async def execute_test_case(
     credential_service: InMemoryCredentialService,
     output_dir: Path,
     test_cohort: str,
+    meta: dict[str, str],
 ):
     """
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
@@ -71,7 +86,8 @@ async def execute_test_case(
     test_case_without_outcome, expected_outcome = split_outcome_from_test_case(test_case)
     app = App(
         name=app_name, 
-        root_agent=get_review_pipeline(test_case_without_outcome, expected_outcome=expected_outcome)
+        #root_agent=get_review_pipeline(test_case_without_outcome, expected_outcome=expected_outcome)
+        root_agent=get_conversation_pipeline(test_case_without_outcome)
     )
     session = await session_service.create_session(app_name=app_name, user_id=user_id)
     runner = Runner(
@@ -80,7 +96,9 @@ async def execute_test_case(
         session_service=session_service,
         credential_service=credential_service,
     )
-    with output_dir.joinpath(f"Permutation{test_id}.out").open("a+") as output_file:
+    payload = defaultdict(conversation=list())
+    payload["meta"] = { "conversation": meta }
+    with output_dir.joinpath(f"Permutation{test_id}.conversation.json").open("a+") as output_file:
         print(f"Outputting dialogue to {output_file.name}")
         async with Aclosing(
             runner.run_async(
@@ -91,14 +109,28 @@ async def execute_test_case(
                 ),
             )
         ) as agen:
-            async for event in agen:
-                if event.actions.escalate:
-                    await runner.close()
-                if event.content and event.content.parts:
-                    if text := "".join(part.text or "" for part in event.content.parts):
-                        output = f"{datetime.now().isoformat()} [{event.author}]: {text}\n"
-                        output_file.writelines(f"{output}\n")
-                        #  print(output) # Uncomment for developing against test runner
+            try:
+                async for event in agen:
+                    if any([part.function_response for part in event.content.parts]):
+                        assert len(event.content.parts) == 1
+                        payload.update({f"{event.author}_payload": event.content.parts[0].function_response.dict()})
+                    if event.actions.escalate:
+                        #assert len(event.content.parts) == 1
+                        #payload.update({f"{event.author}_payload": event.content.parts[0].function_response.json()})
+                        await runner.close()
+                    if event.content and event.content.parts:
+                        if text := "".join(part.text or "" for part in event.content.parts):
+                            payload['conversation'].append(
+                                {
+                                    'timestamp': datetime.now().isoformat(),
+                                    'author': event.author,
+                                    'text': text,
+                                }
+                            )
+                            output = f"{datetime.now().isoformat()} [{event.author}]: {text}\n"
+                            #print(output) # Uncomment for developing against test runner
+            finally:
+                json.dump(payload, output_file, indent=4)
 
 
 def load_and_parse_test_cases(test_cohort: str):
