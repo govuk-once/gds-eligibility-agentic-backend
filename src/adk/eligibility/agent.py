@@ -22,7 +22,7 @@ known_agents: list[AgentTool] = []
 # TODO: make this a database call instead.
 # NOTE: Depending on the path you start an ADK server up from, this may fail. It WILL work if you start
 #       an ADK server using the `start_eligibility_discovery.sh` script
-agent_card_path = f"{os.getcwd()}/root/eligibility/agent_cards"
+agent_card_path = Path.cwd().parent.joinpath("agent_cards")
 for agent_card_file in [file for file in os.listdir(agent_card_path) if file.endswith('.json')]:
     with open(f"{agent_card_path}/{agent_card_file}") as json_file:
         agent_card_json: dict[str, Any] = json.load(json_file)
