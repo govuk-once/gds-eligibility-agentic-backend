@@ -39,11 +39,12 @@ resource "aws_apprunner_service" "frontend_app" {
       image_configuration {
         port = 3000
         runtime_environment_variables = {
-          AWS_REGION         = "eu-west-2"
-          PINO_LOG_LEVEL     = "debug"
-          PUBLIC_ADK_API_URL = "https://${aws_apprunner_service.adk_server.service_url}"
-          ADK_APP_NAME       = "sequential_agent"
-          ADK_USER_ID        = "user"
+          AWS_REGION             = "eu-west-2"
+          PINO_LOG_LEVEL         = "debug"
+          PUBLIC_ADK_API_URL     = "https://${aws_apprunner_service.adk_server.service_url}"
+          ADK_APP_NAME           = "sequential_agent"
+          PROACTIVE_ADK_APP_NAME = "userTesting3"          
+          ADK_USER_ID            = "user"
         }
       }
     }
