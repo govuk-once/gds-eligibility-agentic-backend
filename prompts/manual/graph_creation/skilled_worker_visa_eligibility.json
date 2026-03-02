@@ -1,0 +1,439 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-03-02",
+  "source": "https://www.gov.uk/skilled-worker-visa",
+  "description": "Machine-readable representation of UK Skilled Worker Visa eligibility criteria",
+  
+  "decision_tree": {
+    "root": {
+      "id": "start",
+      "type": "start",
+      "description": "UK Skilled Worker Visa Eligibility Assessment",
+      "next": "has_approved_employer"
+    },
+    
+    "nodes": {
+      "has_approved_employer": {
+        "id": "has_approved_employer",
+        "type": "boolean_question",
+        "question": "Does the applicant have a job offer from a UK employer approved by the Home Office?",
+        "help_text": "Approved employers are on the register of licensed sponsors",
+        "reference": "https://www.gov.uk/government/publications/register-of-licensed-sponsors-workers",
+        "outcomes": {
+          "yes": "has_certificate_of_sponsorship",
+          "no": "INELIGIBLE_no_approved_employer"
+        }
+      },
+      
+      "has_certificate_of_sponsorship": {
+        "id": "has_certificate_of_sponsorship",
+        "type": "boolean_question",
+        "question": "Does the applicant have a Certificate of Sponsorship (CoS) from their employer?",
+        "help_text": "The CoS is an electronic record with a reference number, valid for 3 months",
+        "outcomes": {
+          "yes": "check_occupation_eligibility",
+          "no": "INELIGIBLE_no_cos"
+        }
+      },
+      
+      "check_occupation_eligibility": {
+        "id": "check_occupation_eligibility",
+        "type": "occupation_check",
+        "question": "Is the job eligible for Skilled Worker visa?",
+        "help_text": "Job must have a 4-digit SOC 2020 occupation code and be on the eligible occupations list",
+        "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-occupations",
+        "outcomes": {
+          "higher_skilled": "determine_salary_threshold",
+          "medium_skilled": "check_salary_list_or_shortage",
+          "not_eligible": "INELIGIBLE_occupation_not_eligible"
+        }
+      },
+      
+      "check_salary_list_or_shortage": {
+        "id": "check_salary_list_or_shortage",
+        "type": "boolean_question",
+        "question": "Is the job on the Immigration Salary List OR Temporary Shortage List?",
+        "help_text": "Medium skilled jobs can only apply if on one of these lists",
+        "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-immigration-salary-list",
+        "outcomes": {
+          "yes": "determine_salary_threshold",
+          "no": "INELIGIBLE_medium_skilled_not_on_list"
+        }
+      },
+      
+      "determine_salary_threshold": {
+        "id": "determine_salary_threshold",
+        "type": "routing",
+        "description": "Determine which salary rules apply based on job type",
+        "outcomes": {
+          "healthcare_education": "check_healthcare_education_salary",
+          "standard": "check_standard_salary_requirement"
+        },
+        "routing_logic": "If occupation is in healthcare/education list, go to healthcare_education_salary, else go to standard"
+      },
+      
+      "check_healthcare_education_salary": {
+        "id": "check_healthcare_education_salary",
+        "type": "salary_check",
+        "question": "Does the salary meet healthcare/education requirements?",
+        "help_text": "Salary must be at least £25,000 AND meet the national pay scale going rate for the specific job",
+        "reference": "https://www.gov.uk/skilled-worker-visa/if-you-work-in-healthcare-or-education",
+        "criteria": {
+          "minimum_absolute": 25000,
+          "must_meet_going_rate": true,
+          "going_rate_source": "National pay scales (NHS bands or education pay scales)"
+        },
+        "outcomes": {
+          "meets_requirement": "check_care_worker_registration",
+          "below_threshold": "INELIGIBLE_salary_too_low"
+        }
+      },
+      
+      "check_care_worker_registration": {
+        "id": "check_care_worker_registration",
+        "type": "conditional_check",
+        "question": "If applicant is a care worker (6135) or senior care worker (6136) in England, is employer registered with Care Quality Commission?",
+        "help_text": "Only applies to care workers in England",
+        "reference": "https://www.cqc.org.uk/",
+        "outcomes": {
+          "yes_or_not_applicable": "check_english_language",
+          "no": "INELIGIBLE_cqc_not_registered"
+        }
+      },
+      
+      "check_standard_salary_requirement": {
+        "id": "check_standard_salary_requirement",
+        "type": "salary_check",
+        "question": "Does the salary meet the standard requirements?",
+        "help_text": "Salary must be at least £41,700 per year OR the going rate for the job, whichever is HIGHER",
+        "reference": "https://www.gov.uk/skilled-worker-visa/your-job",
+        "criteria": {
+          "standard_threshold": 41700,
+          "must_meet_going_rate": true,
+          "comparison": "maximum"
+        },
+        "outcomes": {
+          "meets_requirement": "check_english_language",
+          "below_threshold": "check_reduced_salary_eligibility"
+        }
+      },
+      
+      "check_reduced_salary_eligibility": {
+        "id": "check_reduced_salary_eligibility",
+        "type": "multi_path_check",
+        "question": "Is the applicant eligible for reduced salary requirements?",
+        "help_text": "Multiple paths can qualify for paying between 70-90% of going rate. If ANY path is satisfied, applicant proceeds to English language check.",
+        "reference": "https://www.gov.uk/skilled-worker-visa/when-you-can-be-paid-less",
+        "minimum_salary_for_reduction": 33400,
+        "evaluation_logic": "Check each path in any order. If applicant meets criteria for ANY path, outcome is 'eligible_via_any_path'. If NONE are met, outcome is 'not_eligible'.",
+        "paths": [
+          {
+            "id": "immigration_salary_list",
+            "description": "Job is on the Immigration Salary List",
+            "salary_minimum": 33400,
+            "salary_percentage": "100% of going rate",
+            "criteria": [
+              "Job occupation code is on the Immigration Salary List",
+              "Salary is at least £33,400 per year",
+              "Salary meets the standard going rate for the job"
+            ],
+            "benefits": ["Lower visa application fee"],
+            "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-immigration-salary-list"
+          },
+          {
+            "id": "under_26_or_graduate",
+            "description": "Under 26, recent graduate, or in professional training",
+            "salary_minimum": 33400,
+            "salary_percentage": "70% of going rate",
+            "criteria": [
+              "Salary is at least £33,400 per year",
+              "Salary is at least 70% of the standard going rate for the job",
+              "AND one of: Under 26 on application date, OR currently on/recently on Student visa (bachelor's or above), OR currently on/recently on Graduate visa, OR working towards UK regulated profession qualification, OR working towards full registration/chartered status in sponsored job"
+            ],
+            "time_limit": "Maximum 4 years total stay including Graduate visa",
+            "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-salary-if-youre-under-26-studying-training-or-in-a-postdoctoral-role"
+          },
+          {
+            "id": "stem_phd",
+            "description": "STEM PhD relevant to job",
+            "salary_minimum": 33400,
+            "salary_percentage": "80% of going rate",
+            "criteria": [
+              "Salary is at least £33,400 per year",
+              "Salary is at least 80% of the standard going rate for the job",
+              "Has UK PhD or equivalent overseas doctorate in STEM field (verified by Ecctis if overseas)",
+              "PhD is relevant to the job being sponsored for",
+              "Job is on the list of occupations that qualify for PhD salary discount"
+            ],
+            "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-jobs-that-qualify-for-a-phd-salary-discount"
+          },
+          {
+            "id": "non_stem_phd",
+            "description": "Non-STEM PhD relevant to job",
+            "salary_minimum": 37500,
+            "salary_percentage": "90% of going rate",
+            "criteria": [
+              "Salary is at least £37,500 per year",
+              "Salary is at least 90% of the standard going rate for the job",
+              "Has UK PhD or equivalent overseas doctorate in non-STEM field (verified by Ecctis if overseas)",
+              "PhD is relevant to the job being sponsored for",
+              "Job is on the list of occupations that qualify for PhD salary discount"
+            ],
+            "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-jobs-that-qualify-for-a-phd-salary-discount"
+          },
+          {
+            "id": "postdoctoral",
+            "description": "Postdoctoral position in science or higher education",
+            "salary_minimum": 33400,
+            "salary_percentage": "70% of going rate",
+            "criteria": [
+              "Salary is at least £33,400 per year (calculated at 70% of going rate)",
+              "Salary is at least 70% of the standard going rate for the job",
+              "Job occupation code is one of: 2111, 2112, 2113, 2114, 2115, 2119, 2162, 2311",
+              "Job is a postdoctoral position"
+            ],
+            "eligible_occupation_codes": ["2111", "2112", "2113", "2114", "2115", "2119", "2162", "2311"],
+            "occupation_descriptions": {
+              "2111": "Chemical scientists",
+              "2112": "Biological scientists",
+              "2113": "Biochemists and biomedical scientists",
+              "2114": "Physical scientists",
+              "2115": "Social and humanities scientists",
+              "2119": "Natural and social science professionals not elsewhere classified",
+              "2162": "Other researchers, unspecified discipline",
+              "2311": "Higher education teaching professionals"
+            },
+            "time_limit": "Maximum 4 years total stay including Graduate visa",
+            "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-salary-if-youre-under-26-studying-training-or-in-a-postdoctoral-role"
+          }
+        ],
+        "outcomes": {
+          "eligible_via_any_path": "check_english_language",
+          "not_eligible": "INELIGIBLE_salary_too_low"
+        }
+      },
+      
+      "check_english_language": {
+        "id": "check_english_language",
+        "type": "multi_path_check",
+        "question": "Does the applicant meet English language requirements?",
+        "help_text": "Must prove English to at least B2 CEFR level unless exempt",
+        "reference": "https://www.gov.uk/skilled-worker-visa/knowledge-of-english",
+        "required_level": "B2 CEFR (read, write, speak, understand)",
+        "paths": [
+          {
+            "id": "exempt_nationality",
+            "description": "National of exempt country",
+            "eligible_countries": [
+              "Antigua and Barbuda", "Australia", "The Bahamas", "Barbados", "Belize",
+              "British overseas territories", "Canada", "Dominica", "Grenada", "Guyana",
+              "Jamaica", "Malta", "New Zealand", "St Kitts and Nevis", "St Lucia",
+              "St Vincent and the Grenadines", "Trinidad and Tobago", "USA"
+            ]
+          },
+          {
+            "id": "exempt_professional",
+            "description": "Healthcare professional with English assessment",
+            "eligible_professions": ["Doctor", "Dentist", "Nurse", "Midwife", "Vet"],
+            "requirement": "Passed English language assessment accepted by regulated professional body"
+          },
+          {
+            "id": "previous_visa",
+            "description": "Previously proved English in successful visa application",
+            "requirement": "Proved English knowledge in previous UK visa application"
+          },
+          {
+            "id": "uk_school_qualification",
+            "description": "UK school qualification begun under 18",
+            "qualifications": ["GCSE", "A Level", "Scottish National Qualification level 4 or 5", 
+                             "Scottish Higher or Advanced Higher in English"]
+          },
+          {
+            "id": "uk_degree",
+            "description": "Degree from UK institution taught in English",
+            "requirement": "Degree-level qualification taught in English, awarded by UK institution"
+          },
+          {
+            "id": "overseas_degree",
+            "description": "Degree from overseas institution taught in English",
+            "requirement": "Degree taught in English, verified as equivalent to UK bachelor's or higher by Ecctis"
+          },
+          {
+            "id": "english_test",
+            "description": "Secure English Language Test (SELT)",
+            "requirement": "Pass SELT from approved provider at B2 level or above"
+          }
+        ],
+        "outcomes": {
+          "meets_requirement": "check_financial_requirement",
+          "does_not_meet": "INELIGIBLE_english_language"
+        }
+      },
+      
+      "check_financial_requirement": {
+        "id": "check_financial_requirement",
+        "type": "financial_check",
+        "question": "Does the applicant meet financial requirements?",
+        "help_text": "Must have £1,270 available unless exempt",
+        "reference": "https://www.gov.uk/skilled-worker-visa/how-much-it-costs",
+        "criteria": {
+          "required_amount": 1270,
+          "holding_period_days": 28,
+          "recency_requirement": "Day 28 must be within 31 days of application",
+          "exemptions": [
+            "Been in UK with valid visa for at least 12 months",
+            "Employer confirms they can cover costs (via 'sponsor certifies maintenance' on CoS)"
+          ]
+        },
+        "outcomes": {
+          "meets_requirement_or_exempt": "ELIGIBLE",
+          "does_not_meet": "INELIGIBLE_insufficient_funds"
+        }
+      },
+      
+      "ELIGIBLE": {
+        "id": "ELIGIBLE",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Applicant meets all criteria for Skilled Worker visa",
+        "next_steps": [
+          "Apply online within 3 months of Certificate of Sponsorship date",
+          "Pay application fee (£769-£1,751 depending on circumstances)",
+          "Pay healthcare surcharge (£1,035 per year)",
+          "Provide required documents",
+          "Prove identity and attend appointment if required"
+        ],
+        "processing_time": {
+          "outside_uk": "3 weeks",
+          "inside_uk": "8 weeks"
+        }
+      },
+      
+      "INELIGIBLE_no_approved_employer": {
+        "id": "INELIGIBLE_no_approved_employer",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "No job offer from Home Office approved employer",
+        "guidance": "Employer must apply for sponsor licence if not already approved"
+      },
+      
+      "INELIGIBLE_no_cos": {
+        "id": "INELIGIBLE_no_cos",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "No Certificate of Sponsorship from employer",
+        "guidance": "Employer must provide CoS after checking eligibility"
+      },
+      
+      "INELIGIBLE_occupation_not_eligible": {
+        "id": "INELIGIBLE_occupation_not_eligible",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Job occupation code not eligible for Skilled Worker visa",
+        "guidance": "Check if eligible for another UK work visa type"
+      },
+      
+      "INELIGIBLE_medium_skilled_not_on_list": {
+        "id": "INELIGIBLE_medium_skilled_not_on_list",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Medium skilled job not on Immigration Salary List or Temporary Shortage List",
+        "guidance": "Medium skilled jobs must be on one of these lists to qualify"
+      },
+      
+      "INELIGIBLE_salary_too_low": {
+        "id": "INELIGIBLE_salary_too_low",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Salary does not meet minimum requirements for this visa",
+        "guidance": "Check if eligible for reduced salary requirements or another visa type"
+      },
+      
+      "INELIGIBLE_cqc_not_registered": {
+        "id": "INELIGIBLE_cqc_not_registered",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Employer not registered with Care Quality Commission (required for care workers in England)",
+        "guidance": "Employer must be CQC registered for occupation codes 6135 and 6136 in England"
+      },
+      
+      "INELIGIBLE_english_language": {
+        "id": "INELIGIBLE_english_language",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Does not meet English language requirements",
+        "guidance": "Must prove English to B2 CEFR level or meet exemption criteria"
+      },
+      
+      "INELIGIBLE_insufficient_funds": {
+        "id": "INELIGIBLE_insufficient_funds",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Insufficient funds to support self in UK",
+        "guidance": "Must have £1,270 for 28 days or employer must certify maintenance"
+      }
+    }
+  },
+  
+  "constants": {
+    "salary_thresholds": {
+      "standard_minimum": 41700,
+      "healthcare_education_minimum": 25000,
+      "reduced_minimum_stem_phd": 33400,
+      "reduced_minimum_non_stem_phd": 37500,
+      "reduced_minimum_other": 33400
+    },
+    "financial_requirements": {
+      "personal_savings": 1270,
+      "holding_period_days": 28,
+      "recency_days": 31
+    },
+    "application_fees": {
+      "outside_uk_up_to_3_years": 769,
+      "outside_uk_more_than_3_years": 1519,
+      "inside_uk_up_to_3_years": 885,
+      "inside_uk_more_than_3_years": 1751,
+      "immigration_salary_list_up_to_3_years": 590,
+      "immigration_salary_list_more_than_3_years": 1160
+    },
+    "healthcare_surcharge_per_year": 1035,
+    "english_level_required": "B2_CEFR",
+    "max_stay_before_extension": "5 years",
+    "cos_validity_months": 3
+  },
+  
+  "validation_rules": {
+    "salary_calculation": {
+      "rule": "Salary must meet the HIGHER of: (1) threshold minimum, (2) going rate for occupation, (3) percentage of going rate if using reduced route",
+      "going_rate_source": "Government published tables by occupation code",
+      "special_cases": {
+        "healthcare_education": "Use national pay scales (NHS bands or education pay scales)",
+        "extending_visa": "Different thresholds may apply - see extend visa guidance",
+        "updating_visa": "Different thresholds may apply - see update visa guidance"
+      }
+    },
+    "minimum_wage": {
+      "rule": "Job must pay at least national minimum wage and follow UK working hours rules",
+      "consequence": "Application refused if not met"
+    },
+    "time_limits": {
+      "under_26_graduate_postdoc": "Maximum 4 years total stay including any Graduate visa time",
+      "general": "Visa can be extended repeatedly if requirements still met",
+      "settlement": "Can apply for indefinite leave to remain after 5 years"
+    }
+  },
+  
+  "external_references": {
+    "eligible_occupations": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-occupations",
+    "going_rates": "https://www.gov.uk/government/publications/skilled-worker-visa-going-rates-for-eligible-occupations",
+    "immigration_salary_list": "https://www.gov.uk/government/publications/skilled-worker-visa-immigration-salary-list",
+    "temporary_shortage_list": "https://www.gov.uk/government/publications/skilled-worker-visa-temporary-shortage-list",
+    "phd_salary_discount_jobs": "https://www.gov.uk/government/publications/skilled-worker-visa-jobs-that-qualify-for-a-phd-salary-discount",
+    "healthcare_education_jobs": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-healthcare-and-education-jobs",
+    "nhs_pay_scales": "https://www.gov.uk/government/publications/national-pay-scales-for-eligible-healthcare-jobs",
+    "education_pay_scales": "https://www.gov.uk/government/publications/national-pay-scales-for-eligible-teaching-and-education-jobs",
+    "approved_employers": "https://www.gov.uk/government/publications/register-of-licensed-sponsors-workers",
+    "cqc_registration": "https://www.cqc.org.uk/",
+    "ecctis_assessment": "https://qls.ecctis.com/"
+  }
+}
