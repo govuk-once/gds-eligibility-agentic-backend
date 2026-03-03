@@ -253,8 +253,8 @@ def generate_graphviz(data: Dict, output_file: str):
         else:
             label = node.get('question', node.get('description', node_id))
             # Truncate long labels
-            if len(label) > 50:
-                label = label[:47] + '...'
+            #  if len(label) > 50:
+            #      label = label[:47] + '...'
             style = type_styles.get(node_type, {})
 
         dot.node(node_id, label, **style)
@@ -264,8 +264,8 @@ def generate_graphviz(data: Dict, output_file: str):
             for outcome, target in node['outcomes'].items():
                 # Simplify outcome labels
                 edge_label = outcome.replace('_', ' ').title()
-                if len(edge_label) > 20:
-                    edge_label = edge_label[:17] + '...'
+                #  if len(edge_label) > 20:
+                #      edge_label = edge_label[:17] + '...'
                 dot.edge(node_id, target, label=edge_label)
         elif 'next' in node and node['next']:
             dot.edge(node_id, node['next'])
