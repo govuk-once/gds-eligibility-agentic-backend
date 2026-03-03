@@ -22,6 +22,8 @@
 - **[README.md](README.md)** - Structure, node types, and usage guide
 - **[SCHEMA_DOCUMENTATION.md](SCHEMA_DOCUMENTATION.md)** - JSON Schema reference and validation guide
 - **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Requirements verification and design
+- **[TEST_CASE_SUMMARY.md](TEST_CASE_SUMMARY.md)** - Test scenario comparison and gap analysis
+- **[TEST_CASE_ANALYSIS.md](TEST_CASE_ANALYSIS.md)** - Detailed scenario-by-scenario breakdown
 - **[visualization_guide.md](visualization_guide.md)** - Creating graph visualizations
 
 ### Tools
@@ -137,6 +139,12 @@ python3 validate_and_visualize.py
 
 **Need to verify completeness?**  
 → Review **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)**
+
+**Want to see test coverage?**  
+→ Read **[TEST_CASE_SUMMARY.md](TEST_CASE_SUMMARY.md)** for gap analysis
+
+**Need scenario details?**  
+→ Check **[TEST_CASE_ANALYSIS.md](TEST_CASE_ANALYSIS.md)** for 51 test cases
 
 **Building a visualization?**  
 → Follow **[visualization_guide.md](visualization_guide.md)**
