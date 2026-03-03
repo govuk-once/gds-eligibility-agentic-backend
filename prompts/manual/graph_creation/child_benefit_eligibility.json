@@ -1,9 +1,9 @@
 {
   "$schema": "./eligibility-schema.json",
-  "version": "1.1",
+  "version": "1.2",
   "last_updated": "2026-03-03",
   "source": "https://www.gov.uk/child-benefit",
-  "description": "Machine-readable representation of UK Child Benefit eligibility criteria - Enhanced with Phase 1 improvements",
+  "description": "Machine-readable representation of UK Child Benefit eligibility criteria - Enhanced with Phase 1 & Phase 2 improvements",
 
   "decision_tree": {
     "root": {
@@ -255,13 +255,13 @@
 
       "check_no_other_claimant": {
         "id": "check_no_other_claimant",
-        "type": "boolean_question",
-        "question": "Is no one else currently claiming Child Benefit for this child?",
-        "help_text": "Only one person can claim Child Benefit for a child. If multiple people are responsible, they must agree who claims, or HMRC will decide.",
-        "reference": "https://www.gov.uk/child-benefit-child-lives-with-someone-else",
+        "type": "routing",
+        "description": "Check if another person is claiming Child Benefit for this child",
+        "routing_logic": "If no other claimant, proceed. If other claimant exists and parties agree who should claim, route accordingly. If dispute exists, defer to HMRC for arbitration.",
         "outcomes": {
-          "yes": "check_child_location",
-          "no": "INELIGIBLE_other_claimant_exists"
+          "no_other_claimant": "check_child_location",
+          "other_claimant_agreed_transfer": "check_child_location",
+          "disputed_multiple_claimants": "DEFERRED_TO_HMRC"
         }
       },
 
@@ -479,6 +479,29 @@
         "result": "INELIGIBLE",
         "reason": "20-week extension not applicable (child not registered with qualifying service, extension period expired, or child turned 18)",
         "guidance": "The 20-week extension for 16-17 year olds who leave education is only available if they register with a government careers service, Connexions service, or armed services. The extension ends after 20 weeks or when the child turns 18, whichever is sooner. If extension has expired and child is not in approved education/training, Child Benefit stops."
+      },
+
+      "DEFERRED_TO_HMRC": {
+        "id": "DEFERRED_TO_HMRC",
+        "type": "outcome",
+        "result": "DEFERRED",
+        "reason": "Multiple people claim responsibility for the child and cannot agree who should claim Child Benefit",
+        "guidance": "When two or more people are responsible for a child and cannot agree who should claim, HMRC will make the decision. HMRC considers: (1) Who the child lives with most of the time (primary residence), (2) Who contributes most to the child's upkeep, (3) The child's best interests, (4) Continuity of existing arrangements. Both parties should contact the Child Benefit Office with evidence of their circumstances. HMRC's decision is binding. Common scenarios: separated parents with shared custody, child living part-time with each parent, grandparent vs parent both contributing.",
+        "hmrc_decision_criteria": [
+          "Primary residence (where child spends most nights)",
+          "Main contributor to child's upkeep and care",
+          "Stability and continuity for the child",
+          "Existing claim history",
+          "Evidence of day-to-day care responsibilities"
+        ],
+        "required_evidence": [
+          "Proof of residence (utility bills, rental agreement)",
+          "School registration and correspondence",
+          "Medical records and GP registration",
+          "Financial contribution evidence (bank statements, receipts)",
+          "Court orders or formal custody arrangements (if applicable)"
+        ],
+        "reference": "https://www.gov.uk/child-benefit-child-lives-with-someone-else"
       }
     }
   },
@@ -600,6 +623,7 @@
       "rule": "Must be responsible for child through living with them OR contributing to upkeep",
       "living_with": "Primary indicator of responsibility",
       "contributing": "Must pay at least Child Benefit amount (or equivalent in kind) towards care",
+      "contribution_threshold": "£26.05 per week for eldest/only child, £17.25 per week for additional children (2024/25 rates - check gov.uk for current rates)",
       "contributions_include": [
         "Food",
         "Clothes",
@@ -610,12 +634,44 @@
       ],
       "frequency": "Can be weekly, monthly, or lump sum",
       "combined_contributions": "Two people can combine contributions if both contribute to same child",
+      "unequal_allocation": {
+        "rule": "When contributing to multiple children, can allocate contribution amounts unequally",
+        "explanation": "If contributing £40 for two children, can allocate as £26.05 (eldest) + £13.95 (second), or any split where each child receives at least their applicable rate",
+        "example_1": "£40 total for 2 children: £26.05 (child 1) + £13.95 (child 2) = eligible for child 1 only",
+        "example_2": "£50 total for 2 children: £26.05 (child 1) + £23.95 (child 2) = eligible for both",
+        "note": "Each child must receive at least the Child Benefit rate they would generate (eldest rate for first child, additional rate for others)"
+      },
       "adoption_allowance": "Adoption allowance does NOT disqualify (unlike fostering allowance)"
     },
     "priority_rules": {
       "rule": "Only one person can claim Child Benefit for a child",
       "multiple_carers": "If two people are responsible, they must agree who claims",
-      "hmrc_decides": "If agreement cannot be reached, HMRC decides based on primary residence and circumstances",
+      "hmrc_arbitration": {
+        "rule": "If agreement cannot be reached, HMRC decides based on evidence",
+        "criteria": [
+          "Primary residence (where child spends most nights per week)",
+          "Main contributor to child's upkeep and care",
+          "Day-to-day care responsibilities",
+          "Stability and continuity for the child",
+          "Existing claim history"
+        ],
+        "evidence_required": [
+          "Proof of residence (utility bills, rental agreement, council tax)",
+          "School registration and school correspondence",
+          "Medical records and GP registration",
+          "Financial contribution evidence (bank statements, receipts, maintenance records)",
+          "Court orders or formal custody arrangements (if applicable)",
+          "Statements from child's school, doctor, or other professionals"
+        ],
+        "common_scenarios": [
+          "Separated parents with child spending 4 days vs 3 days per week with each",
+          "Grandparent caring for grandchild while parent works",
+          "Child living part-time with two different households",
+          "Parent vs step-parent both contributing significantly"
+        ],
+        "decision_binding": true,
+        "appeal_process": "Contact Child Benefit Office if circumstances change significantly"
+      },
       "transfer": "Current claimant can transfer by contacting Child Benefit Office",
       "child_moves": "If child moves but you still contribute to upkeep (at least CB amount), you can continue claiming"
     },
@@ -645,8 +701,29 @@
     },
     "administrative": {
       "backdating": "Claims can be backdated up to 3 months",
-      "high_income_charge": "HICBC is a payment adjustment, not an eligibility criterion. Claimant is still eligible but may owe tax if income £60k-£80k. Partner pays if they are higher earner.",
-      "payment_structure": "Each claimant gets eldest child rate for their first child. If two parents each claim for different children from same family, both get eldest child rate."
+      "high_income_charge": {
+        "rule": "HICBC is a payment adjustment, not an eligibility criterion. Claimant is still eligible but may owe tax.",
+        "threshold_start": 60000,
+        "threshold_full_clawback": 80000,
+        "calculation": "Tax charge = 1% of Child Benefit for every £200 of income between £60k-£80k",
+        "who_pays": "Higher earner in household pays, regardless of who claims Child Benefit",
+        "examples": [
+          "Income £65,000: 50% clawback (25 × £200 above £60k = 25% per £200 = 25% charge)",
+          "Income £70,000: 50% clawback",
+          "Income £80,000+: 100% clawback (but still eligible, just repay full amount)"
+        ],
+        "opt_out": "Can choose not to receive payments to avoid charge, but should still register to protect National Insurance credits",
+        "partner_income": "Partner's income applies even if they are not the claimant. Higher earner always pays.",
+        "not_eligibility": "Important: HICBC does NOT affect eligibility. It is a post-payment tax charge only."
+      },
+      "payment_structure": {
+        "rates_note": "Check gov.uk for current rates",
+        "eldest_child_rate": "Higher rate for first child claimed",
+        "additional_children_rate": "Lower rate for each additional child",
+        "split_family_rule": "If two parents each claim for different children from same family, both get eldest child rate for their first child",
+        "example": "Divorced parents: Mother claims for child A (gets eldest rate), Father claims for child B (also gets eldest rate, not additional rate)",
+        "frequency": "Paid every 4 weeks, or weekly if single parent or receiving certain benefits"
+      }
     }
   },
 
