@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import List, TypedDict
 
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.agents.llm_agent import Agent
@@ -16,23 +17,27 @@ def get_prompt(rel_path: str) -> str:
  
 # TODO add tool for retrieving website content
 
+class ChildEvaluation(TypedDict):
+    child_name: str
+    is_eligible: bool
+    reasoning: str
+
 def eligibility_judgement_outcome(
-        would_application_be_eligible: bool, 
-        would_application_be_ineligible: bool, 
-        would_application_be_eligible_in_part: bool, 
-        reasoning_for_eligibility_judgement: str, 
+        child_evaluations: List[ChildEvaluation], 
+        overall_reasoning: str, 
         tool_context: ToolContext
     ):
-    """Call this function ONLY when you have an outcome to report as to eligibility."""
+    """
+    Call this function ONLY when you have an outcome to report as to eligibility.
+    Provide an evaluation object for every child discussed in the conversation.
+    """
     print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
+    
     return {
-        "would_application_be_eligible": would_application_be_eligible,
-        "would_application_be_ineligible": would_application_be_ineligible,
-        "would_application_be_eligible_in_part": would_application_be_eligible_in_part,
-        "reasoning_for_eligibility_judgement": reasoning_for_eligibility_judgement
+        "child_evaluations": child_evaluations,
+        "overall_reasoning": overall_reasoning
     }
-
 
 root_agent = Agent(
     ##model=LiteLlm(model="bedrock/converse/google.gemma-3-4b-it"),  # Small model
