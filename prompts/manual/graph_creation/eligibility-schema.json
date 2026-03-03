@@ -1,8 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://example.gov.uk/schemas/skilled-worker-visa-eligibility/v1.0",
-  "title": "UK Skilled Worker Visa Eligibility Decision Tree",
-  "description": "JSON Schema for machine-readable representation of UK Skilled Worker Visa eligibility criteria",
+  "$id": "https://example.gov.uk/schemas/eligibility-criteria/v1.1",
+  "title": "UK Government Eligibility Criteria Decision Tree Schema",
+  "description": "JSON Schema for machine-readable representation of UK government service eligibility criteria (supports Skilled Worker Visa, Child Benefit, and other services)",
+  "version": "1.1",
   "type": "object",
   "required": ["version", "last_updated", "source", "description", "decision_tree", "constants"],
   "properties": {
@@ -663,8 +664,8 @@
         "type": {"const": "outcome"},
         "result": {
           "type": "string",
-          "enum": ["ELIGIBLE", "INELIGIBLE"],
-          "description": "Final eligibility determination"
+          "enum": ["ELIGIBLE", "INELIGIBLE", "DEFERRED"],
+          "description": "Final eligibility determination. DEFERRED indicates case requires external decision-making (e.g., HMRC arbitration)"
         },
         "description": {
           "type": "string",
@@ -672,16 +673,31 @@
         },
         "reason": {
           "type": "string",
-          "description": "Reason for ineligibility (for INELIGIBLE outcomes)"
+          "description": "Reason for outcome (for INELIGIBLE and DEFERRED outcomes)"
         },
         "guidance": {
           "type": "string",
-          "description": "Next steps or guidance (for INELIGIBLE outcomes)"
+          "description": "Next steps or guidance (for INELIGIBLE and DEFERRED outcomes)"
         },
         "next_steps": {
           "type": "array",
           "items": {"type": "string"},
           "description": "List of next steps (for ELIGIBLE outcome)"
+        },
+        "hmrc_decision_criteria": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "HMRC decision criteria (for DEFERRED outcomes)"
+        },
+        "required_evidence": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Evidence required for external decision (for DEFERRED outcomes)"
+        },
+        "reference": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to official guidance (optional)"
         },
         "processing_time": {
           "type": "object",
@@ -707,6 +723,15 @@
           },
           "then": {
             "required": ["reason", "guidance"]
+          }
+        },
+        {
+          "if": {
+            "properties": {"result": {"const": "DEFERRED"}}
+          },
+          "then": {
+            "required": ["reason", "guidance"],
+            "description": "DEFERRED outcomes must explain why external decision is needed"
           }
         }
       ]
