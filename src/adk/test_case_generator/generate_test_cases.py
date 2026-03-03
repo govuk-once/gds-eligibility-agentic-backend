@@ -54,6 +54,13 @@ RANDOM_GENERATION_CONFIG = {
     "min_age_post_16_rules": 16,  # Applies to education, work, apprenticeships, and benefits
     "max_age_extension": 17,  # The maximum inclusive age for the 20-week extension
     "age_education_cutoff": 20,  # The age at which ALL education eligibility strictly ends
+    
+    # We need names so we can uniquely identify the child later
+    # doesn't matter what they are at this stage 
+    # (add more if creatng test cases with more than three children)
+    "names": [
+        "Alex", "Blake", "Charlie"
+    ],
 }
 
 # ---------------------------------------------------------------------------
@@ -325,11 +332,14 @@ def _build_child_facts(raw_children: List[Dict]) -> List[Dict]:
     Assigns consecutive child_ids.
     If unspecified, specifies defaults as below (basically a simple case)
     """
+    DEFAULT_NAMES = RANDOM_GENERATION_CONFIG["names"]
+    
     children = []
     for i, child_data in enumerate(raw_children):
         # 1. Define the complete baseline for a "standard, uncomplicated" child
         c = {
             "id": f"child_{i}",
+            "name": DEFAULT_NAMES[i],
             "age": 8,
             "lives_with_claimant": True,
             "in_approved_education": False,
