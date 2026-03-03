@@ -1,0 +1,470 @@
+{
+  "$schema": "./eligibility-schema.json",
+  "version": "1.0",
+  "last_updated": "2026-03-03",
+  "source": "https://www.gov.uk/child-benefit",
+  "description": "Machine-readable representation of UK Child Benefit eligibility criteria",
+
+  "decision_tree": {
+    "root": {
+      "id": "start",
+      "type": "start",
+      "description": "UK Child Benefit Eligibility Assessment",
+      "next": "has_qualifying_child"
+    },
+
+    "nodes": {
+      "has_qualifying_child": {
+        "id": "has_qualifying_child",
+        "type": "boolean_question",
+        "question": "Do you have a child under 16, or under 20 and in approved education or training?",
+        "help_text": "Child must be under 16, or aged 16-19 and in approved education or training",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "outcomes": {
+          "yes": "check_child_not_working_full_time",
+          "no": "INELIGIBLE_no_qualifying_child"
+        }
+      },
+
+      "check_child_not_working_full_time": {
+        "id": "check_child_not_working_full_time",
+        "type": "boolean_question",
+        "question": "Is the child working less than 24 hours per week (or not in paid work)?",
+        "help_text": "Children aged 16+ working 24+ hours per week and not in approved education/training are not eligible",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "outcomes": {
+          "yes": "check_child_not_receiving_benefits",
+          "no": "INELIGIBLE_child_working_full_time"
+        }
+      },
+
+      "check_child_not_receiving_benefits": {
+        "id": "check_child_not_receiving_benefits",
+        "type": "boolean_question",
+        "question": "Is the child NOT receiving certain benefits in their own right (e.g., ESA, Universal Credit)?",
+        "help_text": "Children receiving Employment and Support Allowance or Universal Credit in their own right are not eligible",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "outcomes": {
+          "yes": "check_child_not_apprentice",
+          "no": "INELIGIBLE_child_receiving_benefits"
+        }
+      },
+
+      "check_child_not_apprentice": {
+        "id": "check_child_not_apprentice",
+        "type": "boolean_question",
+        "question": "Is the child NOT in an apprenticeship in England?",
+        "help_text": "Children who start an apprenticeship in England are not eligible",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "outcomes": {
+          "yes": "check_claimant_residency",
+          "no": "INELIGIBLE_child_apprentice"
+        }
+      },
+
+      "check_claimant_residency": {
+        "id": "check_claimant_residency",
+        "type": "multi_path_check",
+        "question": "Does the claimant meet UK residency requirements?",
+        "help_text": "Must normally live in the UK or meet special circumstances",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "evaluation_logic": "If ANY path is satisfied, proceed to responsibility check",
+        "paths": [
+          {
+            "id": "normally_resident_uk",
+            "description": "Normally lives in the UK",
+            "requirement": "Claimant normally lives in the UK"
+          },
+          {
+            "id": "settled_status",
+            "description": "Has settled status under EU Settlement Scheme",
+            "requirement": "Has settled status under EU Settlement Scheme"
+          },
+          {
+            "id": "presettled_working",
+            "description": "Pre-settled status and working",
+            "criteria": [
+              "Has pre-settled status under EU Settlement Scheme",
+              "Working and earning/expect to earn above primary National Insurance threshold for 3 continuous months"
+            ]
+          },
+          {
+            "id": "presettled_jobseeker",
+            "description": "Pre-settled status and actively seeking work",
+            "criteria": [
+              "Has pre-settled status under EU Settlement Scheme",
+              "Looking for work (can claim as jobseeker for up to 91 days)"
+            ]
+          },
+          {
+            "id": "presettled_sufficient_resources",
+            "description": "Pre-settled status with sufficient resources",
+            "criteria": [
+              "Has pre-settled status under EU Settlement Scheme",
+              "Has sufficient resources to support self and family financially",
+              "NOT claiming Income Support, income-based JSA, Pension Credit, or Universal Credit"
+            ]
+          },
+          {
+            "id": "presettled_student",
+            "description": "Pre-settled status and studying",
+            "criteria": [
+              "Has pre-settled status under EU Settlement Scheme",
+              "Studying and has sufficient resources to support self financially"
+            ]
+          },
+          {
+            "id": "presettled_family_member",
+            "description": "Pre-settled status as family member of EEA/Swiss national",
+            "criteria": [
+              "Has pre-settled status under EU Settlement Scheme",
+              "Is family member of EEA or Swiss national with right to reside",
+              "One of: spouse/civil partner, dependent child/grandchild under 21, dependent parent/grandparent"
+            ]
+          },
+          {
+            "id": "crown_servant_abroad",
+            "description": "Crown servant living abroad",
+            "requirement": "Living abroad as Crown servant or in certain qualifying countries"
+          }
+        ],
+        "outcomes": {
+          "eligible_via_any_path": "check_responsibility_for_child",
+          "not_eligible": "INELIGIBLE_residency_requirements"
+        }
+      },
+
+      "check_responsibility_for_child": {
+        "id": "check_responsibility_for_child",
+        "type": "multi_path_check",
+        "question": "Are you responsible for the child?",
+        "help_text": "Responsibility means living with child OR contributing to their upkeep",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "evaluation_logic": "If ANY path is satisfied, proceed to child location checks",
+        "paths": [
+          {
+            "id": "living_with_child",
+            "description": "Living with the child",
+            "requirement": "You live with the child"
+          },
+          {
+            "id": "contributing_to_upkeep",
+            "description": "Contributing to child's upkeep",
+            "criteria": [
+              "You pay at least the same amount as Child Benefit (or equivalent in kind) towards their care",
+              "Contributions include: food, clothes, pocket money, housing, presents",
+              "Can be weekly, monthly, or lump sum payments"
+            ]
+          },
+          {
+            "id": "maintenance_payments",
+            "description": "Paying maintenance under court order or agreement",
+            "criteria": [
+              "Payments made towards child's maintenance under court order or agreement",
+              "Payments cover the child's upkeep",
+              "Amount equals or exceeds Child Benefit payment"
+            ]
+          }
+        ],
+        "outcomes": {
+          "eligible_via_any_path": "check_no_other_claimant",
+          "not_eligible": "INELIGIBLE_not_responsible"
+        }
+      },
+
+      "check_no_other_claimant": {
+        "id": "check_no_other_claimant",
+        "type": "boolean_question",
+        "question": "Is no one else currently claiming Child Benefit for this child?",
+        "help_text": "Only one person can claim Child Benefit for a child. If multiple people are responsible, they must agree who claims, or HMRC will decide.",
+        "reference": "https://www.gov.uk/child-benefit-child-lives-with-someone-else",
+        "outcomes": {
+          "yes": "check_child_location",
+          "no": "INELIGIBLE_other_claimant_exists"
+        }
+      },
+
+      "check_child_location": {
+        "id": "check_child_location",
+        "type": "routing",
+        "description": "Determine if special rules apply based on child's location",
+        "routing_logic": "Check if child is in hospital, care, fostered, or living normally",
+        "outcomes": {
+          "in_hospital": "check_hospital_duration",
+          "in_care": "check_care_duration",
+          "fostered": "check_fostering_arrangement",
+          "normal_living": "check_council_not_paying"
+        }
+      },
+
+      "check_hospital_duration": {
+        "id": "check_hospital_duration",
+        "type": "conditional_check",
+        "question": "Has the child been in hospital or residential accommodation for 12 weeks or less (excluding breaks of 28+ days)?",
+        "help_text": "Child Benefit continues for up to 12 weeks in hospital/residential accommodation. If child returns within 28 days, time counts towards 12-week limit.",
+        "reference": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care",
+        "outcomes": {
+          "yes": "check_regularly_spending_on_child_hospital",
+          "no": "check_regularly_spending_on_child_hospital"
+        }
+      },
+
+      "check_regularly_spending_on_child_hospital": {
+        "id": "check_regularly_spending_on_child_hospital",
+        "type": "boolean_question",
+        "question": "Are you regularly spending money on the child while they are in hospital/residential accommodation?",
+        "help_text": "Exception to 12-week rule if you regularly spend money on child. For hospital abroad, only if they went abroad for treatment and you're back in UK. Partner's spending counts if married/civil partnered and living together.",
+        "reference": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care",
+        "outcomes": {
+          "yes": "check_council_not_paying",
+          "no": "INELIGIBLE_hospital_over_12_weeks"
+        }
+      },
+
+      "check_care_duration": {
+        "id": "check_care_duration",
+        "type": "conditional_check",
+        "question": "Has the child been in care for 8 weeks or less, OR do they spend at least 24 hours a week at home?",
+        "help_text": "Child Benefit continues for up to 8 weeks in care. Exception if child spends 24+ hours/week at home. Can claim again if child spends 2 consecutive nights/week or 7+ days in a row at home.",
+        "reference": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care",
+        "outcomes": {
+          "yes": "check_council_not_paying",
+          "no": "INELIGIBLE_care_over_8_weeks"
+        }
+      },
+
+      "check_fostering_arrangement": {
+        "id": "check_fostering_arrangement",
+        "type": "boolean_question",
+        "question": "Is the local council NOT paying towards the child's accommodation or maintenance?",
+        "help_text": "You can claim Child Benefit for a fostered child if the council is not paying for their accommodation or maintenance",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "outcomes": {
+          "yes": "check_council_not_paying",
+          "no": "INELIGIBLE_council_paying_fostering"
+        }
+      },
+
+      "check_council_not_paying": {
+        "id": "check_council_not_paying",
+        "type": "boolean_question",
+        "question": "Is the local council NOT paying towards the child's accommodation or maintenance?",
+        "help_text": "You generally cannot get Child Benefit if the local council is paying for the child",
+        "reference": "https://www.gov.uk/child-benefit/eligibility",
+        "outcomes": {
+          "yes": "ELIGIBLE",
+          "no": "INELIGIBLE_council_paying"
+        }
+      },
+
+      "ELIGIBLE": {
+        "id": "ELIGIBLE",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "reason": "Meets all Child Benefit eligibility requirements",
+        "next_steps": [
+          "Apply online or by post using form CH2",
+          "Provide proof of identity for yourself and the child",
+          "Provide child's birth certificate or adoption certificate",
+          "Be aware of High Income Child Benefit Charge if you or partner earns over £60,000",
+          "Payments made every 4 weeks (or weekly if single parent or receiving certain benefits)"
+        ],
+        "reference": "https://www.gov.uk/child-benefit/how-to-claim"
+      },
+
+      "INELIGIBLE_no_qualifying_child": {
+        "id": "INELIGIBLE_no_qualifying_child",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "No qualifying child under 16, or under 20 in approved education/training",
+        "guidance": "Child must be under 16, or aged 16-19 and in approved education or training. If child just turned 20, benefit stops. If 16-17 year old leaves education, benefit can continue for 20 weeks if they register with careers service or armed services."
+      },
+
+      "INELIGIBLE_child_working_full_time": {
+        "id": "INELIGIBLE_child_working_full_time",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Child aged 16+ is working 24 or more hours per week and not in approved education or training",
+        "guidance": "Child Benefit stops if child aged 16 or over starts paid work for 24+ hours per week and is no longer in approved education or training. If they return to education/training, you may be able to claim again."
+      },
+
+      "INELIGIBLE_child_receiving_benefits": {
+        "id": "INELIGIBLE_child_receiving_benefits",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Child is receiving certain benefits in their own right",
+        "guidance": "Child Benefit stops if child starts receiving Employment and Support Allowance, Universal Credit, or similar benefits in their own right."
+      },
+
+      "INELIGIBLE_child_apprentice": {
+        "id": "INELIGIBLE_child_apprentice",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Child has started an apprenticeship in England",
+        "guidance": "Child Benefit stops if child starts an apprenticeship in England."
+      },
+
+      "INELIGIBLE_residency_requirements": {
+        "id": "INELIGIBLE_residency_requirements",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Does not meet UK residency requirements",
+        "guidance": "Must normally live in the UK or meet special circumstances (settled status, pre-settled status with qualifying criteria, Crown servant, or living in certain countries). If you have pre-settled status, you may need to be working, studying, or have sufficient resources."
+      },
+
+      "INELIGIBLE_not_responsible": {
+        "id": "INELIGIBLE_not_responsible",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Not responsible for the child",
+        "guidance": "You must be responsible for the child, which means either living with them OR paying at least the Child Benefit amount towards their care (food, clothes, housing, pocket money, etc.). This can include maintenance payments under court order."
+      },
+
+      "INELIGIBLE_other_claimant_exists": {
+        "id": "INELIGIBLE_other_claimant_exists",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Someone else is already claiming Child Benefit for this child",
+        "guidance": "Only one person can claim Child Benefit for a child. If multiple people are responsible, you must agree who claims. If you cannot agree, HMRC will decide. The current claimant can transfer the claim to you by contacting the Child Benefit Office. If child lives with someone else but you contribute to their upkeep (at least Child Benefit amount), the current claimant may continue claiming."
+      },
+
+      "INELIGIBLE_hospital_over_12_weeks": {
+        "id": "INELIGIBLE_hospital_over_12_weeks",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Child has been in hospital or residential accommodation for more than 12 weeks and you are not regularly spending money on them",
+        "guidance": "Child Benefit stops after 12 weeks in hospital or residential accommodation, unless you regularly spend money on them. If child returns within 28 days of leaving, the time counts towards the 12-week limit. Contact HMRC to check if exceptions apply. Partner's spending only counts if married/civil partnered and living together."
+      },
+
+      "INELIGIBLE_care_over_8_weeks": {
+        "id": "INELIGIBLE_care_over_8_weeks",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Child has been in local authority care for more than 8 weeks and does not spend at least 24 hours a week at home",
+        "guidance": "Child Benefit stops after 8 weeks in care, unless child spends at least 24 hours a week at home. You can claim again if child spends 2 consecutive nights each week or 7+ days in a row at home. Contact HMRC about your specific situation."
+      },
+
+      "INELIGIBLE_council_paying_fostering": {
+        "id": "INELIGIBLE_council_paying_fostering",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Local council is paying towards the child's accommodation or maintenance (fostering)",
+        "guidance": "You can claim Child Benefit for a fostered child only if the local council is NOT paying towards their accommodation or maintenance. Check with the council about their payment arrangements."
+      },
+
+      "INELIGIBLE_council_paying": {
+        "id": "INELIGIBLE_council_paying",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Local council is paying towards the child's accommodation or maintenance",
+        "guidance": "You generally cannot get Child Benefit if the local council is paying towards the child's accommodation or maintenance. This applies to informal care arrangements and some fostering situations."
+      }
+    }
+  },
+
+  "constants": {
+    "age_limits": {
+      "standard_maximum_age": 16,
+      "education_training_maximum_age": 20,
+      "extension_period_weeks": 20
+    },
+    "time_limits": {
+      "hospital_weeks": 12,
+      "hospital_break_days": 28,
+      "care_weeks": 8,
+      "care_minimum_home_hours_per_week": 24,
+      "care_consecutive_nights_per_week": 2,
+      "care_consecutive_days_minimum": 7,
+      "jobseeker_maximum_days": 91
+    },
+    "work_limits": {
+      "maximum_hours_per_week": 24
+    },
+    "payment_rates": {
+      "note": "Current rates not specified in source documents - check gov.uk for latest rates",
+      "eldest_child": "TBD",
+      "additional_children_each": "TBD"
+    },
+    "high_income_charge": {
+      "threshold": 60000,
+      "note": "High Income Child Benefit Charge applies if you or partner earns over £60,000"
+    }
+  },
+
+  "validation_rules": {
+    "age_and_education": {
+      "rule": "Child must be under 16, OR aged 16-19 and in approved education or training",
+      "approved_education": "Full-time non-advanced education (up to A-level or equivalent)",
+      "approved_training": "Unpaid work-based training with an education provider, or approved training course limited to 12 hours per week average",
+      "extension": "If 16-17 year old leaves education/training, benefit continues for 20 weeks if registered with careers service or armed services",
+      "ending_conditions": [
+        "Child turns 20",
+        "Child starts paid work 24+ hours per week and leaves education/training",
+        "Child starts apprenticeship in England",
+        "Child receives ESA, Universal Credit, or similar benefits in own right"
+      ]
+    },
+    "residency": {
+      "rule": "Must normally live in UK or meet special circumstances",
+      "settled_status": "Can claim with settled status under EU Settlement Scheme",
+      "presettled_status_conditions": [
+        "Working and earning above NI primary threshold for 3 continuous months, OR",
+        "Looking for work (jobseeker for up to 91 days), OR",
+        "Sufficient resources (not claiming IS, JSA, PC, UC), OR",
+        "Studying with sufficient resources, OR",
+        "Family member of EEA/Swiss national with right to reside"
+      ],
+      "abroad": "May qualify if Crown servant or living in certain countries"
+    },
+    "responsibility": {
+      "rule": "Must be responsible for child through living with them OR contributing to upkeep",
+      "living_with": "Primary indicator of responsibility",
+      "contributing": "Must pay at least Child Benefit amount (or equivalent in kind) towards care",
+      "contributions_include": [
+        "Food",
+        "Clothes",
+        "Pocket money",
+        "Housing costs",
+        "Presents",
+        "Maintenance payments under court order/agreement"
+      ],
+      "frequency": "Can be weekly, monthly, or lump sum"
+    },
+    "priority_rules": {
+      "rule": "Only one person can claim Child Benefit for a child",
+      "multiple_carers": "If two people are responsible, they must agree who claims",
+      "hmrc_decides": "If agreement cannot be reached, HMRC decides who receives benefit",
+      "transfer": "Current claimant can transfer by contacting Child Benefit Office",
+      "child_moves": "If child moves but you still contribute to upkeep (at least CB amount), you can continue claiming"
+    },
+    "hospital_and_care": {
+      "hospital": {
+        "time_limit": "12 weeks in hospital or residential accommodation",
+        "counting": "If child returns within 28 days, time counts towards 12-week limit",
+        "exception": "Can continue if regularly spending money on child",
+        "abroad": "For hospital abroad, only if went for treatment and you're back in UK spending on them"
+      },
+      "care": {
+        "time_limit": "8 weeks in local authority care",
+        "exception_24_hours": "Can continue if child spends 24+ hours per week at home",
+        "reclaim_conditions": "Can claim again if child spends 2 consecutive nights/week or 7+ consecutive days at home"
+      },
+      "partner_spending": "Partner's money only counts if married/civil partnered and living together"
+    },
+    "council_payments": {
+      "rule": "Generally cannot claim if local council is paying for child's accommodation or maintenance",
+      "fostering": "Can claim for fostered child only if council NOT paying",
+      "informal_care": "Cannot claim if council paying for informal care arrangement"
+    }
+  },
+
+  "external_references": {
+    "main_page": "https://www.gov.uk/child-benefit",
+    "eligibility": "https://www.gov.uk/child-benefit/eligibility",
+    "how_to_claim": "https://www.gov.uk/child-benefit/how-to-claim",
+    "child_lives_elsewhere": "https://www.gov.uk/child-benefit-child-lives-with-someone-else",
+    "hospital_or_care": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care",
+    "payment_rates": "https://www.gov.uk/child-benefit/what-youll-get",
+    "high_income_charge": "https://www.gov.uk/child-benefit-tax-charge"
+  }
+}
