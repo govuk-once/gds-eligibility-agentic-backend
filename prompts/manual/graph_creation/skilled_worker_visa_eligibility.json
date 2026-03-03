@@ -1,19 +1,31 @@
 {
   "$schema": "./eligibility-schema.json",
-  "version": "1.0",
-  "last_updated": "2026-03-02",
+  "version": "1.1",
+  "last_updated": "2026-03-03",
   "source": "https://www.gov.uk/skilled-worker-visa",
-  "description": "Machine-readable representation of UK Skilled Worker Visa eligibility criteria",
+  "description": "Machine-readable representation of UK Skilled Worker Visa eligibility criteria - Enhanced with Phase 1 improvements",
 
   "decision_tree": {
     "root": {
       "id": "start",
       "type": "start",
       "description": "UK Skilled Worker Visa Eligibility Assessment",
-      "next": "has_approved_employer"
+      "next": "check_switching_eligibility"
     },
 
     "nodes": {
+      "check_switching_eligibility": {
+        "id": "check_switching_eligibility",
+        "type": "conditional_check",
+        "question": "If applicant is switching from Student visa in the UK, have they completed their course (or at least 24 months of a PhD)?",
+        "help_text": "Students must complete their course before switching. PhD students can switch after 24 months. Not applicable if applying from outside UK or switching from other visa types.",
+        "reference": "https://www.gov.uk/skilled-worker-visa/switch-to-this-visa",
+        "outcomes": {
+          "yes_or_not_applicable": "has_approved_employer",
+          "no": "INELIGIBLE_student_not_completed"
+        }
+      },
+
       "has_approved_employer": {
         "id": "has_approved_employer",
         "type": "boolean_question",
@@ -32,8 +44,87 @@
         "question": "Does the applicant have a Certificate of Sponsorship (CoS) from their employer?",
         "help_text": "The CoS is an electronic record with a reference number, valid for 3 months",
         "outcomes": {
-          "yes": "check_occupation_eligibility",
+          "yes": "check_genuine_employment",
           "no": "INELIGIBLE_no_cos"
+        }
+      },
+
+      "check_genuine_employment": {
+        "id": "check_genuine_employment",
+        "type": "complex_criteria",
+        "question": "Is this genuine direct employment by the sponsor (not third-party contracting)?",
+        "help_text": "Sponsor must be the genuine employer. Cannot use visa to supply workers to third parties for routine roles.",
+        "reference": "https://www.gov.uk/uk-visa-sponsorship-employers/your-responsibilities",
+        "criteria": {
+          "worker_reports_to_sponsor": true,
+          "role_fills_sponsors_need": true,
+          "sponsor_controls_duties": true,
+          "not_filling_client_vacancy": true,
+          "not_acting_as_agency": true
+        },
+        "outcomes": {
+          "yes": "check_guaranteed_salary_structure",
+          "no": "INELIGIBLE_third_party_working"
+        }
+      },
+
+      "check_guaranteed_salary_structure": {
+        "id": "check_guaranteed_salary_structure",
+        "type": "salary_check",
+        "question": "Is the salary guaranteed basic gross pay with valid contract structure?",
+        "help_text": "Only guaranteed basic gross salary counts. Excludes bonuses, commission, allowances, equity. Contract must guarantee minimum hours. Calculation capped at 48 hours/week.",
+        "reference": "https://www.gov.uk/skilled-worker-visa/your-job",
+        "criteria": {
+          "must_be_guaranteed": true,
+          "must_be_basic_gross_pay": true,
+          "excludes": [
+            "Performance bonuses",
+            "Commission payments",
+            "Housing allowances",
+            "Car allowances",
+            "Cost of living allowances",
+            "Stock options or equity",
+            "Overtime pay",
+            "Unguaranteed variable pay"
+          ],
+          "max_assessable_hours_per_week": 48,
+          "must_guarantee_minimum_hours": true,
+          "no_zero_hours_contracts": true,
+          "must_be_paye_employment": true
+        },
+        "outcomes": {
+          "meets_requirement": "check_transitional_eligibility",
+          "below_or_invalid": "INELIGIBLE_salary_structure_invalid"
+        }
+      },
+
+      "check_transitional_eligibility": {
+        "id": "check_transitional_eligibility",
+        "type": "boolean_question",
+        "question": "Did the applicant receive their first Certificate of Sponsorship for Skilled Worker visa before 4 April 2024?",
+        "help_text": "Transitional arrangements apply lower salary thresholds and going rates for existing visa holders extending or changing jobs",
+        "reference": "https://www.gov.uk/skilled-worker-visa/if-you-got-your-first-certificate-of-sponsorship-before-4-april-2024",
+        "outcomes": {
+          "yes": "check_transitional_salary",
+          "no": "check_occupation_eligibility"
+        }
+      },
+
+      "check_transitional_salary": {
+        "id": "check_transitional_salary",
+        "type": "salary_check",
+        "question": "Does the salary meet transitional requirements?",
+        "help_text": "For transitional cases: salary must be at least £29,000 per year AND meet the 25th percentile (lower) going rate for the occupation",
+        "reference": "https://www.gov.uk/skilled-worker-visa/if-you-got-your-first-certificate-of-sponsorship-before-4-april-2024",
+        "criteria": {
+          "transitional_threshold": 29000,
+          "must_meet_going_rate": true,
+          "going_rate_percentile": "25th (lower than standard 50th percentile)",
+          "comparison": "maximum"
+        },
+        "outcomes": {
+          "meets_requirement": "check_english_language",
+          "below_threshold": "INELIGIBLE_salary_too_low"
         }
       },
 
@@ -152,6 +243,8 @@
               "AND one of: Under 26 on application date, OR currently on/recently on Student visa (bachelor's or above), OR currently on/recently on Graduate visa, OR working towards UK regulated profession qualification, OR working towards full registration/chartered status in sponsored job"
             ],
             "time_limit": "Maximum 4 years total stay including Graduate visa",
+            "time_limit_enforcement": "Total time on Graduate visa + New Entrant Skilled Worker visa cannot exceed 4 years. Application must be denied if granting the requested visa duration would cause total to exceed 4 years.",
+            "time_tracking_note": "Implementation must track: (1) Time already spent on Graduate visa, (2) Time already spent on Skilled Worker visa as New Entrant, (3) Visa duration being requested. Sum must not exceed 4 years.",
             "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-salary-if-youre-under-26-studying-training-or-in-a-postdoctoral-role"
           },
           {
@@ -205,6 +298,7 @@
               "2311": "Higher education teaching professionals"
             },
             "time_limit": "Maximum 4 years total stay including Graduate visa",
+            "time_limit_enforcement": "Total time on Graduate visa + postdoctoral Skilled Worker visa cannot exceed 4 years. Application must be denied if granting the requested visa duration would cause total to exceed 4 years.",
             "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-salary-if-youre-under-26-studying-training-or-in-a-postdoctoral-role"
           }
         ],
@@ -372,6 +466,46 @@
         "result": "INELIGIBLE",
         "reason": "Insufficient funds to support self in UK",
         "guidance": "Must have £1,270 for 28 days or employer must certify maintenance"
+      },
+
+      "INELIGIBLE_student_not_completed": {
+        "id": "INELIGIBLE_student_not_completed",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Student visa holder has not completed course (or 24 months of PhD)",
+        "guidance": "Must complete course before switching to Skilled Worker visa from inside UK. PhD students can switch after 24 months. Alternatively, leave UK and apply for entry clearance from overseas."
+      },
+
+      "INELIGIBLE_third_party_working": {
+        "id": "INELIGIBLE_third_party_working",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Not genuine direct employment - sponsor is contracting worker to third party",
+        "guidance": "Skilled Worker visa requires genuine employment by the sponsor. Cannot be used to supply workers to third parties for routine roles. Sponsor must be the genuine employer with direct control over worker's duties."
+      },
+
+      "INELIGIBLE_salary_structure_invalid": {
+        "id": "INELIGIBLE_salary_structure_invalid",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Salary structure does not meet requirements (e.g., includes ineligible allowances, bonuses, equity; zero-hours contract; hours exceed 48/week cap for calculation)",
+        "guidance": "Only guaranteed basic gross pay counts toward threshold. Excludes: bonuses, commission, allowances, equity, overtime. Must be on PAYE employment contract with guaranteed minimum hours. Salary calculation capped at 48 hours per week. Restructure compensation as basic salary."
+      },
+
+      "INELIGIBLE_time_limit_exceeded": {
+        "id": "INELIGIBLE_time_limit_exceeded",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Granting visa would exceed 4-year maximum for New Entrant or Postdoctoral route",
+        "guidance": "Total time on Graduate visa plus New Entrant/Postdoctoral Skilled Worker visa cannot exceed 4 years. Applicant has exhausted allowance for reduced salary routes. Must apply under standard salary route (£41,700+ or going rate) to continue stay."
+      },
+
+      "INELIGIBLE_contract_type_invalid": {
+        "id": "INELIGIBLE_contract_type_invalid",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Contract type not acceptable (e.g., zero-hours, self-employed contractor, insufficient guaranteed hours)",
+        "guidance": "Must be employee on PAYE with guaranteed minimum hours that ensure annual salary threshold is met. Zero-hours contracts and self-employed/contractor arrangements are not eligible."
       }
     }
   },
@@ -379,10 +513,38 @@
   "constants": {
     "salary_thresholds": {
       "standard_minimum": 41700,
+      "transitional_minimum": 29000,
       "healthcare_education_minimum": 25000,
       "reduced_minimum_stem_phd": 33400,
       "reduced_minimum_non_stem_phd": 37500,
-      "reduced_minimum_other": 33400
+      "reduced_minimum_other": 33400,
+      "absolute_minimum_floor": 33400
+    },
+    "salary_calculation_rules": {
+      "only_guaranteed_basic_gross_pay": true,
+      "max_assessable_hours_per_week": 48,
+      "excludes_bonuses": true,
+      "excludes_commission": true,
+      "excludes_allowances": true,
+      "excludes_equity_and_stock": true,
+      "excludes_overtime_pay": true,
+      "requires_paye_employment": true,
+      "requires_guaranteed_minimum_hours": true,
+      "no_zero_hours_contracts": true,
+      "calculation_note": "Salary calculated as: min(contracted_hours, 48) × hourly_rate × 52 weeks, or guaranteed annual salary if specified"
+    },
+    "time_limits": {
+      "new_entrant_maximum_years": 4,
+      "postdoctoral_maximum_years": 4,
+      "includes_graduate_visa_time": true,
+      "enforcement": "Sum of (Graduate visa time + New Entrant/Postdoc Skilled Worker time) must not exceed 4 years",
+      "note": "Time on Student visa (except Graduate) does not count toward the cap"
+    },
+    "transitional_arrangements": {
+      "applies_to": "Applicants who received first CoS before 4 April 2024",
+      "minimum_threshold": 29000,
+      "going_rate_percentile": "25th percentile (lower)",
+      "reference": "https://www.gov.uk/skilled-worker-visa/if-you-got-your-first-certificate-of-sponsorship-before-4-april-2024"
     },
     "financial_requirements": {
       "personal_savings": 1270,
@@ -406,9 +568,14 @@
   "validation_rules": {
     "salary_calculation": {
       "rule": "Salary must meet the HIGHER of: (1) threshold minimum, (2) going rate for occupation, (3) percentage of going rate if using reduced route",
-      "going_rate_source": "Government published tables by occupation code",
+      "going_rate_source": "Government published tables by occupation code (50th percentile for standard, 25th percentile for transitional)",
+      "only_counts": "Guaranteed basic gross pay",
+      "excludes": "Bonuses, commission, allowances (housing, car, living), stock options, equity, overtime pay, unguaranteed variable pay",
+      "hourly_calculation": "Capped at 48 hours per week: min(contracted_hours, 48) × hourly_rate × 52 weeks",
+      "contract_requirements": "Must be PAYE employment with guaranteed minimum hours. Zero-hours contracts not accepted.",
       "special_cases": {
         "healthcare_education": "Use national pay scales (NHS bands or education pay scales)",
+        "transitional": "Use £29,000 threshold and 25th percentile going rates for pre-April 2024 visa holders",
         "extending_visa": "Different thresholds may apply - see extend visa guidance",
         "updating_visa": "Different thresholds may apply - see update visa guidance"
       }
@@ -418,9 +585,39 @@
       "consequence": "Application refused if not met"
     },
     "time_limits": {
-      "under_26_graduate_postdoc": "Maximum 4 years total stay including any Graduate visa time",
-      "general": "Visa can be extended repeatedly if requirements still met",
+      "new_entrant_routes": "Maximum 4 years total: Graduate visa time + New Entrant Skilled Worker time cannot exceed 4 years",
+      "postdoctoral_route": "Maximum 4 years total: Graduate visa time + Postdoctoral Skilled Worker time cannot exceed 4 years",
+      "enforcement": "System must track accumulated time and deny application if granting requested duration would exceed cap",
+      "calculation": "Sum all time on: (1) Graduate visa, (2) Skilled Worker as New Entrant, (3) Skilled Worker as Postdoctoral position, (4) Global Business Mobility as Graduate Trainee. Total must not exceed 4 years.",
+      "general": "Visa can be extended repeatedly if requirements still met (no cap for standard route)",
       "settlement": "Can apply for indefinite leave to remain after 5 years"
+    },
+    "genuine_employment": {
+      "rule": "Sponsor must be genuine direct employer, not supplying workers to third parties",
+      "indicators_of_genuine_employment": [
+        "Worker reports directly to sponsor managers",
+        "Role fills a genuine business need of the sponsor",
+        "Sponsor has direct day-to-day control over worker's duties",
+        "Worker is integrated into sponsor's organization",
+        "Role is not primarily filling a client/third-party vacancy"
+      ],
+      "prohibited": "Using visa to supply contract workers to third parties for routine roles (acting as recruitment agency)",
+      "consequence": "Application refused or sponsorship withdrawn if third-party working detected"
+    },
+    "student_switching": {
+      "rule": "Students switching from inside UK must have completed their course",
+      "exceptions": "PhD students can switch after 24 months even if not yet completed",
+      "alternative": "Student can leave UK and apply for entry clearance from overseas if course not completed",
+      "consequence": "In-country application refused if course not completed (unless PhD 24+ months)"
+    },
+    "transitional_arrangements": {
+      "applies_to": "Applicants whose first Skilled Worker CoS was issued before 4 April 2024",
+      "benefits": [
+        "Lower general threshold: £29,000 instead of £41,700",
+        "Lower going rates: 25th percentile instead of 50th percentile"
+      ],
+      "scope": "Extensions and job changes only (not new entrants to the route)",
+      "reference": "https://www.gov.uk/skilled-worker-visa/if-you-got-your-first-certificate-of-sponsorship-before-4-april-2024"
     }
   },
 

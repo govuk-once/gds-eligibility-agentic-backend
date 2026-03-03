@@ -194,6 +194,14 @@
         },
         {
           "if": {
+            "properties": {"type": {"const": "complex_criteria"}}
+          },
+          "then": {
+            "$ref": "#/definitions/ComplexCriteriaNode"
+          }
+        },
+        {
+          "if": {
             "properties": {"type": {"const": "routing"}}
           },
           "then": {
@@ -348,6 +356,14 @@
           "type": "string",
           "description": "Maximum time limit for this route (if applicable)"
         },
+        "time_limit_enforcement": {
+          "type": "string",
+          "description": "How the time limit should be enforced"
+        },
+        "time_tracking_note": {
+          "type": "string",
+          "description": "Implementation notes for time tracking"
+        },
         "benefits": {
           "type": "array",
           "items": {"type": "string"},
@@ -384,6 +400,10 @@
               "type": "number",
               "description": "Standard salary threshold"
             },
+            "transitional_threshold": {
+              "type": "number",
+              "description": "Transitional salary threshold for pre-April 2024 visa holders"
+            },
             "must_meet_going_rate": {
               "type": "boolean",
               "description": "Whether salary must also meet occupation going rate"
@@ -392,10 +412,63 @@
               "type": "string",
               "description": "Source for determining going rate"
             },
+            "going_rate_percentile": {
+              "type": "string",
+              "description": "Which percentile of going rate to use (e.g., 25th, 50th)"
+            },
             "comparison": {
               "type": "string",
               "enum": ["minimum", "maximum"],
               "description": "Whether to use min or max of thresholds"
+            },
+            "must_be_guaranteed": {
+              "type": "boolean",
+              "description": "Whether salary must be guaranteed (not variable)"
+            },
+            "must_be_basic_gross_pay": {
+              "type": "boolean",
+              "description": "Whether only basic gross pay counts"
+            },
+            "excludes": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "List of compensation types that don't count toward salary"
+            },
+            "max_assessable_hours_per_week": {
+              "type": "number",
+              "description": "Maximum hours per week for salary calculation"
+            },
+            "must_guarantee_minimum_hours": {
+              "type": "boolean",
+              "description": "Whether contract must guarantee minimum hours"
+            },
+            "no_zero_hours_contracts": {
+              "type": "boolean",
+              "description": "Whether zero-hours contracts are prohibited"
+            },
+            "must_be_paye_employment": {
+              "type": "boolean",
+              "description": "Whether employment must be PAYE (not contractor)"
+            },
+            "worker_reports_to_sponsor": {
+              "type": "boolean",
+              "description": "Whether worker must report to sponsor"
+            },
+            "role_fills_sponsors_need": {
+              "type": "boolean",
+              "description": "Whether role fills sponsor's business need"
+            },
+            "sponsor_controls_duties": {
+              "type": "boolean",
+              "description": "Whether sponsor controls worker's duties"
+            },
+            "not_filling_client_vacancy": {
+              "type": "boolean",
+              "description": "Whether role is not filling third-party client vacancy"
+            },
+            "not_acting_as_agency": {
+              "type": "boolean",
+              "description": "Whether sponsor is not acting as recruitment agency"
             }
           }
         },
@@ -488,6 +561,33 @@
         "outcomes": {
           "type": "object",
           "description": "Outcomes including 'not applicable' option",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "ComplexCriteriaNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "complex_criteria"},
+        "question": {
+          "type": "string",
+          "description": "Question about meeting complex multiple criteria"
+        },
+        "help_text": {"type": "string"},
+        "reference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "criteria": {
+          "type": "object",
+          "description": "Complex criteria that must be met",
+          "additionalProperties": true
+        },
+        "outcomes": {
+          "type": "object",
+          "description": "Outcomes based on whether criteria are met",
           "additionalProperties": {"type": "string"}
         }
       }
