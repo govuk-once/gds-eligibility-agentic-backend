@@ -21,6 +21,34 @@ def load_eligibility_data(filepath: str = "skilled_worker_visa_eligibility.json"
         return json.load(f)
 
 
+def validate_against_schema(data: Dict, schema_path: str = "eligibility-schema.json") -> List[str]:
+    """Validate data against JSON Schema if jsonschema library available."""
+    issues = []
+    
+    try:
+        import jsonschema
+    except ImportError:
+        return ["jsonschema library not installed - skipping schema validation"]
+    
+    try:
+        with open(schema_path, 'r', encoding='utf-8') as f:
+            schema = json.load(f)
+    except FileNotFoundError:
+        return [f"Schema file not found: {schema_path}"]
+    except json.JSONDecodeError as e:
+        return [f"Schema file is not valid JSON: {e}"]
+    
+    try:
+        jsonschema.validate(instance=data, schema=schema)
+    except jsonschema.exceptions.ValidationError as e:
+        issues.append(f"Schema validation error: {e.message}")
+        issues.append(f"  At path: {'.'.join(str(p) for p in e.path)}")
+    except jsonschema.exceptions.SchemaError as e:
+        issues.append(f"Schema itself is invalid: {e.message}")
+    
+    return issues
+
+
 def validate_structure(data: Dict) -> List[str]:
     """Validate the decision tree structure and return list of issues."""
     issues = []
@@ -281,8 +309,24 @@ def main():
         print(f"✗ Error loading file: {e}")
         return 1
     
+    # Validate against schema
+    print("\n2. Validating against JSON Schema...")
+    schema_issues = validate_against_schema(data)
+    
+    if schema_issues:
+        if schema_issues[0].startswith("jsonschema library"):
+            print(f"⚠ {schema_issues[0]}")
+            print("  Install with: pip install jsonschema")
+        else:
+            print(f"✗ Found {len(schema_issues)} schema issue(s):")
+            for issue in schema_issues:
+                print(f"  - {issue}")
+            return 1
+    else:
+        print("✓ Schema validation passed")
+    
     # Validate structure
-    print("\n2. Validating decision tree structure...")
+    print("\n3. Validating decision tree structure...")
     issues = validate_structure(data)
     
     if issues:
@@ -294,7 +338,7 @@ def main():
         print("✓ Structure validation passed")
     
     # Generate statistics
-    print("\n3. Generating statistics...")
+    print("\n4. Generating statistics...")
     stats = generate_summary_stats(data)
     
     print(f"✓ Decision tree statistics:")
@@ -310,7 +354,7 @@ def main():
           f"avg={stats['avg_path_length']:.1f}, max={stats['max_path_length']}")
     
     # Generate visualization
-    print("\n4. Generating graph visualization...")
+    print("\n5. Generating graph visualization...")
     success = generate_graphviz(data)
     
     if not success:

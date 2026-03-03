@@ -1,0 +1,573 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.gov.uk/schemas/skilled-worker-visa-eligibility/v1.0",
+  "title": "UK Skilled Worker Visa Eligibility Decision Tree",
+  "description": "JSON Schema for machine-readable representation of UK Skilled Worker Visa eligibility criteria",
+  "type": "object",
+  "required": ["version", "last_updated", "source", "description", "decision_tree", "constants"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "Reference to this JSON Schema"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Schema version number (semantic versioning)"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when the eligibility criteria was last updated (YYYY-MM-DD)"
+    },
+    "source": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the official government source"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this document"
+    },
+    "decision_tree": {
+      "type": "object",
+      "required": ["root", "nodes"],
+      "properties": {
+        "root": {
+          "$ref": "#/definitions/RootNode"
+        },
+        "nodes": {
+          "type": "object",
+          "description": "Map of node ID to node definition",
+          "additionalProperties": {
+            "$ref": "#/definitions/Node"
+          }
+        }
+      }
+    },
+    "constants": {
+      "type": "object",
+      "description": "Fixed values used throughout the eligibility criteria",
+      "properties": {
+        "salary_thresholds": {
+          "type": "object",
+          "properties": {
+            "standard_minimum": {"type": "number"},
+            "healthcare_education_minimum": {"type": "number"},
+            "reduced_minimum_stem_phd": {"type": "number"},
+            "reduced_minimum_non_stem_phd": {"type": "number"},
+            "reduced_minimum_other": {"type": "number"}
+          }
+        },
+        "financial_requirements": {
+          "type": "object",
+          "properties": {
+            "personal_savings": {"type": "number"},
+            "holding_period_days": {"type": "integer"},
+            "recency_days": {"type": "integer"}
+          }
+        },
+        "application_fees": {
+          "type": "object",
+          "additionalProperties": {"type": "number"}
+        },
+        "healthcare_surcharge_per_year": {"type": "number"},
+        "english_level_required": {"type": "string"},
+        "max_stay_before_extension": {"type": "string"},
+        "cos_validity_months": {"type": "integer"}
+      }
+    },
+    "validation_rules": {
+      "type": "object",
+      "description": "Business logic rules for complex validations",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "external_references": {
+      "type": "object",
+      "description": "URLs to external data sources and lists",
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    }
+  },
+  "definitions": {
+    "RootNode": {
+      "type": "object",
+      "required": ["id", "type", "description", "next"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the root node"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["start"],
+          "description": "Node type for root node"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the decision tree purpose"
+        },
+        "next": {
+          "type": "string",
+          "description": "ID of the first decision node"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Node": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier matching the node's key in the nodes map"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "boolean_question",
+            "multi_path_check",
+            "salary_check",
+            "financial_check",
+            "occupation_check",
+            "conditional_check",
+            "complex_criteria",
+            "routing",
+            "outcome"
+          ],
+          "description": "The type of decision or check this node represents"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"type": {"const": "boolean_question"}}
+          },
+          "then": {
+            "$ref": "#/definitions/BooleanQuestionNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "multi_path_check"}}
+          },
+          "then": {
+            "$ref": "#/definitions/MultiPathCheckNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "salary_check"}}
+          },
+          "then": {
+            "$ref": "#/definitions/SalaryCheckNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "financial_check"}}
+          },
+          "then": {
+            "$ref": "#/definitions/FinancialCheckNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "occupation_check"}}
+          },
+          "then": {
+            "$ref": "#/definitions/OccupationCheckNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "conditional_check"}}
+          },
+          "then": {
+            "$ref": "#/definitions/ConditionalCheckNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "routing"}}
+          },
+          "then": {
+            "$ref": "#/definitions/RoutingNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "outcome"}}
+          },
+          "then": {
+            "$ref": "#/definitions/OutcomeNode"
+          }
+        }
+      ]
+    },
+    "BooleanQuestionNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "boolean_question"},
+        "question": {
+          "type": "string",
+          "description": "The yes/no question to evaluate"
+        },
+        "help_text": {
+          "type": "string",
+          "description": "Additional guidance for answering the question"
+        },
+        "reference": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to official guidance"
+        },
+        "outcomes": {
+          "type": "object",
+          "required": ["yes", "no"],
+          "properties": {
+            "yes": {
+              "type": "string",
+              "description": "Node ID to navigate to if answer is yes"
+            },
+            "no": {
+              "type": "string",
+              "description": "Node ID to navigate to if answer is no"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "MultiPathCheckNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "paths", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "multi_path_check"},
+        "question": {
+          "type": "string",
+          "description": "Question about meeting any of multiple criteria"
+        },
+        "help_text": {"type": "string"},
+        "reference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "evaluation_logic": {
+          "type": "string",
+          "description": "Explanation of how paths are evaluated (OR vs AND logic)"
+        },
+        "required_level": {
+          "type": "string",
+          "description": "Required qualification level (for English language)"
+        },
+        "minimum_salary_for_reduction": {
+          "type": "number",
+          "description": "Minimum salary for reduced salary routes"
+        },
+        "paths": {
+          "type": "array",
+          "description": "Array of alternative paths that satisfy the requirement",
+          "items": {
+            "$ref": "#/definitions/Path"
+          },
+          "minItems": 1
+        },
+        "outcomes": {
+          "type": "object",
+          "description": "Outcomes based on whether any path is satisfied",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Path": {
+      "type": "object",
+      "required": ["id", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this path"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this qualification path"
+        },
+        "salary_minimum": {
+          "type": "number",
+          "description": "Minimum salary for this path (if applicable)"
+        },
+        "salary_percentage": {
+          "type": "string",
+          "description": "Percentage of going rate required (if applicable)"
+        },
+        "criteria": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of criteria that must be met for this path"
+        },
+        "requirement": {
+          "type": "string",
+          "description": "Single requirement statement"
+        },
+        "qualifications": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of acceptable qualifications"
+        },
+        "eligible_countries": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of countries whose nationals are exempt"
+        },
+        "eligible_professions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of professions eligible for exemption"
+        },
+        "eligible_occupation_codes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of eligible SOC occupation codes"
+        },
+        "occupation_descriptions": {
+          "type": "object",
+          "additionalProperties": {"type": "string"},
+          "description": "Map of occupation code to description"
+        },
+        "time_limit": {
+          "type": "string",
+          "description": "Maximum time limit for this route (if applicable)"
+        },
+        "benefits": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Additional benefits of this route"
+        },
+        "reference": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to official guidance for this path"
+        }
+      }
+    },
+    "SalaryCheckNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "criteria", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "salary_check"},
+        "question": {"type": "string"},
+        "help_text": {"type": "string"},
+        "reference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "criteria": {
+          "type": "object",
+          "description": "Salary validation criteria",
+          "properties": {
+            "minimum_absolute": {
+              "type": "number",
+              "description": "Absolute minimum salary in GBP"
+            },
+            "standard_threshold": {
+              "type": "number",
+              "description": "Standard salary threshold"
+            },
+            "must_meet_going_rate": {
+              "type": "boolean",
+              "description": "Whether salary must also meet occupation going rate"
+            },
+            "going_rate_source": {
+              "type": "string",
+              "description": "Source for determining going rate"
+            },
+            "comparison": {
+              "type": "string",
+              "enum": ["minimum", "maximum"],
+              "description": "Whether to use min or max of thresholds"
+            }
+          }
+        },
+        "outcomes": {
+          "type": "object",
+          "description": "Outcomes based on salary check result",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "FinancialCheckNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "criteria", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "financial_check"},
+        "question": {"type": "string"},
+        "help_text": {"type": "string"},
+        "reference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "criteria": {
+          "type": "object",
+          "properties": {
+            "required_amount": {
+              "type": "number",
+              "description": "Required financial amount in GBP"
+            },
+            "holding_period_days": {
+              "type": "integer",
+              "description": "Number of days funds must be held"
+            },
+            "recency_requirement": {
+              "type": "string",
+              "description": "How recent the funds must be"
+            },
+            "exemptions": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Conditions under which requirement is waived"
+            }
+          }
+        },
+        "outcomes": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "OccupationCheckNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "occupation_check"},
+        "question": {"type": "string"},
+        "help_text": {"type": "string"},
+        "reference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "outcomes": {
+          "type": "object",
+          "description": "Outcomes based on occupation skill level",
+          "properties": {
+            "higher_skilled": {"type": "string"},
+            "medium_skilled": {"type": "string"},
+            "not_eligible": {"type": "string"}
+          },
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "ConditionalCheckNode": {
+      "type": "object",
+      "required": ["id", "type", "question", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "conditional_check"},
+        "question": {
+          "type": "string",
+          "description": "Conditional question that may not apply to all applicants"
+        },
+        "help_text": {"type": "string"},
+        "reference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "outcomes": {
+          "type": "object",
+          "description": "Outcomes including 'not applicable' option",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "RoutingNode": {
+      "type": "object",
+      "required": ["id", "type", "description", "outcomes"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "routing"},
+        "description": {
+          "type": "string",
+          "description": "Explanation of routing logic"
+        },
+        "routing_logic": {
+          "type": "string",
+          "description": "Detailed explanation of how to determine which path to take"
+        },
+        "outcomes": {
+          "type": "object",
+          "description": "Map of routing conditions to target nodes",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "OutcomeNode": {
+      "type": "object",
+      "required": ["id", "type", "result"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"const": "outcome"},
+        "result": {
+          "type": "string",
+          "enum": ["ELIGIBLE", "INELIGIBLE"],
+          "description": "Final eligibility determination"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable outcome description"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for ineligibility (for INELIGIBLE outcomes)"
+        },
+        "guidance": {
+          "type": "string",
+          "description": "Next steps or guidance (for INELIGIBLE outcomes)"
+        },
+        "next_steps": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of next steps (for ELIGIBLE outcome)"
+        },
+        "processing_time": {
+          "type": "object",
+          "description": "Expected processing times (for ELIGIBLE outcome)",
+          "properties": {
+            "outside_uk": {"type": "string"},
+            "inside_uk": {"type": "string"}
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"result": {"const": "ELIGIBLE"}}
+          },
+          "then": {
+            "required": ["description", "next_steps"]
+          }
+        },
+        {
+          "if": {
+            "properties": {"result": {"const": "INELIGIBLE"}}
+          },
+          "then": {
+            "required": ["reason", "guidance"]
+          }
+        }
+      ]
+    }
+  }
+}

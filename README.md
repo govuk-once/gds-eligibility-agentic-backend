@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS eligibility_results (
       benefit VARCHAR(100),
       eligible BOOLEAN
     );
-    
+
 INSERT INTO eligibility_results (user_id, benefit, eligible)
     VALUES ('test-user-123', 'free_school_meals', true);
 ```

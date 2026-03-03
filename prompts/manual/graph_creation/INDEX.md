@@ -14,11 +14,13 @@
 - **[QUICK_START.md](QUICK_START.md)** - Start here! Instant usage guide
 - **[simplified_flow_diagram.md](simplified_flow_diagram.md)** - Visual flowchart (Mermaid)
 
-### Core Deliverable
+### Core Deliverables
 - **[skilled_worker_visa_eligibility.json](skilled_worker_visa_eligibility.json)** - Complete decision tree specification
+- **[eligibility-schema.json](eligibility-schema.json)** - JSON Schema for validation
 
 ### Documentation
 - **[README.md](README.md)** - Structure, node types, and usage guide
+- **[SCHEMA_DOCUMENTATION.md](SCHEMA_DOCUMENTATION.md)** - JSON Schema reference and validation guide
 - **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Requirements verification and design
 - **[visualization_guide.md](visualization_guide.md)** - Creating graph visualizations
 
@@ -129,6 +131,9 @@ python3 validate_and_visualize.py
 
 **Want to understand the structure?**  
 → Read **[README.md](README.md)**
+
+**Need JSON Schema details?**  
+→ Review **[SCHEMA_DOCUMENTATION.md](SCHEMA_DOCUMENTATION.md)**
 
 **Need to verify completeness?**  
 → Review **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)**

@@ -1,9 +1,10 @@
 {
+  "$schema": "./eligibility-schema.json",
   "version": "1.0",
   "last_updated": "2026-03-02",
   "source": "https://www.gov.uk/skilled-worker-visa",
   "description": "Machine-readable representation of UK Skilled Worker Visa eligibility criteria",
-  
+
   "decision_tree": {
     "root": {
       "id": "start",
@@ -11,7 +12,7 @@
       "description": "UK Skilled Worker Visa Eligibility Assessment",
       "next": "has_approved_employer"
     },
-    
+
     "nodes": {
       "has_approved_employer": {
         "id": "has_approved_employer",
@@ -24,7 +25,7 @@
           "no": "INELIGIBLE_no_approved_employer"
         }
       },
-      
+
       "has_certificate_of_sponsorship": {
         "id": "has_certificate_of_sponsorship",
         "type": "boolean_question",
@@ -35,7 +36,7 @@
           "no": "INELIGIBLE_no_cos"
         }
       },
-      
+
       "check_occupation_eligibility": {
         "id": "check_occupation_eligibility",
         "type": "occupation_check",
@@ -48,7 +49,7 @@
           "not_eligible": "INELIGIBLE_occupation_not_eligible"
         }
       },
-      
+
       "check_salary_list_or_shortage": {
         "id": "check_salary_list_or_shortage",
         "type": "boolean_question",
@@ -60,7 +61,7 @@
           "no": "INELIGIBLE_medium_skilled_not_on_list"
         }
       },
-      
+
       "determine_salary_threshold": {
         "id": "determine_salary_threshold",
         "type": "routing",
@@ -71,7 +72,7 @@
         },
         "routing_logic": "If occupation is in healthcare/education list, go to healthcare_education_salary, else go to standard"
       },
-      
+
       "check_healthcare_education_salary": {
         "id": "check_healthcare_education_salary",
         "type": "salary_check",
@@ -88,7 +89,7 @@
           "below_threshold": "INELIGIBLE_salary_too_low"
         }
       },
-      
+
       "check_care_worker_registration": {
         "id": "check_care_worker_registration",
         "type": "conditional_check",
@@ -100,7 +101,7 @@
           "no": "INELIGIBLE_cqc_not_registered"
         }
       },
-      
+
       "check_standard_salary_requirement": {
         "id": "check_standard_salary_requirement",
         "type": "salary_check",
@@ -117,7 +118,7 @@
           "below_threshold": "check_reduced_salary_eligibility"
         }
       },
-      
+
       "check_reduced_salary_eligibility": {
         "id": "check_reduced_salary_eligibility",
         "type": "multi_path_check",
@@ -212,7 +213,7 @@
           "not_eligible": "INELIGIBLE_salary_too_low"
         }
       },
-      
+
       "check_english_language": {
         "id": "check_english_language",
         "type": "multi_path_check",
@@ -245,7 +246,7 @@
           {
             "id": "uk_school_qualification",
             "description": "UK school qualification begun under 18",
-            "qualifications": ["GCSE", "A Level", "Scottish National Qualification level 4 or 5", 
+            "qualifications": ["GCSE", "A Level", "Scottish National Qualification level 4 or 5",
                              "Scottish Higher or Advanced Higher in English"]
           },
           {
@@ -269,7 +270,7 @@
           "does_not_meet": "INELIGIBLE_english_language"
         }
       },
-      
+
       "check_financial_requirement": {
         "id": "check_financial_requirement",
         "type": "financial_check",
@@ -290,7 +291,7 @@
           "does_not_meet": "INELIGIBLE_insufficient_funds"
         }
       },
-      
+
       "ELIGIBLE": {
         "id": "ELIGIBLE",
         "type": "outcome",
@@ -308,7 +309,7 @@
           "inside_uk": "8 weeks"
         }
       },
-      
+
       "INELIGIBLE_no_approved_employer": {
         "id": "INELIGIBLE_no_approved_employer",
         "type": "outcome",
@@ -316,7 +317,7 @@
         "reason": "No job offer from Home Office approved employer",
         "guidance": "Employer must apply for sponsor licence if not already approved"
       },
-      
+
       "INELIGIBLE_no_cos": {
         "id": "INELIGIBLE_no_cos",
         "type": "outcome",
@@ -324,7 +325,7 @@
         "reason": "No Certificate of Sponsorship from employer",
         "guidance": "Employer must provide CoS after checking eligibility"
       },
-      
+
       "INELIGIBLE_occupation_not_eligible": {
         "id": "INELIGIBLE_occupation_not_eligible",
         "type": "outcome",
@@ -332,7 +333,7 @@
         "reason": "Job occupation code not eligible for Skilled Worker visa",
         "guidance": "Check if eligible for another UK work visa type"
       },
-      
+
       "INELIGIBLE_medium_skilled_not_on_list": {
         "id": "INELIGIBLE_medium_skilled_not_on_list",
         "type": "outcome",
@@ -340,7 +341,7 @@
         "reason": "Medium skilled job not on Immigration Salary List or Temporary Shortage List",
         "guidance": "Medium skilled jobs must be on one of these lists to qualify"
       },
-      
+
       "INELIGIBLE_salary_too_low": {
         "id": "INELIGIBLE_salary_too_low",
         "type": "outcome",
@@ -348,7 +349,7 @@
         "reason": "Salary does not meet minimum requirements for this visa",
         "guidance": "Check if eligible for reduced salary requirements or another visa type"
       },
-      
+
       "INELIGIBLE_cqc_not_registered": {
         "id": "INELIGIBLE_cqc_not_registered",
         "type": "outcome",
@@ -356,7 +357,7 @@
         "reason": "Employer not registered with Care Quality Commission (required for care workers in England)",
         "guidance": "Employer must be CQC registered for occupation codes 6135 and 6136 in England"
       },
-      
+
       "INELIGIBLE_english_language": {
         "id": "INELIGIBLE_english_language",
         "type": "outcome",
@@ -364,7 +365,7 @@
         "reason": "Does not meet English language requirements",
         "guidance": "Must prove English to B2 CEFR level or meet exemption criteria"
       },
-      
+
       "INELIGIBLE_insufficient_funds": {
         "id": "INELIGIBLE_insufficient_funds",
         "type": "outcome",
@@ -374,7 +375,7 @@
       }
     }
   },
-  
+
   "constants": {
     "salary_thresholds": {
       "standard_minimum": 41700,
@@ -401,7 +402,7 @@
     "max_stay_before_extension": "5 years",
     "cos_validity_months": 3
   },
-  
+
   "validation_rules": {
     "salary_calculation": {
       "rule": "Salary must meet the HIGHER of: (1) threshold minimum, (2) going rate for occupation, (3) percentage of going rate if using reduced route",
@@ -422,7 +423,7 @@
       "settlement": "Can apply for indefinite leave to remain after 5 years"
     }
   },
-  
+
   "external_references": {
     "eligible_occupations": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-occupations",
     "going_rates": "https://www.gov.uk/government/publications/skilled-worker-visa-going-rates-for-eligible-occupations",
