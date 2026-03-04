@@ -18,10 +18,30 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
         name = id_to_name[result["child_id"]]
         expected_data[name] = {"eligible": result["eligible"]}
 
-    actual_data = {
-        eval_obj["child_name"].lower(): eval_obj
-        for eval_obj in eligibility_agent_tool_call["child_evaluations"]
-    }
+    # Rebuild the expected object structure gracefully
+    # because a change in the tool calling has changed the structure
+    # so we need to zip it manually if this isn't done
+    actual_data = {}
+    
+    # CASE 1: The payload is from an old run (Function Response) and is already zipped
+    if "child_evaluations" in eligibility_agent_tool_call:
+        actual_data = {
+            eval_obj["child_name"].lower(): eval_obj
+            for eval_obj in eligibility_agent_tool_call["child_evaluations"]
+        }
+        
+    # CASE 2: The payload is from a new run (Function Call Arguments) and needs zipping
+    elif "child_names" in eligibility_agent_tool_call:
+        for name, is_eligible, reasoning in zip(
+            eligibility_agent_tool_call.get("child_names", []),
+            eligibility_agent_tool_call.get("is_eligible_list", []),
+            eligibility_agent_tool_call.get("reasonings", [])
+        ):
+            actual_data[name.lower()] = {
+                "child_name": name,
+                "is_eligible": is_eligible,
+                "reasoning": reasoning
+            }
 
     case_report = {
         "case_id": case_id,
@@ -104,6 +124,10 @@ def main(input_folder_path: str = None):
 
     run_config_metadata = {}
 
+    # Initialize accumulators for our averages
+    total_duration_seconds = 0.0
+    total_urls_read = 0
+
     for json_file in target_dir.glob("*.conversation.json"):
         with json_file.open("r") as f:
             data = json.load(f)
@@ -116,20 +140,49 @@ def main(input_folder_path: str = None):
         test_case_data = data["meta"]["conversation"]["test_case"]
         case_id = test_case_data["case_id"]
         total_cases += 1
+
+        # Extract performance and tool calls
+        duration = data.get("performance", {}).get("duration_seconds", 0.0)
+        tool_activity = data.get("tool_activity", [])
         
+        # Filter out just the web pages it read and grab the URLs
+        urls_read = [
+            activity.get("arguments", {}).get("url") 
+            for activity in tool_activity 
+            if activity.get("tool_name") == "read_webpage"
+        ]
+
+        # Add to our running totals
+        total_duration_seconds += duration
+        total_urls_read += len(urls_read)
+
+        # Find the final judgement tool call in the activity log
+        judgement_call = next(
+            (activity for activity in tool_activity if activity.get("tool_name") == "eligibility_judgement_outcome"), 
+            None
+        )
+
         # Guard against cases where the agent crashed or failed to call the tool
-        if "eligibility_agent_payload" not in data or "response" not in data["eligibility_agent_payload"]:
+        if not judgement_call or "arguments" not in judgement_call:
             evaluation_results[case_id] = {
                 "case_id": case_id,
                 "overall_is_correct": False,
                 "structural_errors": ["Fatal: No eligibility_judgement_outcome tool call found in transcript."],
-                "child_evaluations": {}
+                "child_evaluations": {},
+                "duration_seconds": duration, # should be None but taking mean later so leave this for now
+                "urls_read": urls_read
             }
             continue
 
-        tool_call_payload = data["eligibility_agent_payload"]["response"]
+        tool_call_payload = judgement_call["arguments"]
 
         report = evaluate_test_case(test_case_data, tool_call_payload)
+
+        # Inject the metrics into the detailed case report
+        report["duration_seconds"] = duration
+        report["urls_read"] = urls_read
+        report["total_tool_calls"] = len(tool_activity)
+
         evaluation_results[case_id] = report
 
         # Track high-level metrics
@@ -148,6 +201,9 @@ def main(input_folder_path: str = None):
     with cases_filepath.open("w") as f:
         json.dump(detailed_report_data, f, indent=4)
 
+    # Calculate averages for the summary
+    mean_duration = total_duration_seconds / total_cases if total_cases > 0 else 0
+    mean_urls = total_urls_read / total_cases if total_cases > 0 else 0
     accuracy = (passed_cases / total_cases) if total_cases > 0 else 0
     summary_data = {
         "run_name": target_dir.name,
@@ -155,7 +211,9 @@ def main(input_folder_path: str = None):
         "total_cases": total_cases,
         "passed_cases": passed_cases,
         "failed_cases": total_cases - passed_cases,
-        "accuracy": round(accuracy, 4)
+        "accuracy": round(accuracy, 4),
+        "mean_duration_seconds": round(mean_duration, 2),
+        "mean_urls_read": round(mean_urls, 2)  
     }
     
     summary_filepath = output_dir / "evaluation_report_summary.json"
@@ -172,7 +230,8 @@ def main(input_folder_path: str = None):
     print(f"Failed      : {total_cases - passed_cases}")
     if total_cases > 0:
         print(f"Accuracy    : {accuracy:.4f}%")
-
+        print(f"Avg Duration   : {mean_duration:.2f}s")
+        print(f"Avg URLs Read  : {mean_urls:.2f}")
 
 if __name__ == "__main__":
     # If a path is passed use it. Otherwise, default to auto-find latest.

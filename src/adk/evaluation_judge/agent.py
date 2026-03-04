@@ -73,7 +73,8 @@ def get_conversation_pipeline(
     actor_model: str, 
     eligibility_model: str,
     actor_prompt_path: str,
-    eligibility_prompt: str
+    eligibility_prompt: str,
+    url_tool_call_allowed: bool = True
 ):
     # Instantiate the actor (the one that pretends to be the user)
     actor = Agent(
@@ -89,6 +90,11 @@ def get_conversation_pipeline(
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
     agent_under_test.instruction = get_prompt(eligibility_prompt)
+    if not url_tool_call_allowed:
+        agent_under_test.tools = [
+            t for t in agent_under_test.tools 
+            if t.__name__ != "read_webpage"
+        ]
 
     # Spin up the conversational loop
     conversation_pipeline = LoopAgent(
