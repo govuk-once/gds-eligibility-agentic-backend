@@ -6,6 +6,8 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.tool_context import ToolContext
 
+from tools.web_scraper import read_webpage
+
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
 
@@ -14,8 +16,6 @@ def get_prompt(rel_path: str) -> str:
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
     return "\n".join(prompt_lines)
- 
-# TODO add tool for retrieving website content
 
 def eligibility_judgement_outcome(
         child_names: List[str], 
@@ -62,5 +62,5 @@ root_agent = Agent(
         #"agents/TechnicalHypotheses/Accuracy-ChildBenefit-v3.md"
         "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v1.md"
     ),
-    tools=[eligibility_judgement_outcome]
+    tools=[eligibility_judgement_outcome, read_webpage]
 )
