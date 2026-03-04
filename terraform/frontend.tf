@@ -43,7 +43,8 @@ resource "aws_apprunner_service" "frontend_app" {
           PINO_LOG_LEVEL         = "debug"
           PUBLIC_ADK_API_URL     = "https://${aws_apprunner_service.adk_server.service_url}"
           ADK_APP_NAME           = "sequential_agent"
-          PROACTIVE_ADK_APP_NAME = "userTesting3"          
+          PROACTIVE_ADK_APP_NAME = "userTesting3"
+          CHILD_BENEFIT_ADK_APP_NAME="gds_eligibility"
           ADK_USER_ID            = "user"
         }
       }
