@@ -8,21 +8,21 @@ This directory contains complete, machine-readable representations of UK governm
 
 ### Eligibility Specifications
 
-1. **[Skilled Worker Visa](./skilled_worker_visa_eligibility.json)** (v1.2)
+1. **[Skilled Worker Visa](./specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json)** (v1.2)
    - Immigration eligibility criteria
    - 32 nodes, 90%+ coverage
    - 13 INELIGIBLE outcomes, 1 ELIGIBLE outcome
-   - [Release Notes](./VERSION_1.2_RELEASE_NOTES.md)
+   - [Release Notes](./specifications/skilled_worker_visa/VERSION_1.2_RELEASE_NOTES.md)
 
-2. **[Child Benefit](./child_benefit_eligibility.json)** (v1.2)
+2. **[Child Benefit](./specifications/child_benefit/child_benefit_eligibility.json)** (v1.2)
    - Welfare benefit eligibility criteria
    - 32 nodes, 98% coverage (49/50 test scenarios)
    - 14 INELIGIBLE outcomes, 1 ELIGIBLE outcome, 1 DEFERRED outcome
-   - [Detailed README](./CHILD_BENEFIT_README.md) | [Release Notes](./CHILD_BENEFIT_VERSION_1.2_RELEASE_NOTES.md)
+   - [Detailed README](./specifications/child_benefit/CHILD_BENEFIT_README.md) | [Release Notes](./specifications/child_benefit/CHILD_BENEFIT_VERSION_1.2_RELEASE_NOTES.md)
 
 ### JSON Schema
 
-**[eligibility-schema.json](./eligibility-schema.json)** (v1.1)
+**[eligibility-schema.json](./schemas/eligibility-schema.json)** (v1.1)
 - Defines structure for all eligibility specifications
 - 10 node types: start, boolean_question, multi_path_check, salary_check, financial_check, occupation_check, conditional_check, complex_criteria, routing, outcome
 - 3 outcome result types: ELIGIBLE, INELIGIBLE, DEFERRED
@@ -31,21 +31,22 @@ This directory contains complete, machine-readable representations of UK governm
 ### Validation & Analysis Tools
 
 **Python Tools:**
-- **[validate_specifications.py](./validate_specifications.py)** - Validates specifications against schema
-- **[check_orphan_nodes.py](./check_orphan_nodes.py)** - Detects orphan nodes and dangling references
+- **[validate_specifications.py](./ancillary_functionality/validate_specifications.py)** - Validates specifications against schema
+- **[check_orphan_nodes.py](./ancillary_functionality/check_orphan_nodes.py)** - Detects orphan nodes and dangling references
 
 **Reports:**
-- [Schema Validation Report](./SCHEMA_VALIDATION_REPORT.md)
-- [Orphan Node Cleanup Report](./ORPHAN_NODE_CLEANUP_REPORT.md)
+- [Schema Validation Report](./specifications/SCHEMA_VALIDATION_REPORT.md)
+- [Orphan Node Cleanup Report](./specifications/ORPHAN_NODE_CLEANUP_REPORT.md)
 
 ### Documentation
 
 **Process Documentation:**
 - [INDEX.md](./INDEX.md) - Project index and version history
-- [visualization_guide.md](./visualization_guide.md) - Guide for creating visual representations
+- [visualization_guide.md](./ancillary_functionality/visualization_guide.md) - Guide for creating visual representations
 
 **Test Analysis:**
-- [Child Benefit Test Analysis](./CHILD_BENEFIT_TEST_ANALYSIS.md) - Coverage analysis against 50 test scenarios
+- [Child Benefit Test Analysis](./specifications/child_benefit/CHILD_BENEFIT_TEST_ANALYSIS.md) - Coverage analysis against 50 test scenarios
+- [Skilled Worker Visa Test Analysis](./specifications/skilled_worker_visa/TEST_CASE_ANALYSIS.md) - Coverage analysis against 51 test scenarios
 
 ---
 
@@ -284,7 +285,7 @@ All conditions are precisely specified:
 Node structure supports generation of:
 - Flowcharts
 - Interactive decision trees
-- Graph diagrams (see [visualization_guide.md](./visualization_guide.md))
+- Graph diagrams (see [visualization_guide.md](./ancillary_functionality/visualization_guide.md))
 
 ---
 
@@ -304,15 +305,15 @@ Parse the JSON specifications to build:
 ```javascript
 function checkEligibility(spec, applicantData) {
   let currentNode = spec.decision_tree.root;
-  
+
   while (currentNode.type !== 'outcome') {
     const node = spec.decision_tree.nodes[currentNode.next];
-    
+
     // Evaluate node based on type
     const nextNodeId = evaluateNode(node, applicantData);
     currentNode = spec.decision_tree.nodes[nextNodeId];
   }
-  
+
   return currentNode.result; // ELIGIBLE, INELIGIBLE, or DEFERRED
 }
 ```
@@ -342,7 +343,7 @@ python3 check_orphan_nodes.py
 
 Use the node structure to generate visual representations:
 1. Extract nodes and edges from JSON
-2. Render as directed graph (see [visualization_guide.md](./visualization_guide.md))
+2. Render as directed graph (see [visualization_guide.md](./ancillary_functionality/visualization_guide.md))
 3. Create interactive web-based explorers
 
 ---
@@ -518,27 +519,27 @@ python3 check_orphan_nodes.py
 
 ### Skilled Worker Visa v1.2
 
-✅ All mandatory requirements (employer, CoS, occupation, salary, English, funds)  
-✅ All salary routes (standard, healthcare/education, reduced options)  
-✅ All English language paths (exemptions + proof methods)  
-✅ Part-time worker rules (pro-rated going rate, non-pro-ratable threshold)  
-✅ Genuine vacancy and employment checks  
-✅ Special requirements (CQC for care workers)  
-✅ Time limits documented for certain routes  
-✅ Application fees and costs  
-✅ External reference links for dynamic data  
+✅ All mandatory requirements (employer, CoS, occupation, salary, English, funds)
+✅ All salary routes (standard, healthcare/education, reduced options)
+✅ All English language paths (exemptions + proof methods)
+✅ Part-time worker rules (pro-rated going rate, non-pro-ratable threshold)
+✅ Genuine vacancy and employment checks
+✅ Special requirements (CQC for care workers)
+✅ Time limits documented for certain routes
+✅ Application fees and costs
+✅ External reference links for dynamic data
 
 ### Child Benefit v1.2
 
-✅ All child eligibility criteria (age, education, work status)  
-✅ All residency paths (8 variations including Crown servants)  
-✅ All responsibility paths (living with, contributing, maintenance)  
-✅ Hospital and care time limits (12-week, 8-week with linking)  
-✅ Education level definitions (approved vs. advanced)  
-✅ Regional apprenticeship rules (England, Scotland, Wales variations)  
-✅ 20-week extension rules for 16-17 year olds  
-✅ HMRC arbitration for disputed claims  
-✅ HICBC documentation (administrative, not eligibility)  
+✅ All child eligibility criteria (age, education, work status)
+✅ All residency paths (8 variations including Crown servants)
+✅ All responsibility paths (living with, contributing, maintenance)
+✅ Hospital and care time limits (12-week, 8-week with linking)
+✅ Education level definitions (approved vs. advanced)
+✅ Regional apprenticeship rules (England, Scotland, Wales variations)
+✅ 20-week extension rules for 16-17 year olds
+✅ HMRC arbitration for disputed claims
+✅ HICBC documentation (administrative, not eligibility)
 
 ---
 
@@ -631,21 +632,22 @@ python3 check_orphan_nodes.py
 ## Project Reports
 
 ### Schema Validation Report
-[SCHEMA_VALIDATION_REPORT.md](./SCHEMA_VALIDATION_REPORT.md)
+[SCHEMA_VALIDATION_REPORT.md](./specifications/SCHEMA_VALIDATION_REPORT.md)
 - Comprehensive validation results for both specifications
 - Schema feature coverage
 - Node type usage analysis
 - Outcome type breakdown
 
 ### Orphan Node Cleanup Report
-[ORPHAN_NODE_CLEANUP_REPORT.md](./ORPHAN_NODE_CLEANUP_REPORT.md)
+[ORPHAN_NODE_CLEANUP_REPORT.md](./specifications/ORPHAN_NODE_CLEANUP_REPORT.md)
 - Initial orphan detection (3 nodes found)
 - Analysis of why nodes were orphaned
 - Cleanup actions taken
 - Final validation results
 
 ### Test Analysis Reports
-- [Child Benefit Test Analysis](./CHILD_BENEFIT_TEST_ANALYSIS.md) - Coverage analysis for 50 test scenarios
+- [Child Benefit Test Analysis](./specifications/child_benefit/CHILD_BENEFIT_TEST_ANALYSIS.md) - Coverage analysis against 50 test scenarios
+- [Skilled Worker Visa Test Analysis](./specifications/skilled_worker_visa/TEST_CASE_ANALYSIS.md) - Coverage analysis against 51 test scenarios
 
 ---
 
@@ -653,15 +655,15 @@ python3 check_orphan_nodes.py
 
 ### Specification-Specific Documentation
 
-- **Child Benefit:** [CHILD_BENEFIT_README.md](./CHILD_BENEFIT_README.md) - Detailed guide to Child Benefit specification
+- **Child Benefit:** [CHILD_BENEFIT_README.md](./specifications/child_benefit/CHILD_BENEFIT_README.md) - Detailed guide to Child Benefit specification
 - **Skilled Worker Visa:** This README (above sections cover SWV comprehensively)
 
 ### Release Notes
 
-- [Skilled Worker Visa v1.2](./VERSION_1.2_RELEASE_NOTES.md)
-- [Skilled Worker Visa v1.1](./VERSION_1.1_RELEASE_NOTES.md)
-- [Child Benefit v1.2](./CHILD_BENEFIT_VERSION_1.2_RELEASE_NOTES.md)
-- [Child Benefit v1.1](./CHILD_BENEFIT_VERSION_1.1_RELEASE_NOTES.md)
+- [Skilled Worker Visa v1.2](./specifications/skilled_worker_visa/VERSION_1.2_RELEASE_NOTES.md)
+- [Skilled Worker Visa v1.1](./specifications/skilled_worker_visa/VERSION_1.1_RELEASE_NOTES.md)
+- [Child Benefit v1.2](./specifications/child_benefit/CHILD_BENEFIT_VERSION_1.2_RELEASE_NOTES.md)
+- [Child Benefit v1.1](./specifications/child_benefit/CHILD_BENEFIT_VERSION_1.1_RELEASE_NOTES.md)
 
 ### Official Sources
 

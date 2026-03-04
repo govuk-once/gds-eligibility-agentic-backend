@@ -1,6 +1,10 @@
 # TODO
-1. [x] Break this out into schema, plug other benefits into it
-2. [ ] If time, hook SWV instantiation into model and try to see if it can handle our 51 test cases
+* [x] Break this out into schema, plug other benefits into it
+* [x] Compare specifications against tests cases and see if any modification needed to account for edge cases
+* [ ] Refactor individual domain-specific constants out of schema into specifications
+* [ ] Consider how the schema/specifications might be exposed as an MCP interface for exploration of state transitions
+
+* [ ] Hook SWV instantiation into model and try to see if it can handle our 51 test cases
 
 ## Key Takeaways
 * Some benefits have dependencies from outside departments

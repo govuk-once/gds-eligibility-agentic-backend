@@ -290,11 +290,11 @@ def main():
     """Main validation and visualization routine."""
     print("UK Skilled Worker Visa Eligibility Validator")
     print("=" * 60)
+    evaluate_specification("../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json")
 
-    evaluate_specification("skilled_worker_visa_eligibility.json")
     print("UK Child Benefit Eligibility Validator")
     print("=" * 60)
-    evaluate_specification("child_benefit_eligibility.json")
+    evaluate_specification("../specifications/child_benefit/child_benefit_eligibility.json")
     return 0
 
 
