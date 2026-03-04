@@ -290,6 +290,7 @@ def evaluate_eligibility(facts: Dict[str, Any]) -> List[Dict[str, Any]]:
         results.append(
             {
                 "child_id": child["id"],
+                "name" : child["name"],
                 "eligible": is_eligible,
                 # This is either a list of semicolon-separated failures, or all passes
                 "reason": "; ".join(failed_reasons)
@@ -407,7 +408,7 @@ def _build_preamble(facts: Dict[str, Any]) -> str:
             if child["lives_with_claimant"]
             else "does not live with you"
         )
-        lines.append(f"  - {child['id']} is {child['age']} years old and {lives_with}.")
+        lines.append(f"  - {child['name']} is {child['age']} years old and {lives_with}.")
 
     # The technical facts
     lines.append(
@@ -420,7 +421,7 @@ def _build_preamble(facts: Dict[str, Any]) -> str:
 def _build_agent_script(facts: Dict[str, Any], eligibility_results: List[Dict]) -> str:
     """Formats the evaluated circumstances into a readable script for the LLM.
     For example, for the first test case it produces this:
-    Regarding child_0:
+    Regarding Alex:
     - Claimant lives in the UK
     - Child is 8 (under 16)
     - Child lives with claimant
@@ -433,8 +434,9 @@ def _build_agent_script(facts: Dict[str, Any], eligibility_results: List[Dict]) 
     """
     parts = [_build_preamble(facts)]
     for result in eligibility_results:
+        #print(result)
         facts_list = "\n".join(f"  - {c}" for c in result["circumstances"])
-        parts.append(f"Regarding {result['child_id']}:\n{facts_list}")
+        parts.append(f"Regarding {result['name']}:\n{facts_list}")
     return "\n\n".join(parts)
 
 
