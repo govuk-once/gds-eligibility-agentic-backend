@@ -25,11 +25,12 @@ config = {
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
     "test_cohort": "child_benefit",
+    "hypothesis_name": "url_tool_calls",
     "output_path": "analysis/testOutputs",
     "app_name" : "evaluation_judge",
-    "app_user_id" : "test_user"
+    "app_user_id" : "test_user",
+    "url_tool_call_allowed" : True
 }
-
 
 def get_short_model_name(model_string: str) -> str:
     """
@@ -81,16 +82,17 @@ async def main():
         meta = {
             "permutation": test_id,
             "test_case": test_case,
-            "commit": git_commit,
-            "hypothesis_name": config["test_cohort"],
-            "test_cohort": config["test_cohort"],
             "execution_datetime": execution_datetime,
             "run_config": {
                 "actor_model_string": config["actor_model_string"],
+                "test_cohort": config["test_cohort"],
+                "commit": git_commit,
+                "hypothesis_name": config["hypothesis_name"],
                 "eligibility_model_string": config["eligibility_model_string"],
                 "actor_prompt": config["actor_prompt"],
                 "eligibility_prompt": config["eligibility_prompt"],
                 "test_set_size": len(test_cases),
+                "url_tool_call_allowed" : config.get("url_tool_call_allowed", True)
             },
         }
         session_service = InMemorySessionService()
@@ -136,6 +138,7 @@ async def execute_test_case(
             config["eligibility_model_string"],
             config["actor_prompt"],
             config["eligibility_prompt"],
+            config.get("url_tool_call_allowed", True)
         ),
     )
 
@@ -177,9 +180,9 @@ async def execute_test_case(
                 async for event in agen:
                     if event.content and event.content.parts:
                         for part in event.content.parts:
-                            # Track when the LLM decides to call ANY tool (including web search)
+                            
+                            # A. Track the LLM's raw requests (Keeps our URL logging working!)
                             if getattr(part, "function_call", None):
-                                # Extract the arguments (e.g., the URL) the LLM passed to the tool
                                 tool_args = getattr(part.function_call, "args", {})
 
                                 # Safely convert to dictionary if the framework returned a Pydantic object
@@ -192,10 +195,19 @@ async def execute_test_case(
                                     {
                                         "timestamp": datetime.now().isoformat(),
                                         "tool_name": part.function_call.name,
-                                        "arguments": tool_args,  # <--- We capture the URL here!
+                                        "arguments": tool_args,
                                         "author": event.author,
                                     }
                                 )
+
+                            # B. Catch the framework's response (This contains your zip() output!)
+                            if getattr(part, "function_response", None):
+                                # We only want to save the final judgement to the root payload, 
+                                # not the giant text dumps from the web scraper.
+                                if part.function_response.name == "eligibility_judgement_outcome":
+                                    payload[f"{event.author}_payload"] = {
+                                        "response": part.function_response.dict()
+                                    }
 
                         # Log the standard text conversation
                         if text := "".join(p.text or "" for p in event.content.parts):
@@ -209,7 +221,7 @@ async def execute_test_case(
 
                     if getattr(event.actions, "escalate", False):
                         await runner.close()
-
+                        
             finally:
                 # Stop the stopwatch and record the duration
                 end_time = time.perf_counter()
