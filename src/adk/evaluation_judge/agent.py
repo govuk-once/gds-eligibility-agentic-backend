@@ -12,7 +12,6 @@ from gds_eligibility.agent import root_agent as eligibility_agent
 
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
-
 def get_prompt(rel_path: str, **kwargs) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
@@ -27,24 +26,26 @@ def get_prompt(rel_path: str, **kwargs) -> str:
 
 
 def conversation_judgement_outcome(
-        outcome_agrees_with_expected_outcome: bool, 
-        outcome_disagrees_with_expected_outcome: bool, 
-        outcome_partly_agrees_with_expected_outcome: bool, 
-        erroneous_info_given_by_eligibility_agent_without_realising: bool, 
-        erroneous_info_given_by_eligibility_agent_but_later_realised: bool, 
-        reasoning_for_conversation_judgement: str, 
-        tool_context: ToolContext
-    ):
+    outcome_agrees_with_expected_outcome: bool,
+    outcome_disagrees_with_expected_outcome: bool,
+    outcome_partly_agrees_with_expected_outcome: bool,
+    erroneous_info_given_by_eligibility_agent_without_realising: bool,
+    erroneous_info_given_by_eligibility_agent_but_later_realised: bool,
+    reasoning_for_conversation_judgement: str,
+    tool_context: ToolContext,
+):
     """Call this function ONLY when you have an outcome to report as to eligibility."""
-    print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
+    print(
+        f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}"
+    )
     tool_context.actions.escalate = True
     return {
         "outcome_agrees_with_expected_outcome": outcome_agrees_with_expected_outcome,
         "outcome_disagrees_with_expected_outcome": outcome_disagrees_with_expected_outcome,
         "outcome_partly_agrees_with_expected_outcome": outcome_partly_agrees_with_expected_outcome,
-        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising, 
+        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising,
         "erroneous_info_given_by_eligibility_agent_but_later_realised": erroneous_info_given_by_eligibility_agent_but_later_realised,
-        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement, 
+        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement,
     }
 
 
@@ -58,35 +59,47 @@ def exit_loop(tool_context: ToolContext):
 
 def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
     return Agent(
-        model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+        model=LiteLlm(
+            model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+        ),
         name=name,
         description="When given a transcript, outputs a judgement",
         instruction=get_prompt(prompt_filepath, **kwargs),
-        tools=[conversation_judgement_outcome]
+        tools=[conversation_judgement_outcome],
     )
 
 
 def get_conversation_pipeline(test_case: str):
 
     actor = Agent(
-        model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+        model=LiteLlm(
+            model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+        ),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
-        instruction=get_prompt("agents/Ancillary/Actor-Machinelike-v1.md") + "\n" + test_case,
-        #instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v3.md") + "\n" + test_case,
+        instruction=get_prompt(
+            "structured_generation/child_benefit/actor_v0.1.md"
+        )
+        + "\n"
+        + test_case,
         tools=[exit_loop],  # Provide the exit_loop tool
     )
 
     conversation_pipeline = LoopAgent(
         # Any agent instantiated outside the scope of this function should be deep-copied, as said
-        # agent instance remembers its parent from previous invocations 
-        name="Converse", sub_agents=[deepcopy(eligibility_agent), actor]
+        # agent instance remembers its parent from previous invocations
+        name="Converse",
+        sub_agents=[deepcopy(eligibility_agent), actor],
     )
     return conversation_pipeline
 
 
 def get_review_pipeline(test_case: str, expected_outcome: str):
-    evaluation_judge = get_judge_agent("evaluation_judge", "agents/Ancillary/EvaluationJudge-EvaluationOnly-v4.md", expected_outcome=expected_outcome)
+    evaluation_judge = get_judge_agent(
+        "evaluation_judge",
+        "agents/Ancillary/EvaluationJudge-EvaluationOnly-v4.md",
+        expected_outcome=expected_outcome,
+    )
 
     conversation_pipeline = get_conversation_pipeline(test_case)
 

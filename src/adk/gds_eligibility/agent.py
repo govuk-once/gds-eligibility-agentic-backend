@@ -17,22 +17,33 @@ def get_prompt(rel_path: str) -> str:
  
 # TODO add tool for retrieving website content
 
-class ChildEvaluation(TypedDict):
-    child_name: str
-    is_eligible: bool
-    reasoning: str
-
 def eligibility_judgement_outcome(
-        child_evaluations: List[ChildEvaluation], 
+        child_names: List[str], 
+        is_eligible_list: List[bool], 
+        reasonings: List[str], 
         overall_reasoning: str, 
         tool_context: ToolContext
     ):
     """
     Call this function ONLY when you have an outcome to report as to eligibility.
-    Provide an evaluation object for every child discussed in the conversation.
+    
+    Args:
+        child_names: A list of the exact names of every child discussed.
+        is_eligible_list: A list of booleans (True/False) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
+        reasonings: A list of step-by-step reasoning explaining the rules for each child. MUST be in the exact same order as child_names.
+        overall_reasoning: A brief summary of the family's total situation.
     """
     print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
+    
+
+    child_evaluations = []
+    for name, is_eligible, reasoning in zip(child_names, is_eligible_list, reasonings):
+        child_evaluations.append({
+            "child_name": name,
+            "is_eligible": is_eligible,
+            "reasoning": reasoning
+        })
     
     return {
         "child_evaluations": child_evaluations,
