@@ -30,6 +30,7 @@ FORMATTING RULES:
 - Action labels MUST be capitalised normally (e.g. "Yes", "No").
 - Do not invent placeholder content.
 - Do not emit "Processed response" or similar text.
+- Payload fields, if missing, should be duplicates of the label text 
 
 FAILURE MODE:
 - If any required field is missing or ambiguous, do NOT guess.
