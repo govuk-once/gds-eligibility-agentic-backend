@@ -68,31 +68,34 @@ def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
         tools=[conversation_judgement_outcome],
     )
 
-
-def get_conversation_pipeline(test_case: str):
-
+def get_conversation_pipeline(
+    situation_profile: str, 
+    actor_model: str, 
+    eligibility_model: str,
+    actor_prompt_path: str,
+    eligibility_prompt: str
+):
+    # Instantiate the actor (the one that pretends to be the user)
     actor = Agent(
-        model=LiteLlm(
-            model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
-        ),
+        model=LiteLlm(model=actor_model),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
-        instruction=get_prompt(
-            "structured_generation/child_benefit/actor_v0.1.md"
-        )
-        + "\n"
-        + test_case,
-        tools=[exit_loop],  # Provide the exit_loop tool
+        instruction=get_prompt(actor_prompt_path) + "\n" + situation_profile,
+        tools=[exit_loop],
     )
 
+    # Copy the production agent to create a system under test
+    agent_under_test = deepcopy(eligibility_agent)
+    # Change the model and prompt as specified in the config
+    agent_under_test.model = LiteLlm(model=eligibility_model)
+    agent_under_test.instruction = get_prompt(eligibility_prompt)
+
+    # Spin up the conversational loop
     conversation_pipeline = LoopAgent(
-        # Any agent instantiated outside the scope of this function should be deep-copied, as said
-        # agent instance remembers its parent from previous invocations
         name="Converse",
-        sub_agents=[deepcopy(eligibility_agent), actor],
+        sub_agents=[agent_under_test, actor],
     )
     return conversation_pipeline
-
 
 def get_review_pipeline(test_case: str, expected_outcome: str):
     evaluation_judge = get_judge_agent(
