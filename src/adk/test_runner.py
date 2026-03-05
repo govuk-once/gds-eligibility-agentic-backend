@@ -21,12 +21,12 @@ from evaluation_judge.agent import get_conversation_pipeline
 
 
 config = {
-    "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "actor_model_string": "bedrock/converse/eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
     "test_cohort": "child_benefit",
-    "hypothesis_name": "url_tool_calls",
+    "hypothesis_name": "opus_accuracy_latency",
     "output_path": "analysis/testOutputs",
     "app_name" : "evaluation_judge",
     "app_user_id" : "test_user",
@@ -72,7 +72,7 @@ def get_or_create_output_directory(resume_val: str | None, execution_datetime: s
         model_short_name = get_short_model_name(config["eligibility_model_string"])
         output_dir = base_path.joinpath(f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}")
         output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"🚀 STARTING NEW RUN: {output_dir.name}")
+        print(f"STARTING NEW RUN: {output_dir.name}")
         return output_dir
 
     # Default resume (--resume with no folder name passed)
@@ -85,7 +85,7 @@ def get_or_create_output_directory(resume_val: str | None, execution_datetime: s
             raise FileNotFoundError("Cannot resume. No previous runs found.")
             
         latest_dir = max(directories, key=lambda d: d.name)
-        print(f"🔄 RESUMING LATEST RUN: {latest_dir.name}")
+        print(f"RESUMING LATEST RUN: {latest_dir.name}")
         return latest_dir
 
     # Explicit resume (--resume specific_folder_name)
@@ -95,7 +95,7 @@ def get_or_create_output_directory(resume_val: str | None, execution_datetime: s
     print(f"RESUMING SPECIFIC RUN: {output_dir.name}")
     return output_dir
 
-async def main(resume_val: str | None = None):
+async def main(resume_val: str | None = None, n_cases: int | None = None):
 
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -107,7 +107,10 @@ async def main(resume_val: str | None = None):
 
     output_dir = get_or_create_output_directory(resume_val, execution_datetime, git_commit)
     test_cases = load_and_parse_test_cases(config["test_cohort"])
-    # test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
+    if n_cases:
+        test_cases = test_cases[:n_cases]
+        print(f"Limiting execution to the first {n_cases} test cases.")
+
     for test_id, test_case in enumerate(test_cases, start=1):
         
         # To handle the --resume flag. Skip if already exists:
@@ -299,6 +302,12 @@ if __name__ == "__main__":
         default=None, # if no --resume flag start a new run
         help="Resume a run. Omit to start new. Pass --resume to use the latest folder, or --resume <folder_name> for a specific one."
     )
-    
+
+    parser.add_argument(
+        "--n_cases", 
+        type=int, 
+        default=None, 
+        help="Limit the number of test cases to run (e.g., 1 for debugging)."
+    )
     args = parser.parse_args()    
-    asyncio.run(main(args.resume))
+    asyncio.run(main(args.resume, args.n_cases))
