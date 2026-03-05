@@ -5,6 +5,7 @@ import time
 import json
 from subprocess import run
 from pathlib import Path
+import argparse
 
 from google.genai import types
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
@@ -54,31 +55,70 @@ def get_short_model_name(model_string: str) -> str:
     return "-".join(clean_parts)
 
 
-async def main():
+def get_or_create_output_directory(resume_val: str | None, execution_datetime: str, git_commit: str) -> Path:
+    """
+    This is basically to handle the --resume flag, which was necessary because of timeouts.
+    Three options:
+    1. Don't pass --resume. Default behaviour is to create a new directory and start from first case.
+    2. Pass --resume with no args. Default behaviour is to resume from most recent directory.
+    3. Pass --resume with args e.g. '--resume "2026-03-04T17:22:27.476356__Model=claude-sonnet-4-5__Commit=cce7a2c"'
+       This will resume from the last case in that directory.
+       Note: if doing this make sure to set the config params to whatever they were that time. 
+    """
+    base_path = Path("../../").joinpath(config["output_path"]).joinpath(config["test_cohort"])
+    
+    # Default behaviour (No ---resume flag): Create a new directory
+    if not resume_val:
+        model_short_name = get_short_model_name(config["eligibility_model_string"])
+        output_dir = base_path.joinpath(f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        print(f"🚀 STARTING NEW RUN: {output_dir.name}")
+        return output_dir
 
-    model_short_name = get_short_model_name(config["eligibility_model_string"])
-    # hypothesis_name = f"{test_cohort}__stressTestAgent"
-    #  test_cohort = "skilled_worker_visa"
+    # Default resume (--resume with no folder name passed)
+    if resume_val == "LATEST":
+        if not base_path.exists():
+            raise FileNotFoundError("Cannot resume. Base output directory does not exist yet.")
+            
+        directories = [d for d in base_path.iterdir() if d.is_dir() and d.name != "eval_reports"]
+        if not directories:
+            raise FileNotFoundError("Cannot resume. No previous runs found.")
+            
+        latest_dir = max(directories, key=lambda d: d.name)
+        print(f"🔄 RESUMING LATEST RUN: {latest_dir.name}")
+        return latest_dir
+
+    # Explicit resume (--resume specific_folder_name)
+    output_dir = base_path.joinpath(resume_val)
+    if not output_dir.exists():
+        raise FileNotFoundError(f"Cannot resume. Directory does not exist: {output_dir}")
+    print(f"RESUMING SPECIFIC RUN: {output_dir.name}")
+    return output_dir
+
+async def main(resume_val: str | None = None):
+
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
         capture_output=True,
         check=True,
         text=True,
     ).stdout.strip("\n")
-    test_cases = load_and_parse_test_cases(config["test_cohort"])
     execution_datetime = datetime.now().isoformat()
-    output_dir = (
-        Path("../../")  # Repository root
-        .joinpath(config["output_path"])
-        .joinpath(config["test_cohort"])
-        .joinpath(
-            f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}"
-        )
-    )
 
-    output_dir.mkdir(parents=True)
+    output_dir = get_or_create_output_directory(resume_val, execution_datetime, git_commit)
+    test_cases = load_and_parse_test_cases(config["test_cohort"])
     # test_cases = [test_cases[0]] # Uncomment this to run one test case for developing against test runner
     for test_id, test_case in enumerate(test_cases, start=1):
+        
+        # To handle the --resume flag. Skip if already exists:
+        expected_filename = f"Permutation{test_id}.conversation.json" 
+        output_file_path = output_dir / expected_filename
+        
+        if output_file_path.exists():
+            case_name = test_case.get('case_id', f"Permutation {test_id}")
+            print(f"⏩ Skipping {case_name} (Already exists in target directory)")
+            continue
+
         meta = {
             "permutation": test_id,
             "test_case": test_case,
@@ -250,4 +290,15 @@ def load_and_parse_test_cases(test_cohort: str):
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser(description="Run the Eligibility Agent evaluation.")
+    
+    parser.add_argument(
+        "--resume", 
+        nargs="?", # 0 or 1 arguments. 
+        const="LATEST", # if --resume present but no args then resume from latest folder
+        default=None, # if no --resume flag start a new run
+        help="Resume a run. Omit to start new. Pass --resume to use the latest folder, or --resume <folder_name> for a specific one."
+    )
+    
+    args = parser.parse_args()    
+    asyncio.run(main(args.resume))
