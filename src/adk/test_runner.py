@@ -21,7 +21,7 @@ from evaluation_judge.agent import get_conversation_pipeline
 
 
 config = {
-    "actor_model_string": "bedrock/converse/eu.anthropic.claude-opus-4-5-20251101-v1:0",
+    "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
@@ -155,6 +155,35 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
     #    ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
     # )  # Don't check as no results returns error
 
+def update_token_usage(event, usage_dict: dict) -> None:
+    """Extracts token metrics from an ADK event and updates the usage tracker in place."""
+    usage = getattr(event, "usage_metadata", None)
+    if not usage:
+        return
+
+    # Safely handle both dict and object access depending on the ADK version/model
+    if isinstance(usage, dict):
+        p_tokens = usage.get("prompt_token_count", usage.get("prompt_tokens", 0))
+        c_tokens = usage.get("candidates_token_count", usage.get("completion_tokens", 0))
+    else:
+        p_tokens = getattr(usage, "prompt_token_count", getattr(usage, "prompt_tokens", 0))
+        c_tokens = getattr(usage, "candidates_token_count", getattr(usage, "completion_tokens", 0))
+    
+    # Update global totals
+    usage_dict["total_prompt_tokens"] += p_tokens
+    usage_dict["total_completion_tokens"] += c_tokens
+    usage_dict["total_overall_tokens"] += (p_tokens + c_tokens)
+    
+    # Update per-agent breakdown
+    author = getattr(event, "author", "unknown_agent")
+    if author not in usage_dict["breakdown_by_agent"]:
+        usage_dict["breakdown_by_agent"][author] = {
+            "prompt_tokens": 0, "completion_tokens": 0, "total": 0
+        }
+    
+    usage_dict["breakdown_by_agent"][author]["prompt_tokens"] += p_tokens
+    usage_dict["breakdown_by_agent"][author]["completion_tokens"] += c_tokens
+    usage_dict["breakdown_by_agent"][author]["total"] += (p_tokens + c_tokens)
 
 async def execute_test_case(
     test_id: int,
@@ -193,10 +222,19 @@ async def execute_test_case(
         credential_service=credential_service,
     )
 
-    payload = defaultdict(conversation=list())
-    payload["meta"] = {"conversation": meta}
-    payload["tool_activity"] = []
-    payload["performance"] = {}
+    payload = {
+        "case_id": test_case["case_id"],
+        "meta": meta,
+        "usage": {
+            "total_prompt_tokens": 0,
+            "total_completion_tokens": 0,
+            "total_overall_tokens": 0,
+            "breakdown_by_agent": {} # We'll track actor vs eligibility_agent tokens here
+        },
+        "performance" : {},
+        "conversation": [],
+        "tool_activity": []
+    }
 
     # Start the stopwatch
     start_time = time.perf_counter()
@@ -221,6 +259,8 @@ async def execute_test_case(
         ) as agen:
             try:
                 async for event in agen:
+                    # Count tokens
+                    update_token_usage(event, payload["usage"])
                     if event.content and event.content.parts:
                         for part in event.content.parts:
                             
