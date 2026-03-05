@@ -8,7 +8,8 @@ from google.adk.agents.llm_agent import Agent
 from google.adk.tools.tool_context import ToolContext
 
 # Load the child benefit eligibility specification
-SPEC_PATH = Path(__file__).parent.parent.parent.parent / "prompts" / "manual" / "graph_creation" / "specifications" / "child_benefit" / "child_benefit_eligibility.json"
+PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts" 
+SPEC_PATH = PROMPTS_DIR / "manual" / "graph_creation" / "specifications" / "child_benefit" / "child_benefit_eligibility.json"
 
 def load_specification() -> Dict[str, Any]:
     """Load the child benefit eligibility specification."""
@@ -16,7 +17,7 @@ def load_specification() -> Dict[str, Any]:
         return json.load(f)
 
 CHILD_BENEFIT_SPEC = load_specification()
-prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
+prompts_dir = Path(os.environ.get("PROMPTS_DIR", PROMPTS_DIR))
 
 def get_prompt(rel_path: str) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
@@ -143,12 +144,12 @@ def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
         Dictionary containing the first node information
     """
     # Reset state
-    tool_context.state.clear()
     tool_context.state["navigation_history"] = []
 
     # Get root node
     root = CHILD_BENEFIT_SPEC["decision_tree"]["root"]
     first_node_id = root["next"]
+    tool_context.state["current_node"] = root
 
     return get_node_info(first_node_id, tool_context)
 
@@ -173,7 +174,7 @@ root_agent = Agent(
     model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     name="child_benefit_eligibility_agent",
     description="A helpful assistant for UK Child Benefit eligibility questions using the official specification.",
-    instruction=get_prompt("StructuredSpecification-ChildBenefit-v1.md").format(metadata=get_specification_metadata()),
+    instruction=get_prompt("agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md").format(metadata=get_specification_metadata()),
     tools=[
         start_assessment,
         get_node_info,
