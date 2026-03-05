@@ -132,12 +132,19 @@ def main(input_folder_path: str = None):
         with json_file.open("r") as f:
             data = json.load(f)
 
+        # Safely grab the meta block
+        meta_block = data.get("meta", {})
+        # I cleaned up the output format. This is only to deal with old formats.
+        # If it's an old file, dive into 'conversation'. If it's a new file, just use meta_block.
+        meta_content = meta_block.get("conversation", meta_block)
         # Extract the config from the meta dict
         # Everything in same folder has same metadata so we only need to do this once
         if not run_config_metadata:
-            run_config_metadata = data["meta"]["conversation"].get("run_config", {})
+
+            run_config_metadata = meta_content.get("run_config", {})            
+
         
-        test_case_data = data["meta"]["conversation"]["test_case"]
+        test_case_data = meta_content["test_case"]
         case_id = test_case_data["case_id"]
         total_cases += 1
 
