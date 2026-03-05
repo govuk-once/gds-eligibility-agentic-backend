@@ -94,7 +94,7 @@ def main(input_folder_path: str = None):
     
     # Determine target directory
     if input_folder_path:
-        target_dir = Path(input_folder_path)
+        target_dir = Path(base_dir / input_folder_path)
     else:
         if not base_dir.exists():
             print(f"Base directory not found: {base_dir.resolve()}")
