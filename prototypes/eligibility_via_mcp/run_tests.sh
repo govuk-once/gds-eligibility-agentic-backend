@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./src/runner/script.sh
+source ./src/runners/run_script_base.sh
 
 if [ -z "$1" ]; then
     echo "Error: No AWS profile provided."
@@ -8,4 +8,4 @@ if [ -z "$1" ]; then
     return 1
 fi
 
-run_with_aws_profile "$1" pytest -s tests/test_behaviour.py
+run_with_aws_profile "$1" pytest -s tests/test_pip.py

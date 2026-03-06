@@ -1,13 +1,15 @@
-# Providing Eligibility Functionality via MCP tools
+# Eligibility via MCP
 
 ## What are you?
 
 Hi! I'm a prototype that shows how eligibility functionality required to service user requirements can
-be provided via MCP tools that are used by an eligibility agent.
+be provided via [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) tools that are used 
+by an eligibility agent.
 
 ## How do I run you?
 
 To run me, you'll first need to ensure that you:
+
 1. have access to AWS Bedrock since that is where my scripts expect to access foundational 
 models for my agents. 
 1. have set-up [AWS vault](https://github.com/ByteNess/aws-vault) and created an appropriate profile

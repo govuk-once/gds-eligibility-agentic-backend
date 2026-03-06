@@ -1,6 +1,6 @@
 from mcp.server.fastmcp import FastMCP
-from tools.pip.eligibility_checker import get_next_question
-from models.eligibility_check_models import Question
+from mcp_server.models.eligibility_check_models import Question
+from mcp_server.tools.pip.eligibility_checker import get_next_question
 
 mcp = FastMCP("eligibility_tools")
 

@@ -18,7 +18,7 @@ mcp_client = MCPClient(lambda: stdio_client(
 def create() -> Agent:
     return Agent(
         model=BedrockModel(
-            model_id=os.getenv("ELIGIBILITY_AGENT_AWS_BEDROCK_MODEL_ID"),
+            model_id=os.getenv("ELIGIBILITY_AGENT_AWS_BEDROCK_MODEL_ID", ""),
             region_name="eu-west-2"
         ),
         tools=[mcp_client], 

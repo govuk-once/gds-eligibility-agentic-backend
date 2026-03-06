@@ -3,8 +3,6 @@ import scenario
 from strands import Agent
 from agents.eligibility.agent import create
 
-scenario.configure(default_model=os.getenv("JUDGE_AGENT_AWS_BEDROCK_MODEL_ID"))
-
 class EligibilityAgent(scenario.AgentAdapter):
     def __init__(self):
         super().__init__()
@@ -24,8 +22,13 @@ async def run_scenario(
         description=scenario_description,
         agents=[
             EligibilityAgent(),
-            scenario.UserSimulatorAgent(),
-            scenario.JudgeAgent(criteria=judge_criteria)
+            scenario.UserSimulatorAgent(
+                model=os.getenv("USER_SIMULATOR_AWS_BEDROCK_MODEL_ID", "")
+            ),
+            scenario.JudgeAgent(
+                criteria=judge_criteria, 
+                model=os.getenv("JUDGE_AGENT_AWS_BEDROCK_MODEL_ID", "")
+            )
         ],
         script=[
             call 
