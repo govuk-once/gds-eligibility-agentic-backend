@@ -1,4 +1,4 @@
-from models.eligibility_check_models import Question, Decision, NextQuestion
+from mcp_server.models.eligibility_check_models import Decision, NextQuestion, Question
 
 def get_next_question(next_question: int) -> Question:
     match next_question:
