@@ -1,13 +1,14 @@
 #!/usr/bin/env ipython
 
 # TODO
-# * [ ] Figure out what to do about issues like .testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
+# * [ ] Figure out what to do about issues like testOutputs/child_benefit__stressTestAgent/2026-01-28T20:31:36.660804__RepoCommit=10c6f19/Permutation46__rejudgement_2026-01-30T09:44:40.892615
 # * [x] Move this file and graphs out into a top level `analysis` folder
 # * [ ] Add docstrings
 # * [ ] Move to ipython notebook
-# * [x] (stretch goal) Move .testOutputs out to top level folder, and update transcription and analysis functionality accordingly
+# * [x] (stretch goal) Move testOutputs out to top level folder, and update transcription and analysis functionality accordingly
 
 from collections import defaultdict
+import json
 import re
 import os
 from pathlib import Path
@@ -100,7 +101,8 @@ model_sizes_hypothesis_mapping = {
     "skilled_worker_visa": {"baseline": "gemma4B", "improved": "gemma27B"},
     #"child_benefit__stressTestAgent": {"baseline": "gemma27B", "improved": "claude37Sonnet"},
     #"child_benefit__stressTestAgent": {"baseline": "claude37Sonnet__Realistic", "improved": "claude37Sonnet__Helpful"},
-    "child_benefit__stressTestAgent": {"baseline": "claude45Sonnet__Realistic", "improved": "claude45Sonnet__Helpful"},
+    #"child_benefit__stressTestAgent": {"baseline": "claude45Sonnet__Realistic", "improved": "claude45Sonnet__Helpful"},
+    "child_benefit__stressTestAgent": {"baseline": "Realistic", "improved": "Helpful"},
 }
 
 model_size_commit_mapping = {
@@ -116,8 +118,10 @@ model_size_commit_mapping = {
         "gemma27B": ["1012a61", "976499a", "74e8834"], 
         "claude37Sonnet": ["e680f99"],
         "claude37SonnetOriginalPrompt": ["21506e4"],
-        "claude45Sonnet__Realistic": ["10c6f19"],
-        "claude45Sonnet__Helpful": ["d6dfd9f"],
+        #"claude45Sonnet__Realistic": ["10c6f19"],
+        #"claude45Sonnet__Helpful": ["d6dfd9f"],
+        "Realistic": ["10c6f19"],
+        "Helpful": ["d6dfd9f"],
     }),
     #defaultdict(lambda: "large"),
 }
@@ -490,14 +494,14 @@ def get_success_rates_by_eligibility_model_size(
     return df
 
 
-def main(argv):
+def legacy_main(argv):
     if len(argv) > 0:
-        output_dir = Path(".testOutputs").joinpath(argv[0])
+        output_dir = Path("testOutputs").joinpath(argv[0])
         assert output_dir.exists()
-        analyse_cohort(output_dir)
+        load_legacy_cohort(output_dir)
     else:
-        for output_dir in Path(".testOutputs").glob("*"):
-            analyse_cohort(output_dir)
+        for output_dir in Path("testOutputs").glob("*"):
+            load_legacy_cohort(output_dir)
 
 
 def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
@@ -520,8 +524,8 @@ def deduplicate_rejudgements(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def analyse_cohort(output_dir: Path):
-    test_cohort = str(output_dir.relative_to(".testOutputs"))
+def load_legacy_cohort(output_dir: Path):
+    test_cohort = str(output_dir.relative_to("testOutputs"))
     failure_dfs = load_failure_df(output_dir, test_cohort)
     success_dfs = load_success_df(output_dir, test_cohort)
     combined_dfs_raw = pd.concat(
@@ -541,7 +545,77 @@ def analyse_cohort(output_dir: Path):
             list(model_sizes_hypothesis_mapping[test_cohort].values())
         )
     ]
+    analyse_cohort(combined_dfs_raw, test_cohort, output_dir)
 
+def load_results_from_json(output_dir: Path, impatient=False):
+    files_to_load = output_dir.glob("**/Permutation*__judgement_*.json")
+    list_of_json_dataframes = []
+    for file_to_load in files_to_load:
+        with file_to_load.open() as f:
+            try:
+                #print(f'Trying {file_to_load.absolute()}')
+                list_of_json_dataframes.append(
+                    pd.json_normalize(
+                        json.load(f),
+                        meta=[
+                            'conversation', 
+                            'expected_outcome', 
+
+                            'meta.judgement.permutation',
+                            'meta.judgement.test_case',
+                            'meta.judgement.commit',
+                            'meta.judgement.hypothesis_name', 
+                            'meta.judgement.test_cohort',
+                            'meta.judgement.execution_datetime',
+
+                            'meta.conversation.permutation',
+                            'meta.conversation.test_case',
+                            'meta.conversation.commit',
+                            'meta.conversation.hypothesis_name', 
+                            'meta.conversation.test_cohort',
+                            'meta.conversation.execution_datetime',
+
+                            'eligibility_agent_payload.response.would_application_be_eligible',
+                            'eligibility_agent_payload.response.would_application_be_ineligible',
+                            'eligibility_agent_payload.response.would_application_be_eligible_in_part',
+                            'eligibility_agent_payload.response.reasoning_for_eligibility_judgement',
+
+                            'confirmation_judge_payload.response.outcome_agrees_with_expected_outcome',
+                            'confirmation_judge_payload.response.outcome_disagrees_with_expected_outcome',
+                            'confirmation_judge_payload.response.outcome_partly_agrees_with_expected_outcome',
+                            'confirmation_judge_payload.response.erroneous_info_given_by_eligibility_agent_without_realising',
+                            'confirmation_judge_payload.response.erroneous_info_given_by_eligibility_agent_but_later_realised',
+                            'confirmation_judge_payload.response.reasoning_for_conversation_judgement',
+                        ],
+                        errors='raise'
+                    ).set_index(
+                        [
+                            # Unique per conversation
+                            "meta.conversation.permutation",
+                            "meta.conversation.execution_datetime",
+                            # Unique per judgement
+                            "meta.judgement.execution_datetime",
+                        ]
+                    )
+                )
+            except json.JSONDecodeError as e:
+                if impatient:
+                    print(f'Skipping {file_to_load.absolute()} as it is not valid JSON')
+                    continue
+                else:
+                    raise e
+
+    df = pd.concat(
+        list_of_json_dataframes,
+        verify_integrity=True
+    )
+    return df
+
+
+def analyse_cohort(
+    combined_dfs_raw: pd.DataFrame, test_cohort: str, output_dir: Path,
+    eligibility_dfs: pd.DataFrame, 
+):
     combined_dfs = combined_dfs_raw.set_index(
         ["ModelSize"], append=True
     )
@@ -696,4 +770,5 @@ def plot_venn_diagrams(test_cohort, combined_dfs_by_run):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    #legacy_main(sys.argv[1:])
+    df = load_results_from_json(Path('./testOutputs/child_benefit'))

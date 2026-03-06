@@ -12,7 +12,6 @@ from gds_eligibility.agent import root_agent as eligibility_agent
 
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
-
 def get_prompt(rel_path: str, **kwargs) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
@@ -25,6 +24,31 @@ def get_prompt(rel_path: str, **kwargs) -> str:
         prompt_string = prompt_string.format(**kwargs)
     return prompt_string
 
+
+def conversation_judgement_outcome(
+    outcome_agrees_with_expected_outcome: bool,
+    outcome_disagrees_with_expected_outcome: bool,
+    outcome_partly_agrees_with_expected_outcome: bool,
+    erroneous_info_given_by_eligibility_agent_without_realising: bool,
+    erroneous_info_given_by_eligibility_agent_but_later_realised: bool,
+    reasoning_for_conversation_judgement: str,
+    tool_context: ToolContext,
+):
+    """Call this function ONLY when you have an outcome to report as to eligibility."""
+    print(
+        f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}"
+    )
+    tool_context.actions.escalate = True
+    return {
+        "outcome_agrees_with_expected_outcome": outcome_agrees_with_expected_outcome,
+        "outcome_disagrees_with_expected_outcome": outcome_disagrees_with_expected_outcome,
+        "outcome_partly_agrees_with_expected_outcome": outcome_partly_agrees_with_expected_outcome,
+        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising,
+        "erroneous_info_given_by_eligibility_agent_but_later_realised": erroneous_info_given_by_eligibility_agent_but_later_realised,
+        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement,
+    }
+
+
 def exit_loop(tool_context: ToolContext):
     """Call this function ONLY when the judge indicates no further conversation is needed, signaling the iterative process should end."""
     print(f"  [Tool Call] exit_loop triggered by {tool_context.agent_name}")
@@ -35,30 +59,58 @@ def exit_loop(tool_context: ToolContext):
 
 def get_judge_agent(name: str, prompt_filepath: str, **kwargs):
     return Agent(
-        model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+        model=LiteLlm(
+            model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+        ),
         name=name,
         description="When given a transcript, outputs a judgement",
         instruction=get_prompt(prompt_filepath, **kwargs),
+        tools=[conversation_judgement_outcome],
     )
 
-
-def get_review_pipeline(test_case: str, expected_outcome: str):
-    evaluation_judge = get_judge_agent("evaluation_judge", "agents/Ancillary/EvaluationJudge-EvaluationOnly-v4.md", expected_outcome=expected_outcome)
-
+def get_conversation_pipeline(
+    situation_profile: str, 
+    actor_model: str, 
+    eligibility_model: str,
+    actor_prompt_path: str,
+    eligibility_prompt: str,
+    url_tool_call_allowed: bool = True
+):
+    # Instantiate the actor (the one that pretends to be the user)
     actor = Agent(
-        model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+        model=LiteLlm(model=actor_model),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
-        instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v0.md") + "\n" + test_case,
-        #instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v3.md") + "\n" + test_case,
-        tools=[exit_loop],  # Provide the exit_loop tool
+        instruction=get_prompt(actor_prompt_path) + "\n" + situation_profile,
+        tools=[exit_loop],
     )
 
+    # Copy the production agent to create a system under test
+    agent_under_test = deepcopy(eligibility_agent)
+    # Change the model and prompt as specified in the config
+    agent_under_test.model = LiteLlm(model=eligibility_model)
+    agent_under_test.instruction = get_prompt(eligibility_prompt)
+    if not url_tool_call_allowed:
+        agent_under_test.tools = [
+            t for t in agent_under_test.tools 
+            if t.__name__ != "read_webpage"
+        ]
+
+    # Spin up the conversational loop
     conversation_pipeline = LoopAgent(
-        # Any agent instantiated outside the scope of this function should be deep-copied, as said
-        # agent instance remembers its parent from previous invocations 
-        name="Converse", sub_agents=[deepcopy(eligibility_agent), actor]
+        name="Converse",
+        sub_agents=[agent_under_test, actor],
     )
+    return conversation_pipeline
+
+def get_review_pipeline(test_case: str, expected_outcome: str):
+    evaluation_judge = get_judge_agent(
+        "evaluation_judge",
+        "agents/Ancillary/EvaluationJudge-EvaluationOnly-v4.md",
+        expected_outcome=expected_outcome,
+    )
+
+    conversation_pipeline = get_conversation_pipeline(test_case)
 
     review_pipeline = SequentialAgent(
         name="ConverseAndEvaluate", sub_agents=[conversation_pipeline, evaluation_judge]
