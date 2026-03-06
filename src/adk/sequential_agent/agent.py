@@ -104,7 +104,8 @@ def emit_elicitation_response(
 elicitation_agent = Agent(
     name="elicitation_agent", 
     model=LiteLlm(
-        model="bedrock/openai.gpt-oss-120b-1:0",
+        # model="bedrock/openai.gpt-oss-120b-1:0",
+        model="eu.anthropic.claude-haiku-4-5-20251001-v1:0",
     ),
     description="An agent to process responses for possible elicitation",
     tools=[emit_elicitation_response],
@@ -119,7 +120,8 @@ elicitation_agent = Agent(
  
 user_agent = Agent(
     model=LiteLlm(
-        model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        model="bedrock/eu.anthropic.claude-sonnet-4-6"
         # response_format causes this bug with claude: https://github.com/BerriAI/litellm/issues/18381
         # response_format={
         #     "type": "json_schema",
