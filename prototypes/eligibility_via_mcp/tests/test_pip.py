@@ -4,9 +4,8 @@ from tests.scenario.pip import PipScenario
 @pytest.mark.agent_test
 @pytest.mark.asyncio
 async def test_pip_happy_path():
-
     await PipScenario(
-        short_description="Eligibile",
+        short_description="Eligibile: with health condition and health condition qualifier term clarifications",
         user_should_be_eligible=True,
         user_intro="I've just been diagnosed with type 1 diabetes"
     ) \
