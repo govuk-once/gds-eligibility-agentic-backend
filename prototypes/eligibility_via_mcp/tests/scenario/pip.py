@@ -72,8 +72,19 @@ class PipScenario():
         return self
 
     async def run(self):
+        user_inputs: list[str] = self._build_user_inputs()
+        judge_criteria: list[str] = self._build_judge_criteria(user_inputs=user_inputs)
 
-        # Build user inputs
+        await run_scenario(
+            scenario_name=f"Personal Independence Payments ({self.short_scenario_description})",
+            scenario_description="The user's situation indicates that personal independence payments would be an appropriate benefit, " \
+                "so they should be taken through a personsal independence payment eligibility check. The agent should " \
+                f"determine that the user is {self._user_eligibility_str()}.",
+            user_inputs=user_inputs,
+            judge_criteria=judge_criteria,
+        )
+
+    def _build_user_inputs(self) -> list[str]:
         user_inputs: list[str | None] = [
             self.user_intro, 
             "yes, continue with check",
@@ -81,11 +92,14 @@ class PipScenario():
             self.residence_country_answer,
             self.residence_country_timeframe_answer,
             self.health_condition_time_answer,
+            ", ".join(self.health_condition_tasks_term_clarification) if self.health_condition_tasks_term_clarification else None,
             self.health_condition_tasks_answer,
-            self.health_condition_tasks_qualification_answer
+            ", ".join(self.health_condition_tasks_qualification_term_clarification) if self.health_condition_tasks_qualification_term_clarification else None,
+            self.health_condition_tasks_qualification_answer,
         ]
-
-        # Build criteria
+        return [item for item in user_inputs if item is not None]
+    
+    def _build_judge_criteria(self, user_inputs: list[str]) -> list[str]:
         all_criteria = [
             "The agent should identify that personal independence payments is the most suitable eligibility to check, and ask the user if they want to proceed" ,
             """
