@@ -7,7 +7,7 @@ from google.adk.agents.llm_agent import Agent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.tool_context import ToolContext
 
-from gds_eligibility.agent import root_agent as eligibility_agent
+from structured_specification.agent import root_agent as eligibility_agent
 
 
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
