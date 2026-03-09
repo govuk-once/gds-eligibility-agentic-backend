@@ -1,0 +1,249 @@
+{
+    "case_id": "COMBO_FAIL_AGED_OUT_AND_WORKING",
+    "meta": {
+        "permutation": 47,
+        "test_case": {
+            "case_id": "COMBO_FAIL_AGED_OUT_AND_WORKING",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 18
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": true
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 18 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 18 and not in approved education or extension period\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child works 24+ hours/week and is not in approved education\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child is 18 and not in approved education or extension period; Child works 24+ hours/week and is not in approved education",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 18 and not in approved education or extension period",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child works 24+ hours/week and is not in approved education",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-05T21:02:49.150163",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "de4cbdf",
+            "hypothesis_name": "haiku_accuracy_latency",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 30031,
+        "total_completion_tokens": 967,
+        "total_overall_tokens": 30998,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 16840,
+                "completion_tokens": 886,
+                "total": 17726
+            },
+            "actor": {
+                "prompt_tokens": 13191,
+                "completion_tokens": 81,
+                "total": 13272
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 20.61
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-05T21:22:57.140069",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine your eligibility for Child Benefit. To do this properly, I'll need to gather some information about your circumstances and your children.\n\nLet me start with the first question:\n\n**How many children are you claiming Child Benefit for, and what are their names?**"
+        },
+        {
+            "timestamp": "2026-03-05T21:22:58.978377",
+            "author": "actor",
+            "text": "Hello! I'd like to find out if I'm eligible for Child Benefit. I have one child - my son Alex."
+        },
+        {
+            "timestamp": "2026-03-05T21:23:00.740428",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information! I have one child to assess - Alex.\n\nBefore I check the eligibility rules, I need to gather a bit more information about Alex's circumstances.\n\n**How old is Alex, or what is his date of birth?**"
+        },
+        {
+            "timestamp": "2026-03-05T21:23:02.360478",
+            "author": "actor",
+            "text": "Alex is 18 years old."
+        },
+        {
+            "timestamp": "2026-03-05T21:23:03.782255",
+            "author": "eligibility_agent",
+            "text": "Thank you. Now I need to check the eligibility rules to give you accurate information. Let me look up the specific requirements for Child Benefit."
+        },
+        {
+            "timestamp": "2026-03-05T21:23:06.355042",
+            "author": "eligibility_agent",
+            "text": "Based on the eligibility rules I've just reviewed, I can see that Child Benefit eligibility for children aged 16 and over has specific requirements. Since Alex is 18 years old, I need to ask you a few more questions to determine his eligibility.\n\n**Is Alex currently in approved education or training (such as full-time school, college, university, or an approved apprenticeship)?**"
+        },
+        {
+            "timestamp": "2026-03-05T21:23:08.091329",
+            "author": "actor",
+            "text": "No, Alex isn't in education or training. He's working full-time now."
+        },
+        {
+            "timestamp": "2026-03-05T21:23:09.123577",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I need to ask one more question to complete the assessment:\n\n**How many hours per week is Alex working in his full-time job?**"
+        },
+        {
+            "timestamp": "2026-03-05T21:23:11.061093",
+            "author": "actor",
+            "text": "He's working full-time - that's over 24 hours a week."
+        },
+        {
+            "timestamp": "2026-03-05T21:23:14.176727",
+            "author": "eligibility_agent",
+            "text": "Thank you for providing all the necessary information. Let me now assess Alex's eligibility based on the Child Benefit rules.\n\nBased on the information you've provided:\n- Alex is 18 years old\n- He is not in approved education or training\n- He is working full-time (over 24 hours per week)\n\nAccording to the Child Benefit eligibility rules, you will **stop getting Child Benefit** if your child starts paid work for 24 hours or more a week and is no longer in approved education or training.\n\nSince Alex meets both of these conditions, he is no longer eligible for Child Benefit."
+        },
+        {
+            "timestamp": "2026-03-05T21:23:16.464378",
+            "author": "eligibility_agent",
+            "text": "I'm sorry to inform you that **you are not eligible for Child Benefit for Alex**. \n\nThe reason is that Alex is working full-time (over 24 hours per week) and is not in approved education or training. Child Benefit stops when a child reaches this situation, even if they are under 20 years old.\n\nIf Alex's circumstances change in the future - for example, if he returns to approved education or training - you may be able to reclaim Child Benefit at that point. If you have any questions or if his situation does change, you can contact the Child Benefit Office for further guidance."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-05T21:23:03.782245",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit/eligibility"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-05T21:23:14.176709",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 18 years old and working full-time (over 24 hours per week). According to the Child Benefit eligibility rules, you stop getting Child Benefit if your child starts paid work for 24 hours or more a week and is no longer in approved education or training. Since Alex is not in approved education or training and is working over 24 hours per week, he does not qualify for Child Benefit."
+                ],
+                "overall_reasoning": "The claimant is not eligible for Child Benefit for Alex because Alex is working full-time (over 24 hours per week) and is no longer in approved education or training, which makes him ineligible under the Child Benefit rules.\"}\n"
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_pGOGQ6asauoe6krVKBNiO5",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 18 years old and working full-time (over 24 hours per week). According to the Child Benefit eligibility rules, you stop getting Child Benefit if your child starts paid work for 24 hours or more a week and is no longer in approved education or training. Since Alex is not in approved education or training and is working over 24 hours per week, he does not qualify for Child Benefit."
+                    }
+                ],
+                "overall_reasoning": "The claimant is not eligible for Child Benefit for Alex because Alex is working full-time (over 24 hours per week) and is no longer in approved education or training, which makes him ineligible under the Child Benefit rules.\"}\n"
+            }
+        }
+    }
+}
