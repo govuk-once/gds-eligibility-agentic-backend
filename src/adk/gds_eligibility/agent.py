@@ -9,7 +9,7 @@ from google.adk.tools.tool_context import ToolContext
 
 from tools.web_scraper import read_webpage
 
-prompts_dir = Path(os.environ.get("PROMPTS_DIR", "../../../prompts"))
+prompts_dir = Path(os.environ.get("PROMPTS_DIR", "../../prompts"))
 
 def get_prompt(rel_path: str) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
