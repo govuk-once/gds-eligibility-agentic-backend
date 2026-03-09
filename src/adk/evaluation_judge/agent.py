@@ -7,7 +7,8 @@ from google.adk.agents.llm_agent import Agent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.tool_context import ToolContext
 
-from structured_specification.agent import root_agent as eligibility_agent
+from gds_eligibility.agent import root_agent as gds_eligibility
+from structured_specification.agent import root_agent as structured_specification
 
 
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
@@ -91,6 +92,7 @@ def get_conversation_pipeline(
     eligibility_model: str,
     actor_prompt_path: str,
     eligibility_prompt: str,
+    eligibility_agent: str,
     url_tool_call_allowed: bool = True
 ):
     # Instantiate the actor (the one that pretends to be the user)
@@ -103,7 +105,7 @@ def get_conversation_pipeline(
     )
 
     # Copy the production agent to create a system under test
-    agent_under_test = deepcopy(eligibility_agent)
+    agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
     agent_under_test.instruction = get_prompt(eligibility_prompt)

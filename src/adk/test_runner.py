@@ -30,7 +30,8 @@ config = {
     "output_path": "analysis/testOutputs",
     "app_name" : "evaluation_judge",
     "app_user_id" : "test_user",
-    "url_tool_call_allowed" : True
+    "url_tool_call_allowed" : True,
+    "eligibility_agent": 'structured_specification'
 }
 
 def get_short_model_name(model_string: str) -> str:
@@ -210,6 +211,7 @@ async def execute_test_case(
             config["eligibility_model_string"],
             config["actor_prompt"],
             config["eligibility_prompt"],
+            config["eligibility_agent"],
             config.get("url_tool_call_allowed", True)
         ),
     )
