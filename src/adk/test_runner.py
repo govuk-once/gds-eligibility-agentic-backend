@@ -19,18 +19,17 @@ from google.adk.utils.context_utils import Aclosing
 
 from evaluation_judge.agent import get_conversation_pipeline
 
-
 config = {
+    "hypothesis_name": "opus_rules_in_prompt",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md",
     "test_cohort": "child_benefit",
-    "hypothesis_name": "opus_accuracy_latency",
     "output_path": "analysis/testOutputs",
     "app_name" : "evaluation_judge",
     "app_user_id" : "test_user",
-    "url_tool_call_allowed" : True
+    "url_tool_call_allowed" : False
 }
 
 def get_short_model_name(model_string: str) -> str:
