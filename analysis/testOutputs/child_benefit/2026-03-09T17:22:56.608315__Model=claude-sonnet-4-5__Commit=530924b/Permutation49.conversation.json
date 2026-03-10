@@ -1,0 +1,281 @@
+{
+    "case_id": "COMBO_FAIL_FOSTER_COUNCIL_AND_APPRENTICE",
+    "meta": {
+        "permutation": 49,
+        "test_case": {
+            "case_id": "COMBO_FAIL_FOSTER_COUNCIL_AND_APPRENTICE",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 17
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": true
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": true
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": true
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 17 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 17 and not in approved education or extension period\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is fostered and the council pays for their accommodation or maintenance\n  - Child does not work 24+ hours/week\n  - Child has started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child is 17 and not in approved education or extension period; Child is fostered and the council pays for their accommodation or maintenance; Child has started an apprenticeship in England",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 17 and not in approved education or extension period",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is fostered and the council pays for their accommodation or maintenance",
+                        "Child does not work 24+ hours/week",
+                        "Child has started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-09T17:22:56.608315",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "530924b",
+            "hypothesis_name": "opus_accuracy_latency",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 61800,
+        "total_completion_tokens": 2343,
+        "total_overall_tokens": 64143,
+        "breakdown_by_agent": {
+            "child_benefit_eligibility_agent": {
+                "prompt_tokens": 31257,
+                "completion_tokens": 1988,
+                "total": 33245
+            },
+            "actor": {
+                "prompt_tokens": 30543,
+                "completion_tokens": 355,
+                "total": 30898
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 62.74
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-09T17:52:12.676460",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine if you're eligible for Child Benefit. \n\nTo assess your eligibility, I'll need to ask you some questions about your circumstances and the child or children you're asking about.\n\nLet me start with: **Do you have a child or children that you're responsible for?** If yes, could you please tell me:\n- How many children you have?\n- Their names and ages?\n\nThis will help me understand your situation and guide you through the eligibility assessment."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:14.519706",
+            "author": "actor",
+            "text": "Hello! Yes, I do have a child I'm responsible for. I have one child - Alex, who is 17 years old and lives with me here in the UK."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:18.451339",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Thank you for that information! I'll help you assess your eligibility for Child Benefit for Alex.\n\nSince Alex is 17, I need to ask: **Is Alex currently in approved education or training?**\n\nThis is important because Child Benefit can continue for 16 and 17-year-olds if they're in approved education or training (until they turn 20, or until they leave education/training if that's sooner).\n\nApproved education or training includes things like:\n- A-levels or similar qualifications\n- T-levels\n- Scottish Highers\n- NVQs up to level 3\n- Home education (if started before they turned 16)"
+        },
+        {
+            "timestamp": "2026-03-09T17:52:20.252533",
+            "author": "actor",
+            "text": "No, Alex isn't in approved education. Actually, they've started an apprenticeship - they're training to be a carpenter."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:23.838737",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Thank you for clarifying that. This is an important detail.\n\nI need to ask: **What level is Alex's apprenticeship?**\n\nSpecifically, is it:\n- An NVQ Level 3 or below, OR\n- An NVQ Level 4 or higher (such as a higher or degree apprenticeship)?\n\nThe level matters because approved training for Child Benefit purposes only includes courses up to NVQ Level 3. Higher level apprenticeships (Level 4 and above) don't qualify as approved training for Child Benefit."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:25.847068",
+            "author": "actor",
+            "text": "I'm not entirely sure of the exact level - it's just a standard apprenticeship in carpentry. Is there a difference in terms of eligibility?"
+        },
+        {
+            "timestamp": "2026-03-09T17:52:30.494760",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Yes, there is a significant difference. Let me explain:\n\nFor Child Benefit purposes, **approved training** only includes courses up to **NVQ Level 3**. Most traditional craft apprenticeships like carpentry are typically at Level 2 or Level 3, which would count as approved training.\n\nHowever, if it's a **higher apprenticeship** (Level 4 or above), it would **not** count as approved training for Child Benefit purposes, and you wouldn't be eligible.\n\n**Could you check the apprenticeship documentation or perhaps ask Alex's training provider what level the carpentry apprenticeship is?** This will help me give you an accurate assessment.\n\nAlternatively, if you'd like, I can give you conditional guidance:\n- If it's Level 3 or below \u2192 you would likely be eligible\n- If it's Level 4 or above \u2192 you would not be eligible\n\nWhich would you prefer?"
+        },
+        {
+            "timestamp": "2026-03-09T17:52:32.951751",
+            "author": "actor",
+            "text": "Oh, I see. Well, it's just a regular carpentry apprenticeship - nothing fancy like a degree apprenticeship or anything like that. It's the standard one for someone his age just starting out in the trade."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:35.934950",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Thank you for clarifying! That's very helpful. A standard carpentry apprenticeship for someone just starting out at age 17 would typically be a Level 2 or Level 3 qualification, which would count as approved training for Child Benefit purposes.\n\nNow I need to ask a few more questions to complete the eligibility assessment:\n\n**Are you or your partner (if you have one) responsible for Alex?** By this I mean - does Alex live with you, and do you have the main responsibility for them?"
+        },
+        {
+            "timestamp": "2026-03-09T17:52:37.583002",
+            "author": "actor",
+            "text": "Yes, Alex lives with me and I'm responsible for them."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:40.429670",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Great, thank you. A few more questions:\n\n1. **Do you live in the UK?** (You mentioned Alex lives with you here in the UK, but I just need to confirm your residence status)\n\n2. **Is there anyone else who might also be claiming Child Benefit for Alex?** For example, Alex's other parent or another person?"
+        },
+        {
+            "timestamp": "2026-03-09T17:52:42.297270",
+            "author": "actor",
+            "text": "Yes, I live in the UK. And no, there's no one else claiming Child Benefit for Alex - it's just me looking after them."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:45.855071",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Perfect, thank you for confirming that.\n\nJust a couple more questions to complete the assessment:\n\n1. **Is Alex currently in hospital or in care** (such as local authority care, a care home, or similar)?\n\n2. **When did Alex start this carpentry apprenticeship?** Specifically, I need to know if they started it before or after the \"terminal date\" - which is the last Monday in February after their 16th birthday, or the date they left approved education if that was later."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:48.468606",
+            "author": "actor",
+            "text": "No, Alex isn't in hospital or in care - they live at home with me.\n\nAs for when the apprenticeship started, I'm not sure exactly what you mean by that terminal date. Alex turned 16 last year and left school, then started the apprenticeship a few months after that. Does that help?"
+        },
+        {
+            "timestamp": "2026-03-09T17:52:53.228155",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Thank you for that information. Let me clarify what I need to know:\n\nThe \"terminal date\" is essentially a deadline - it's the last Monday in February after Alex turned 16, or the date they left school (whichever was later).\n\n**Child Benefit can continue after age 16 ONLY if the young person enrolls in approved education or training before this terminal date.**\n\nYou mentioned Alex:\n- Turned 16 last year\n- Left school\n- Started the apprenticeship \"a few months after that\"\n\nTo help me determine this more precisely:\n\n**What month and year did Alex turn 16, and roughly when (what month) did they start the apprenticeship?**\n\nFor example:\n- If Alex turned 16 in June 2023, the terminal date would have been the last Monday in February 2024\n- If Alex started the apprenticeship after that February date, they wouldn't qualify\n\nThis timing is crucial for eligibility."
+        },
+        {
+            "timestamp": "2026-03-09T17:52:55.890115",
+            "author": "actor",
+            "text": "Oh, I see what you mean now. Well, Alex turned 16 in early 2024, left school that summer, and then started the apprenticeship in September 2024. So it would have been within that time frame you mentioned."
+        },
+        {
+            "timestamp": "2026-03-09T17:53:00.396242",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Thank you for that clarification! That's very helpful.\n\nSo if Alex turned 16 in early 2024 (let's say around January-March 2024), then:\n- They left school in summer 2024\n- The terminal date would be the later of: the last Monday in February 2025, OR the date they left school (summer 2024)\n- Since they left school in summer 2024, the terminal date would actually be the last Monday in February 2025\n- They started the apprenticeship in September 2024\n\n**This means Alex started their approved training (the Level 2/3 carpentry apprenticeship) well before the terminal date, which is good!**\n\nNow, one final important question:\n\n**Has Alex's 20th birthday already passed, or are they still under 20?**\n\nYou mentioned Alex is 17, so I believe they're still under 20, but I need to confirm since Child Benefit stops when a young person in approved education/training turns 20."
+        },
+        {
+            "timestamp": "2026-03-09T17:53:02.305476",
+            "author": "actor",
+            "text": "Yes, Alex is 17 - they won't be 20 for another few years yet!"
+        },
+        {
+            "timestamp": "2026-03-09T17:53:11.100360",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Excellent! Thank you for confirming all of that information.\n\nBased on everything you've told me, let me assess your eligibility for Child Benefit for Alex:\n\n\u2713 Alex is 17 years old (under 20)\n\u2713 Alex is in approved training (a standard Level 2/3 carpentry apprenticeship)\n\u2713 Alex started the apprenticeship before the terminal date (September 2024, before the February 2025 deadline)\n\u2713 You live in the UK\n\u2713 Alex lives with you and you're responsible for them\n\u2713 No one else is claiming Child Benefit for Alex\n\u2713 Alex is not in hospital or care\n\n**You are eligible for Child Benefit for Alex!**\n\nYou can continue to receive Child Benefit for Alex as long as they remain in approved training and until they either:\n- Turn 20, OR\n- Leave the apprenticeship\n\nwhichever comes first.\n\nIf you haven't already claimed, you can apply for Child Benefit. If you're already receiving it, it should continue as long as Alex remains on their apprenticeship.\n\nIs there anything else you'd like to know about Child Benefit?"
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-09T17:53:11.100343",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    true
+                ],
+                "reasonings": [
+                    "Alex is 17 years old and in approved training (a standard Level 2/3 carpentry apprenticeship). Alex started the apprenticeship in September 2024, which was before the terminal date (the last Monday in February 2025, as Alex turned 16 in early 2024 and left school in summer 2024). The claimant lives in the UK, Alex lives with them, they are responsible for Alex, no one else is claiming Child Benefit for Alex, and Alex is not in hospital or care. Under UK Child Benefit rules, Child Benefit continues for 16 and 17-year-olds in approved education or training (up to NVQ Level 3) until they turn 20 or leave the training. Alex meets all eligibility criteria."
+                ],
+                "overall_reasoning": "The claimant is eligible for Child Benefit for their 17-year-old child Alex, who is enrolled in a standard carpentry apprenticeship (Level 2/3). Alex started the apprenticeship before the terminal date and is under 20 years old. The claimant lives in the UK, has responsibility for Alex who lives with them, and no one else is claiming for Alex. All eligibility criteria are met."
+            },
+            "author": "child_benefit_eligibility_agent"
+        }
+    ],
+    "child_benefit_eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_gipBN6SvXYOwavSAGH0sax",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": true,
+                        "reasoning": "Alex is 17 years old and in approved training (a standard Level 2/3 carpentry apprenticeship). Alex started the apprenticeship in September 2024, which was before the terminal date (the last Monday in February 2025, as Alex turned 16 in early 2024 and left school in summer 2024). The claimant lives in the UK, Alex lives with them, they are responsible for Alex, no one else is claiming Child Benefit for Alex, and Alex is not in hospital or care. Under UK Child Benefit rules, Child Benefit continues for 16 and 17-year-olds in approved education or training (up to NVQ Level 3) until they turn 20 or leave the training. Alex meets all eligibility criteria."
+                    }
+                ],
+                "overall_reasoning": "The claimant is eligible for Child Benefit for their 17-year-old child Alex, who is enrolled in a standard carpentry apprenticeship (Level 2/3). Alex started the apprenticeship before the terminal date and is under 20 years old. The claimant lives in the UK, has responsibility for Alex who lives with them, and no one else is claiming for Alex. All eligibility criteria are met."
+            }
+        }
+    }
+}
