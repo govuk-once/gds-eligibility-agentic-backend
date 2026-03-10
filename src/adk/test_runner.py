@@ -201,8 +201,6 @@ async def execute_test_case(
     https://github.com/google/adk-python/blob/32f2ec3a78c4ef8475b7d8a630705e4cf5ccbe50/src/google/adk/cli/cli.py#L88
     """
 
-    
-
     app = App(
         name=config["app_name"],
         root_agent=get_conversation_pipeline(
@@ -235,7 +233,8 @@ async def execute_test_case(
         },
         "performance" : {},
         "conversation": [],
-        "tool_activity": []
+        "tool_activity": [],
+        "tool_response": []
     }
 
     # Start the stopwatch
@@ -293,6 +292,17 @@ async def execute_test_case(
                                     payload[f"{event.author}_payload"] = {
                                         "response": part.function_response.dict()
                                     }
+                                elif part.function_response.name in [
+                                    "start_assessment",
+                                    "get_node_info",
+                                    "navigate_to_outcome",
+                                    "get_constants",
+                                    "get_validation_rules",
+                                    "get_specification_metadata",
+                                ]:
+                                    payload["tool_response"].append({
+                                        "response": part.function_response.dict()
+                                    })
 
                         # Log the standard text conversation
                         if text := "".join(p.text or "" for p in event.content.parts):

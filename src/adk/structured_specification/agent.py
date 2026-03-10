@@ -37,6 +37,7 @@ def get_node_info(node_id: str, tool_context: ToolContext) -> Dict[str, Any]:
     Returns:
         Dictionary containing node information
     """
+    print(f"  [Tool Call] get_node_info triggered by {tool_context.agent_name}")
     nodes = CHILD_BENEFIT_SPEC["decision_tree"]["nodes"]
 
     if node_id not in nodes:
@@ -77,6 +78,7 @@ def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str
     Returns:
         Dictionary containing the destination node information
     """
+    print(f"  [Tool Call] navigate_to_outcome triggered by {tool_context.agent_name}")
     current_node_id = tool_context.state.get("current_node")
 
     if not current_node_id:
@@ -113,29 +115,31 @@ def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str
     return get_node_info(next_node_id, tool_context)
 
 
-def get_constants() -> Dict[str, Any]:
+def get_constants(tool_context: ToolContext) -> Dict[str, Any]:
     """
     Retrieve constant values from the specification (age limits, time limits, etc.).
 
     Returns:
         Dictionary containing all constants
     """
+    print(f"  [Tool Call] get_constants triggered by {tool_context.agent_name}")
     return CHILD_BENEFIT_SPEC.get("constants", {})
 
 
-def get_validation_rules() -> Dict[str, Any]:
+def get_validation_rules(tool_context: ToolContext) -> Dict[str, Any]:
     """
     Retrieve validation rules from the specification.
 
     Returns:
         Dictionary containing validation rules
     """
+    print(f"  [Tool Call] get_validation_rules triggered by {tool_context.agent_name}")
     return CHILD_BENEFIT_SPEC.get("validation_rules", {})
 
 
 def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
     """
-    Start a new child benefit eligibility assessment.
+    Start a new child benefit eligibility assessment. ALWAYS CALL THIS WHEN STARTING A CONVERSATION ON CHILD BENEFIT ELIGIBILITY
 
     Args:
         tool_context: The tool context for state management
@@ -143,6 +147,7 @@ def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
     Returns:
         Dictionary containing the first node information
     """
+    print(f"  [Tool Call] start_assessment triggered by {tool_context.agent_name}")
     # Reset state
     tool_context.state["navigation_history"] = []
 
@@ -154,13 +159,15 @@ def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
     return get_node_info(first_node_id, tool_context)
 
 
-def get_specification_metadata() -> Dict[str, Any]:
+def get_specification_metadata(tool_context: ToolContext = None) -> Dict[str, Any]:
     """
     Get metadata about the child benefit specification.
 
     Returns:
         Dictionary containing version, source, description, etc.
     """
+    if tool_context:
+        print(f"  [Tool Call] get_specification_metadata triggered by {tool_context.agent_name}")
     return {
         "version": CHILD_BENEFIT_SPEC.get("version"),
         "last_updated": CHILD_BENEFIT_SPEC.get("last_updated"),
