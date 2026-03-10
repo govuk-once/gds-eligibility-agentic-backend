@@ -165,7 +165,11 @@ def main(input_folder_path: str = None):
 
         # Find the final judgement tool call in the activity log
         judgement_call = next(
-            (activity for activity in tool_activity if activity.get("tool_name") == "eligibility_judgement_outcome"), 
+            (
+                activity 
+                for activity in tool_activity 
+                if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
+            ), 
             None
         )
 
