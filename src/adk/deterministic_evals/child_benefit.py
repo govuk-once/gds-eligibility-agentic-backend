@@ -106,7 +106,7 @@ def main(input_folder_path: str = None):
         if not subdirs:
             print(f"No test run directories found in {base_dir.resolve()}")
             sys.exit(1)
-            
+        
         # Sort lexicographically and pick the latest
         # as they're all named things like 2026-03-04T08:55:32.859368__RepoCommit=3890395
         subdirs.sort(key=lambda x: x.name)

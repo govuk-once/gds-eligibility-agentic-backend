@@ -75,9 +75,10 @@ def get_original_conversation_pipeline(test_case: str):
         description="When given a context, it will role-play as a user in order to test another agent",
         instruction=get_prompt("agents/Ancillary/Actor-Machinelike-v1.md") + "\n" + test_case,
         #instruction=get_prompt("agents/Ancillary/Actor-Humanlike-v3.md") + "\n" + test_case,
-        tools=[exit_loop],  # Provide the exit_loop tool
+        #tools=[exit_loop],  # Provide the exit_loop tool
     )
 
+    eligibility_agent = structured_specification
     conversation_pipeline = LoopAgent(
         # Any agent instantiated outside the scope of this function should be deep-copied, as said
         # agent instance remembers its parent from previous invocations 
