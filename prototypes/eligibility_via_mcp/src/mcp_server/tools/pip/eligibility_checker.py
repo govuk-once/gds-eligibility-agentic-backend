@@ -1,6 +1,6 @@
 from mcp_server.models.eligibility_check_models import Decision, NextQuestion, Question
 
-def get_next_question(next_question: int) -> Question:
+def get_next_question_for_pip_eligibility_check(next_question: int) -> Question:
     match next_question:
         case 1:
             return Question.new("How old are you?") \
