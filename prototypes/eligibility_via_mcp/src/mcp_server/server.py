@@ -16,6 +16,15 @@ def main():
 )
 def pip_checker(next_question: int) -> Question:
     return get_next_question_for_pip_eligibility_check(next_question=next_question)
+
+@mcp.tool(
+    name="skilled_worker_visa_checker",
+    title="Skilled Worker Visa eligibility checker",
+    description="Get the next skilled worker visa eligibility question. Input 'next_question' as an integer (e.g., 1 for the first question).",
+    structured_output=True
+)
+def skilled_worker_visa_checker(next_question: int) -> Question:
+    return get_next_question_for_skilled_worker_visa_eligibility_check(next_question=next_question)
         
 if __name__ == "__main__":
     main()
