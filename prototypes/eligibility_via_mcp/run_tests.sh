@@ -8,4 +8,4 @@ if [ -z "$1" ]; then
     return 1
 fi
 
-run_with_aws_profile "$1" pytest -s tests/test_pip.py
+run_with_aws_profile "$1" pytest -s tests/
