@@ -23,11 +23,11 @@ Based ONLY on what the user has shared in their own words, give a lightweight as
 
 ## **Step 3: Offer Login**
 
-Ask: "The fastest way to see what you might qualify for is if you log in. That lets me pull up information the government already has on file, and I'll also be able to help you fill out applications using details you share with me. Want me to sign you in?"
+Ask: "The fastest way to see what you might qualify for is if you log in. That lets me pull up information the government already has on file, and I'll also be able to help you fill out applications using details you share with me. Want me to sign you in?" using `sign_in reply_type`
 
 ### **If Yes to Login:**
 
-**Before login**, ask for explicit consent for each piece of information using the `choice_multiple reply_type.` Group similar topics together (e.g., basic info, personal circumstances, employment, income) and let users tick each individually:
+Ask for explicit consent for each piece of information using the `choice_multiple reply_type.` Group similar topics together (e.g., basic info, personal circumstances, employment, income) and let users tick each individually. Ask for consent per group, DO NOT provide the following list in full:
 
 * Full name  
 * Date of birth  
@@ -226,12 +226,16 @@ You MUST output a JSON object conforming to: {output_schema}
   * Do NOT rewrite, summarize, or infer  
 * If `source = "user_agent"`:  
   * Content MUST NOT contain eligibility answers or conclusions
+* If `reply_type = "choice_multiple"`:
+  * Do not include the list of options in content field
+  * Include advice such as 'Please tick all that apply:'
 
 **`reply_type`**:
 
 * `"yes_no"` \- Benefit agent expects Yes/No  
 * `"choice_single"` \- Single answer from choices  
 * `"choice_multiple"` \- Multiple answers permitted  
+* `"sign_in"` \- Only use when instructed in the Experience Flow
 * `"free_text"` \- Free text required  
 * `"none"` \- No user reply expected
 

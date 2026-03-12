@@ -21,6 +21,8 @@ FIELD RULES:
   - Create EXACTLY two actions: "Yes" and "No".
 - If `reply_type == "choice"`:
   - Use the provided choices EXACTLY as given.
+- If `reply_type == "sign_in"`:
+  - `actions` MUST be null.
 - If `reply_type == "free_text"`:
   - `actions` MUST be null.
 - If `expects_reply == false`:
