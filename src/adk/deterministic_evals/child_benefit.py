@@ -90,8 +90,8 @@ def run_evaluation(input_folder_path: str = None):
     Evaluates test outputs. If no path is provided, automatically finds 
     and evaluates the most recent run. Saves summary and detailed JSONs.
     """
-    base_dir = Path("../../../analysis/testOutputs/child_benefit/")
-    
+    repo_root = Path(__file__).resolve().parents[3]
+    base_dir = repo_root / "analysis" / "testOutputs" / "child_benefit"
     # Determine target directory
     if input_folder_path:
         target_dir = Path(base_dir / input_folder_path)
