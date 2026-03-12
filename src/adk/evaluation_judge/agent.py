@@ -102,7 +102,7 @@ def get_conversation_pipeline(
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
         instruction=get_prompt(actor_prompt_path) + "\n" + situation_profile,
-        tools=[exit_loop],
+        #tools=[exit_loop],
     )
 
     # Copy the production agent to create a system under test
