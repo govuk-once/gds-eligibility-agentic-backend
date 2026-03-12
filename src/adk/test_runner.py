@@ -20,9 +20,9 @@ from google.adk.utils.context_utils import Aclosing
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "opus_rules_in_prompt",
+    "hypothesis_name": "sonnet_rules_in_prompt",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-opus-4-5-20251101-v1:0",
+    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md",
     "test_cohort": "child_benefit",
