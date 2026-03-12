@@ -10,7 +10,7 @@ def get_next_question_for_pip_eligibility_check(next_question: int) -> Question:
         case 2:
             return Question.new("Do you live in England or Wales?") \
                 .add_answer_and_outcome("Yes", NextQuestion.new(3)) \
-                .add_answer_and_outcome("No", Decision.new(False, "If you live in Scotland, you can apply for 'Adulut Disability Payment' instead.")
+                .add_answer_and_outcome("No", Decision.new(False, "If you live in Scotland, you can apply for 'Adult Disability Payment' instead.")
             )
         case 3:
             return Question.new("Have you lived in the UK for at least 2 of the last 3 years?") \
