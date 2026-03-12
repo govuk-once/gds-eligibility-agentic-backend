@@ -39,4 +39,3 @@ particular criteria
 To run this agent, run the following from my root directory in a terminal:
 
 `$ chmod+x generate_eligibility_service.sh && ./generate_eligibility_service.sh <AWS-VAULT-PROFILE-THAT-CAN-ACCESS-AGENT-FOUNDATIONAL-MODELS>`
-

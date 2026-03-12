@@ -1,6 +1,7 @@
 from mcp.server.fastmcp import FastMCP
-from mcp_server.models.eligibility_check_models import Question
+from mcp_server.models.eligibility_check_models import Implications, Question
 from mcp_server.tools.pip.eligibility_checker import get_next_question_for_pip_eligibility_check
+from mcp_server.tools.pip.eligibility_implications import check_pip_eligibility_implications
 from mcp_server.tools.skilled_worker_visa.eligibility_checker import get_next_question_for_skilled_worker_visa_eligibility_check
 
 mcp = FastMCP("eligibility_tools")
@@ -14,8 +15,17 @@ def main():
     description="Get the next PIP eligibility question. Input 'next_question' as an integer (e.g., 1 for the first question).",
     structured_output=True
 )
-def pip_checker(next_question: int) -> Question:
+def pip_eligibility_checker(next_question: int) -> Question:
     return get_next_question_for_pip_eligibility_check(next_question=next_question)
+
+@mcp.tool(
+    name="pip_implications_checker",
+    title="Personal Independence Payments implications checker",
+    description="Retrieve any benefit implications that may occur if a user applies for personal independence payments and is found eligible",
+    structured_output=True
+)
+def pip_implications_checker() -> Implications:
+    return check_pip_eligibility_implications()
 
 @mcp.tool(
     name="skilled_worker_visa_checker",
