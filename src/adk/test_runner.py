@@ -54,6 +54,50 @@ def get_short_model_name(model_string: str) -> str:
     # Stitch it back together
     return "-".join(clean_parts)
 
+def delete_malformed_json(output_dir: Path) -> None:
+    """
+    This is for if you use the --resume flag. If it was interrupted
+    because the credentials went stale you usually end up with a
+    malformed json which needs to be deleted.
+    
+    This checks the most recently written json file in the directory. 
+    Deletes it if it contains invalid json or is missing top-level keys 
+    compared to the previous file, ensuring clean resumption.
+    """
+    # Sort files by modification time to grab the last written file
+    json_files = sorted(list(output_dir.glob("*.json")), key=lambda p: p.stat().st_mtime)
+    
+    if not json_files:
+        return
+
+    last_file = json_files[-1]
+    is_malformed = False
+    last_data = None
+    
+    # Check: Is it valid, parseable JSON?
+    try:
+        with open(last_file, 'r') as f:
+            last_data = json.load(f)
+    except json.JSONDecodeError:
+        is_malformed = True
+        
+    # Check: Does it have all the expected logical keys?
+    if not is_malformed and last_data is not None and len(json_files) > 1:
+        prev_file = json_files[-2]
+        try:
+            with open(prev_file, 'r') as f:
+                prev_data = json.load(f)
+            
+            # Compare top-level keys
+            if set(last_data.keys()) != set(prev_data.keys()):
+                is_malformed = True
+        except json.JSONDecodeError:
+            # This shouldn't happen but
+            pass # ignore for now if the previous file is somehow completely broken
+            
+    if is_malformed:
+        print(f"🧹 Deleting interrupted/incomplete file so it can be re-run: {last_file.name}")
+        last_file.unlink()
 
 def get_or_create_output_directory(resume_val: str | None, execution_datetime: str, git_commit: str) -> Path:
     """
@@ -86,6 +130,7 @@ def get_or_create_output_directory(resume_val: str | None, execution_datetime: s
             
         latest_dir = max(directories, key=lambda d: d.name)
         print(f"RESUMING LATEST RUN: {latest_dir.name}")
+        delete_malformed_json(latest_dir)
         return latest_dir
 
     # Explicit resume (--resume specific_folder_name)
