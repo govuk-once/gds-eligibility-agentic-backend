@@ -17,6 +17,7 @@ async def test_pip_happy_path():
     .do_you_need_help_or_struggle_with_any_of_the_following_tasks_for_over_half_of_any_given_day("Yes") \
     .clarify_health_condition_tasks_qualification_terms() \
     .with_respect_to_those_tasks_do_any_of_the_following_apply("Yes") \
+    .would_you_like_me_to_check_what_implications_there_are_with_other_benefits_if_you_were_apply_and_be_found_eligible("Yes") \
     .run()
 
 @pytest.mark.agent_test
@@ -114,7 +115,3 @@ async def test_pip_health_condition_issue_qualification_ineligible():
     .do_you_need_help_or_struggle_with_any_of_the_following_tasks_for_over_half_of_any_given_day("Yes") \
     .with_respect_to_those_tasks_do_any_of_the_following_apply("No") \
     .run()
-
-
-        
-    
