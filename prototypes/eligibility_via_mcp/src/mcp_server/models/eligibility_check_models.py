@@ -33,3 +33,14 @@ class Question(BaseModel):
     def add_to_glossary(self, term: str, definition: str) -> Question:
         self.glossary.update({term: definition})
         return self
+    
+class Implications(BaseModel):
+    value: dict[str, str] = {}
+
+    @classmethod
+    def new(cls):
+        return cls()
+    
+    def add(self, implicated_benefit: str, explanation: str) -> Implications:
+        self.value.update({implicated_benefit: explanation})
+        return self
