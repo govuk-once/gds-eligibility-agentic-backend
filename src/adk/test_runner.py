@@ -1,5 +1,4 @@
 import asyncio
-from collections import defaultdict
 from datetime import datetime
 import time
 import json
@@ -16,6 +15,8 @@ from google.adk.auth.credential_service.in_memory_credential_service import (
 from google.adk.runners import Runner
 from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
+
+from deterministic_evals.child_benefit import run_evaluation
 
 from evaluation_judge.agent import get_conversation_pipeline
 
@@ -196,9 +197,15 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
             config["test_cohort"],
             meta,
         )
-    # run(
-    #    ["rg", "✗", output_dir, "--stats"], capture_output=False, check=False, text=True
-    # )  # Don't check as no results returns error
+
+    # Only run evaluation automatically if loop completes and it's a full run
+    if n_cases is None:    
+        print(f"Test execution complete! Triggering deterministic evaluator for {output_dir.name}...")
+        try:
+            # Pass just the string name of the folder, as expected by run_evaluation()
+            run_evaluation(output_dir.name) 
+        except Exception as e:
+            print(f"⚠️ Run finished, but evaluator failed to execute: {e}")
 
 def update_token_usage(event, usage_dict: dict) -> None:
     """Extracts token metrics from an ADK event and updates the usage tracker in place."""

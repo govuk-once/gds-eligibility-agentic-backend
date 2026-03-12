@@ -14,10 +14,77 @@
 
 ## Test Runner
 
+The test runner evaluates the agent against predefined cohorts (e.g., Child Benefit) and logs the results, tool activity, performance, and token usage for downstream analysis.
+
+### 1. Configuration
+
+Before starting a run, open `test_runner.py` and set your experiment parameters in the configuration dictionary. Key levers include:
+* `eligibility_agent`: The underlying agent architecture. Valid options are:
+  * `"gds_eligibility"`: The original agent. Uses free text inputs (LLM reasoning + web requests or static prompts).
+  * `"structured_specification"`: The structured agent. Relies on a deterministic JSON decision-tree tool.
+* `eligibility_model_string`: The Bedrock model ID for the eligibility agent to use (e.g., `"bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"`).
+* `eligibility_prompt`: Path to the specific markdown prompt you are testing (e.g. `"agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"`)
+* `url_tool_call_allowed`: Set to `True` to allow agentic web browsing, or `False` for static context/parametric memory tests.
+
+### 2. Basic execution
+To start a fresh evaluation run:
+
 1. `cd ./src/adk`
 2. `uv venv --allow-existing && uv sync --dev`
 3. `source ./.venv/bin/activate`
 4. `aws-vault exec <AWS_PROFILE> -- python3 ./test_runner.py`
+
+### 3.Limiting test cases (`--n_cases`):
+
+Use this flag to limit the number of cases executed. Highly recommended for quick tests to save time and costs before running a full cohort.
+
+```bash
+aws-vault exec <AWS_PROFILE> -- python3 ./test_runner.py --n_cases 1
+```
+
+### 4. Resuming interrupted runs
+If a run times out or is manually interrupted, you can resume it without losing your progress. The runner will automatically detect and clean up any malformed files from the interruption. 
+
+Append the `--resume` flag to your run command:
+
+* **To resume the most recent run:**
+
+```bash
+aws-vault exec <AWS_PROFILE> -- python3 ./test_runner.py --resume
+```
+
+**To resume a specific run:**
+    
+Pass the exact output directory name as the argument.
+
+```bash
+aws-vault exec <AWS_PROFILE> -- python3 ./test_runner.py --resume "2026-03-04T17:22:27.476356__Model=claude-sonnet-4-5__Commit=cce7a2c"
+```
+
+_(Note: Ensure your configuration parameters in `test_runner.py` match exactly what was used during that original run)._
+
+### 5. Deterministic evaluations
+
+The test runner will **automatically** trigger the deterministic evaluator (`src/adk/deterministic_evals/run_evaluation.py`) at the end of a successful run to grade the agent's accuracy and generate a `summary.json` report.
+
+**Note on Partial Runs (`--n_cases`):** To prevent polluting overall metrics with incomplete data, the auto-evaluator is **disabled** if you use the `--n_cases` flag. It only triggers automatically for full cohort runs.
+
+**Standalone Re-Evaluation:**
+If you update the grading logic, or if you want to force an evaluation on a partial debugging run, you can run the evaluator manually as a standalone script. 
+
+**To evaluate the most recent run:** (Automatically finds the latest directory)
+
+```bash
+python3 ./deterministic_evals/run_evaluation.py
+```
+
+To evaluate a specific historical run: (Pass the specific folder name as an argument):
+
+```bash
+python3 ./deterministic_evals/run_evaluation.py "2026-03-04T17:22:27.476356__Model=claude-sonnet-4-5__Commit=cce7a2c"
+```
+
+This creates all the files necessary to run the notebooks in the `analysis` directory.
 
 ## Judge Runner
 
