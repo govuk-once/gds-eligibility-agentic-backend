@@ -20,13 +20,12 @@ from google.adk.utils.context_utils import Aclosing
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "sonnet_rules_in_prompt",
+    "hypothesis_name": "structured_specification",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md",
     "test_cohort": "child_benefit",
-    "hypothesis_name": "structured_specification",
     "output_path": "analysis/testOutputs",
     "app_name" : "evaluation_judge",
     "app_user_id" : "test_user",
