@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/eligibility-schema.json",
-  "version": "1.2",
-  "last_updated": "2026-03-03",
+  "version": "2.0",
+  "last_updated": "2026-03-12",
   "source": "https://www.gov.uk/skilled-worker-visa",
   "description": "Machine-readable representation of UK Skilled Worker Visa eligibility criteria - Enhanced with Phase 1 & Phase 2 improvements",
 
@@ -99,7 +99,7 @@
 
       "check_guaranteed_salary_structure": {
         "id": "check_guaranteed_salary_structure",
-        "type": "salary_check",
+        "type": "criteria_check",
         "question": "Is the salary guaranteed basic gross pay with valid contract structure?",
         "help_text": "Only guaranteed basic gross salary counts. Excludes bonuses, commission, allowances, equity. Contract must guarantee minimum hours. Calculation capped at 48 hours/week.",
         "reference": "https://www.gov.uk/skilled-worker-visa/your-job",
@@ -129,7 +129,7 @@
 
       "check_part_time_eligibility": {
         "id": "check_part_time_eligibility",
-        "type": "salary_check",
+        "type": "criteria_check",
         "question": "If part-time: does actual gross annual salary meet the general threshold (even if hourly rate pro-rates correctly)?",
         "help_text": "Part-time workers: Going rate can be pro-rated by hours worked, BUT the general salary threshold (£41,700 standard, £33,400 reduced routes, £29,000 transitional) CANNOT be pro-rated. Actual gross annual salary must still meet the applicable absolute floor.",
         "reference": "https://www.gov.uk/skilled-worker-visa/your-job",
@@ -164,7 +164,7 @@
 
       "check_transitional_salary": {
         "id": "check_transitional_salary",
-        "type": "salary_check",
+        "type": "criteria_check",
         "question": "Does the salary meet transitional requirements?",
         "help_text": "For transitional cases: salary must be at least £29,000 per year AND meet the 25th percentile (lower) going rate for the occupation",
         "reference": "https://www.gov.uk/skilled-worker-visa/if-you-got-your-first-certificate-of-sponsorship-before-4-april-2024",
@@ -182,9 +182,9 @@
 
       "check_occupation_eligibility": {
         "id": "check_occupation_eligibility",
-        "type": "occupation_check",
-        "question": "Is the job eligible for Skilled Worker visa?",
-        "help_text": "Job must have a 4-digit SOC 2020 occupation code and be on the eligible occupations list",
+        "type": "routing",
+        "description": "Determine occupation eligibility tier",
+        "routing_logic": "Job must have a 4-digit SOC 2020 occupation code and be on the eligible occupations list. Higher skilled jobs proceed directly. Medium skilled jobs must be on Immigration Salary List or Temporary Shortage List.",
         "reference": "https://www.gov.uk/government/publications/skilled-worker-visa-eligible-occupations",
         "outcomes": {
           "higher_skilled": "determine_salary_threshold",
@@ -218,7 +218,7 @@
 
       "check_healthcare_education_salary": {
         "id": "check_healthcare_education_salary",
-        "type": "salary_check",
+        "type": "criteria_check",
         "question": "Does the salary meet healthcare/education requirements?",
         "help_text": "Salary must be at least £25,000 AND meet the national pay scale going rate for the specific job",
         "reference": "https://www.gov.uk/skilled-worker-visa/if-you-work-in-healthcare-or-education",
@@ -247,7 +247,7 @@
 
       "check_standard_salary_requirement": {
         "id": "check_standard_salary_requirement",
-        "type": "salary_check",
+        "type": "criteria_check",
         "question": "Does the salary meet the standard requirements?",
         "help_text": "Salary must be at least £41,700 per year OR the going rate for the job, whichever is HIGHER",
         "reference": "https://www.gov.uk/skilled-worker-visa/your-job",
@@ -268,8 +268,7 @@
         "question": "Is the applicant eligible for reduced salary requirements?",
         "help_text": "Multiple paths can qualify for paying between 70-90% of going rate. If ANY path is satisfied, applicant proceeds to English language check.",
         "reference": "https://www.gov.uk/skilled-worker-visa/when-you-can-be-paid-less",
-        "minimum_salary_for_reduction": 33400,
-        "evaluation_logic": "Check each path in any order. If applicant meets criteria for ANY path, outcome is 'eligible_via_any_path'. If NONE are met, outcome is 'not_eligible'.",
+        "evaluation_logic": "Check each path in any order. If applicant meets criteria for ANY path, outcome is 'eligible_via_any_path'. If NONE are met, outcome is 'not_eligible'. Minimum salary for all reduced routes is £33,400.",
         "paths": [
           {
             "id": "immigration_salary_list",
@@ -366,9 +365,8 @@
         "id": "check_english_language",
         "type": "multi_path_check",
         "question": "Does the applicant meet English language requirements?",
-        "help_text": "Must prove English to at least B2 CEFR level unless exempt",
+        "help_text": "Must prove English to at least B2 CEFR level (read, write, speak, understand) unless exempt",
         "reference": "https://www.gov.uk/skilled-worker-visa/knowledge-of-english",
-        "required_level": "B2 CEFR (read, write, speak, understand)",
         "paths": [
           {
             "id": "exempt_nationality",
@@ -421,7 +419,7 @@
 
       "check_financial_requirement": {
         "id": "check_financial_requirement",
-        "type": "financial_check",
+        "type": "criteria_check",
         "question": "Does the applicant meet financial requirements?",
         "help_text": "Must have £1,270 available unless exempt",
         "reference": "https://www.gov.uk/skilled-worker-visa/how-much-it-costs",

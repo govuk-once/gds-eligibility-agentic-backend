@@ -62,9 +62,8 @@ def validate_specification(spec, spec_name):
 
                 # Validate node types
                 valid_types = [
-                    "boolean_question", "multi_path_check", "salary_check",
-                    "financial_check", "occupation_check", "conditional_check",
-                    "complex_criteria", "routing", "outcome"
+                    "boolean_question", "multi_path_check", "criteria_check",
+                    "conditional_check", "complex_criteria", "routing", "outcome"
                 ]
 
                 if node_type not in valid_types:
@@ -120,7 +119,7 @@ def validate_specification(spec, spec_name):
                     if "outcomes" not in node:
                         errors.append(f"Routing node '{node_id}' missing 'outcomes'")
 
-                elif node_type in ["salary_check", "financial_check"]:
+                elif node_type == "criteria_check":
                     if "question" not in node:
                         errors.append(f"{node_type} '{node_id}' missing 'question'")
                     if "criteria" not in node:
@@ -128,7 +127,7 @@ def validate_specification(spec, spec_name):
                     if "outcomes" not in node:
                         errors.append(f"{node_type} '{node_id}' missing 'outcomes'")
 
-                elif node_type in ["multi_path_check", "occupation_check", "conditional_check", "complex_criteria"]:
+                elif node_type in ["multi_path_check", "conditional_check", "complex_criteria"]:
                     if "question" not in node:
                         errors.append(f"{node_type} '{node_id}' missing 'question'")
                     if "outcomes" not in node:
