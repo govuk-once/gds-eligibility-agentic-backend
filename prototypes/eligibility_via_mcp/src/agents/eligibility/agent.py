@@ -11,7 +11,7 @@ load_dotenv()
 
 mcp_client = MCPClient(lambda: stdio_client(
     StdioServerParameters(
-        command='/opt/homebrew/bin/uv',
+        command='uv',
         args=["--quiet", "--directory", str((Path(__file__).parent / "../../mcp_server").resolve()), "run", "server.py"]
     )
 ))
