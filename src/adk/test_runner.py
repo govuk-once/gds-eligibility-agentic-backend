@@ -5,6 +5,7 @@ import json
 from subprocess import run
 from pathlib import Path
 import argparse
+import random
 
 from google.genai import types
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
@@ -31,7 +32,15 @@ config = {
     "app_name" : "evaluation_judge",
     "app_user_id" : "test_user",
     "url_tool_call_allowed" : True,
-    "eligibility_agent": 'structured_specification'
+    "eligibility_agent": 'structured_specification',
+    "max_concurrent_cases" : 20,
+    # 20 is fine for Sonnet (limits: requests/min 10k, tokens/min 5m)
+    # 30 is too too many.
+    # For Opus the requests/min are 10k and tokens/min 2m
+    # other models may vary.
+    # check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
+    "max_retries" : 3,
+    "base_delay" : 5 # seconds (if request fails)
 }
 
 def get_short_model_name(model_string: str) -> str:
@@ -54,51 +63,6 @@ def get_short_model_name(model_string: str) -> str:
         clean_parts.append(part)
     # Stitch it back together
     return "-".join(clean_parts)
-
-def delete_malformed_json(output_dir: Path) -> None:
-    """
-    This is for if you use the --resume flag. If it was interrupted
-    because the credentials went stale you usually end up with a
-    malformed json which needs to be deleted.
-    
-    This checks the most recently written json file in the directory. 
-    Deletes it if it contains invalid json or is missing top-level keys 
-    compared to the previous file, ensuring clean resumption.
-    """
-    # Sort files by modification time to grab the last written file
-    json_files = sorted(list(output_dir.glob("*.json")), key=lambda p: p.stat().st_mtime)
-    
-    if not json_files:
-        return
-
-    last_file = json_files[-1]
-    is_malformed = False
-    last_data = None
-    
-    # Check: Is it valid, parseable JSON?
-    try:
-        with open(last_file, 'r') as f:
-            last_data = json.load(f)
-    except json.JSONDecodeError:
-        is_malformed = True
-        
-    # Check: Does it have all the expected logical keys?
-    if not is_malformed and last_data is not None and len(json_files) > 1:
-        prev_file = json_files[-2]
-        try:
-            with open(prev_file, 'r') as f:
-                prev_data = json.load(f)
-            
-            # Compare top-level keys
-            if set(last_data.keys()) != set(prev_data.keys()):
-                is_malformed = True
-        except json.JSONDecodeError:
-            # This shouldn't happen but
-            pass # ignore for now if the previous file is somehow completely broken
-            
-    if is_malformed:
-        print(f"🧹 Deleting interrupted/incomplete file so it can be re-run: {last_file.name}")
-        last_file.unlink()
 
 def get_or_create_output_directory(resume_val: str | None, execution_datetime: str, git_commit: str) -> Path:
     """
@@ -131,7 +95,6 @@ def get_or_create_output_directory(resume_val: str | None, execution_datetime: s
             
         latest_dir = max(directories, key=lambda d: d.name)
         print(f"RESUMING LATEST RUN: {latest_dir.name}")
-        delete_malformed_json(latest_dir)
         return latest_dir
 
     # Explicit resume (--resume specific_folder_name)
@@ -140,6 +103,53 @@ def get_or_create_output_directory(resume_val: str | None, execution_datetime: s
         raise FileNotFoundError(f"Cannot resume. Directory does not exist: {output_dir}")
     print(f"RESUMING SPECIFIC RUN: {output_dir.name}")
     return output_dir
+
+def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> bool:
+    """
+    Checks if an output file exists and is completely written.
+    If it is incomplete or corrupted, it deletes the file so it can be re-run.
+    This is for the --resume case. If it was interruped then we get a corrupted json
+    which causes problems later.
+    
+    Returns:
+        bool: True if the file is fully complete (meaning the case should be skipped).
+              False if the file doesn't exist or was deleted (meaning the case needs to run).
+    """
+    if not output_file_path.exists():
+        return False
+
+    is_complete = False
+    try:
+        with open(output_file_path, 'r') as f:
+            data = json.load(f)
+            
+            # Check 1: Did the file write successfully to the end?
+            if "performance" in data and "duration_seconds" in data["performance"]:
+                
+                # Check 2: Did the agent actually finish the task before the file was saved?
+                # A successful run MUST have the final judgement payload or tool call
+                tool_activity = data.get("tool_activity", [])
+                
+                # Look for the final tool call that proves the agent didn't crash mid-conversation
+                has_final_judgement = any(
+                    activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
+                    for activity in tool_activity
+                )
+                
+                if has_final_judgement:
+                    is_complete = True
+                    
+    except json.JSONDecodeError:
+        pass # File is half-written and corrupted
+
+    if is_complete:
+        print(f"Skipping {case_name} (Already complete)")
+        return True
+    
+    # If we get here, the file exists but crashed/timed out before finishing the task
+    print(f"Deleting incomplete/crashed file for {case_name}")
+    output_file_path.unlink() 
+    return False
 
 async def main(resume_val: str | None = None, n_cases: int | None = None):
 
@@ -157,55 +167,92 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
         test_cases = test_cases[:n_cases]
         print(f"Limiting execution to the first {n_cases} test cases.")
 
-    for test_id, test_case in enumerate(test_cases, start=1):
-        
-        # To handle the --resume flag. Skip if already exists:
-        expected_filename = f"Permutation{test_id}.conversation.json" 
-        output_file_path = output_dir / expected_filename
-        
-        if output_file_path.exists():
+    # Concurrency. max_concurrent_cases = 20 reduced a 2 hour Sonnet run to about 6 mins
+    semaphore = asyncio.Semaphore(config["max_concurrent_cases"])
+
+    async def run_case_concurrently(test_id, test_case):
+        async with semaphore:
+            
+            # For --resume case. Can't just check if it exists, need to make sure it's written fully (with judgment playload).
+            expected_filename = f"Permutation{test_id}.conversation.json" 
+            output_file_path = output_dir / expected_filename
             case_name = test_case.get('case_id', f"Permutation {test_id}")
-            print(f"⏩ Skipping {case_name} (Already exists in target directory)")
-            continue
+            if check_and_clean_existing_output(output_file_path, case_name):
+                return
 
-        meta = {
-            "permutation": test_id,
-            "test_case": test_case,
-            "execution_datetime": execution_datetime,
-            "run_config": {
-                "actor_model_string": config["actor_model_string"],
-                "test_cohort": config["test_cohort"],
-                "commit": git_commit,
-                "hypothesis_name": config["hypothesis_name"],
-                "eligibility_model_string": config["eligibility_model_string"],
-                "actor_prompt": config["actor_prompt"],
-                "eligibility_prompt": config["eligibility_prompt"],
-                "test_set_size": len(test_cases),
-                "url_tool_call_allowed" : config.get("url_tool_call_allowed", True)
-            },
-        }
-        session_service = InMemorySessionService()
-        artifact_service = InMemoryArtifactService()
-        credential_service = InMemoryCredentialService()
-        await execute_test_case(
-            test_id,
-            test_case,
-            session_service,
-            artifact_service,
-            credential_service,
-            output_dir,
-            config["test_cohort"],
-            meta,
-        )
+            meta = {
+                "permutation": test_id,
+                "test_case": test_case,
+                "execution_datetime": execution_datetime,
+                "run_config": {
+                    "actor_model_string": config["actor_model_string"],
+                    "test_cohort": config["test_cohort"],
+                    "commit": git_commit,
+                    "hypothesis_name": config["hypothesis_name"],
+                    "eligibility_model_string": config["eligibility_model_string"],
+                    "actor_prompt": config["actor_prompt"],
+                    "eligibility_prompt": config["eligibility_prompt"],
+                    "test_set_size": len(test_cases),
+                    "url_tool_call_allowed" : config.get("url_tool_call_allowed", True),
+                    "max_concurrent_cases" : config["max_concurrent_cases"]
+                },
+            }
+            
 
-    # Only run evaluation automatically if loop completes and it's a full run
+            for attempt in range(config["max_retries"]):
+                try:
+                    # Instantiate services inside the execution block so they are totally isolated
+                    session_service = InMemorySessionService()
+                    artifact_service = InMemoryArtifactService()
+                    credential_service = InMemoryCredentialService()
+                    
+                    print(f"▶️ Starting {case_name}...")
+                    await execute_test_case(
+                        test_id,
+                        test_case,
+                        session_service,
+                        artifact_service,
+                        credential_service,
+                        output_dir,
+                        config["test_cohort"],
+                        meta,
+                    )
+                    break # Success! Break out of the retry loop.
+                    
+                except Exception as e:
+                    error_str = str(e).lower()
+                    # Pretty quick and dirty test for hitting API limits...
+                    if "throttl" in error_str or "rate limit" in error_str or "429" in error_str:
+                        if attempt < config["max_retries"] - 1:
+                            # Exponential backoff with a random jitter
+                            sleep_time = (config["base_delay"] * (2 ** attempt)) + random.uniform(0, 1)
+                            print(f"⚠️ Rate limited on {case_name}. Retrying in {sleep_time:.1f}s...")
+                            await asyncio.sleep(sleep_time)
+                        else:
+                            print(f"❌ Failed {case_name} after {config["max_retries"]} attempts due to rate limits.")
+                            raise e
+                    else:
+                        # If it's a normal code bug or framework error, crash so we can fix it
+                        print(f"❌ Fatal Error in {case_name}: {e}")
+                        raise e
+
+    # This prepares all cases, and the semaphore above ensures only config["max_concurrent_cases"] run at once
+    tasks = []
+    for test_id, test_case in enumerate(test_cases, start=1):
+        tasks.append(run_case_concurrently(test_id, test_case))
+        
+    await asyncio.gather(*tasks)
+
+    # Auto-evaluate only on full funs
     if n_cases is None:    
-        print(f"Test execution complete! Triggering deterministic evaluator for {output_dir.name}...")
+        print(f"\nTest execution complete! Triggering deterministic evaluator for {output_dir.name}...")
         try:
-            # Pass just the string name of the folder, as expected by run_evaluation()
             run_evaluation(output_dir.name) 
+            print("Evaluation complete. Summary report generated.")
         except Exception as e:
-            print(f"⚠️ Run finished, but evaluator failed to execute: {e}")
+            print(f"Run finished, but evaluator failed to execute: {e}")
+    else:
+        print("\nSkipping automatic evaluation because --n_cases was used.")
 
 def update_token_usage(event, usage_dict: dict) -> None:
     """Extracts token metrics from an ADK event and updates the usage tracker in place."""
