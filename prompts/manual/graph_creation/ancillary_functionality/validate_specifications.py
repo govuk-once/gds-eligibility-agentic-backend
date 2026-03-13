@@ -158,7 +158,8 @@ def main():
     spec_files = [
         "../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json",
         "../specifications/child_benefit/child_benefit_eligibility.json",
-        "../specifications/universal_credit/universal_credit_eligibility.json"
+        "../specifications/universal_credit/universal_credit_eligibility.json",
+        "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json"
     ]
 
     all_valid = True

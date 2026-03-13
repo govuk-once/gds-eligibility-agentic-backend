@@ -1,0 +1,762 @@
+{
+  "$schema": "../../schemas/eligibility-schema.json",
+  "version": "1.0",
+  "last_updated": "2026-03-13",
+  "source": "https://www.gov.uk/pip",
+  "description": "Machine-readable representation of UK Personal Independence Payment (PIP) eligibility criteria",
+
+  "decision_tree": {
+    "root": {
+      "id": "start",
+      "type": "start",
+      "description": "Personal Independence Payment (PIP) Eligibility Assessment",
+      "next": "check_geographic_eligibility"
+    },
+
+    "nodes": {
+      "check_geographic_eligibility": {
+        "id": "check_geographic_eligibility",
+        "type": "routing",
+        "description": "Determine if applicant is in correct geographic region for PIP",
+        "routing_logic": "PIP only applies in England and Wales. Scotland has Adult Disability Payment (ADP) instead.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "outcomes": {
+          "england_or_wales": "check_age_eligibility",
+          "scotland": "INELIGIBLE_wrong_geography_scotland",
+          "northern_ireland": "INELIGIBLE_wrong_geography_ni",
+          "outside_uk": "check_abroad_eligibility"
+        }
+      },
+
+      "check_abroad_eligibility": {
+        "id": "check_abroad_eligibility",
+        "type": "multi_path_check",
+        "question": "Does the applicant meet any of the criteria for claiming PIP while abroad?",
+        "help_text": "PIP can be claimed while abroad in limited circumstances: temporarily abroad (up to 13 weeks, or 26 weeks for medical treatment), living in EU/EEA/Switzerland with qualifying work connections (daily living component only), or serving in/with Armed Forces.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "evaluation_logic": "OR logic - meeting any one path satisfies the requirement",
+        "paths": [
+          {
+            "id": "temporary_abroad",
+            "description": "Temporarily abroad for up to 13 weeks (or 26 weeks for medical treatment)",
+            "requirement": "Must have established PIP entitlement in UK before leaving and plan to return"
+          },
+          {
+            "id": "eea_with_work_connection",
+            "description": "Living in EU/EEA/Switzerland with UK work connection",
+            "requirement": "You or family member work in UK or pay UK National Insurance, and you're covered by Withdrawal Agreement (daily living component only)"
+          },
+          {
+            "id": "armed_forces",
+            "description": "Serving in or with UK Armed Forces",
+            "requirement": "Active service personnel or accompanying family member"
+          }
+        ],
+        "outcomes": {
+          "meets_any_path": "check_age_eligibility",
+          "meets_none": "INELIGIBLE_abroad_no_qualifying_circumstances"
+        }
+      },
+
+      "check_age_eligibility": {
+        "id": "check_age_eligibility",
+        "type": "conditional_check",
+        "question": "What is the applicant's age in relation to State Pension age?",
+        "help_text": "New claims: must be 16+ and under State Pension age. Exception: Can claim over State Pension age if received PIP or ADP in last 12 months. Under 16: not eligible for PIP.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "outcomes": {
+          "under_16": "INELIGIBLE_too_young",
+          "16_to_state_pension_age": "check_health_condition_exists",
+          "over_state_pension_age_with_recent_pip": "check_health_condition_exists",
+          "over_state_pension_age_no_recent_pip": "INELIGIBLE_over_state_pension_age"
+        }
+      },
+
+      "check_health_condition_exists": {
+        "id": "check_health_condition_exists",
+        "type": "boolean_question",
+        "question": "Does the applicant have a long-term physical or mental health condition or disability?",
+        "help_text": "Long-term means expected to last at least 12 months from when difficulties started. Includes physical disabilities, mental health conditions, learning disabilities, and chronic illnesses.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "outcomes": {
+          "yes": "check_condition_duration",
+          "no": "INELIGIBLE_no_health_condition"
+        }
+      },
+
+      "check_condition_duration": {
+        "id": "check_condition_duration",
+        "type": "routing",
+        "description": "Check if condition meets duration requirements or end-of-life criteria",
+        "routing_logic": "Standard: difficulties expected to last 12+ months. Special rules: medical professional says 12 months or less to live (terminal illness).",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "outcomes": {
+          "expected_12_months_or_more": "check_difficulty_frequency",
+          "terminal_illness": "check_presence_test",
+          "less_than_12_months": "INELIGIBLE_condition_duration_too_short"
+        }
+      },
+
+      "check_difficulty_frequency": {
+        "id": "check_difficulty_frequency",
+        "type": "boolean_question",
+        "question": "Does the applicant have difficulty with daily living or mobility tasks more than half of the time (more than 50% of days over a 12-month period)?",
+        "help_text": "Difficulty means needing help from a person, using aids/equipment, taking longer than usual, being unable to do tasks safely or to an acceptable standard. Must apply to more than half the days in a 12-month period.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "outcomes": {
+          "yes": "check_presence_test",
+          "no": "INELIGIBLE_insufficient_difficulty_frequency"
+        }
+      },
+
+      "check_presence_test": {
+        "id": "check_presence_test",
+        "type": "multi_path_check",
+        "question": "Does the applicant meet the presence test requirements?",
+        "help_text": "Standard requirement: physically present in Great Britain at claim time AND present for 104 weeks out of last 156 weeks (2 out of 3 years). Several exemptions exist.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "evaluation_logic": "OR logic - meeting standard test or any exemption satisfies requirement",
+        "paths": [
+          {
+            "id": "standard_presence_test",
+            "description": "Met standard presence test",
+            "criteria": [
+              "Physically present in Great Britain when making claim",
+              "Present in Great Britain for 104 weeks out of last 156 weeks (2 out of 3 years, not necessarily continuous)"
+            ]
+          },
+          {
+            "id": "terminal_illness_exemption",
+            "description": "Terminal illness exemption",
+            "requirement": "Medical professional says 12 months or less to live - exempt from past presence test"
+          },
+          {
+            "id": "refugee_exemption",
+            "description": "Refugee or humanitarian protection status",
+            "requirement": "Has refugee leave, humanitarian protection, or is dependent family member of someone with these statuses - exempt from past presence test"
+          },
+          {
+            "id": "ukraine_exemption",
+            "description": "Left Ukraine due to Russian invasion",
+            "requirement": "Living in Ukraine until end of 2021, left due to invasion, has leave or is British/Irish - exempt from past presence test"
+          },
+          {
+            "id": "afghanistan_exemption",
+            "description": "Left Afghanistan due to government collapse",
+            "requirement": "Left Afghanistan due to collapse on 15 August 2021, has leave - exempt from past presence test"
+          },
+          {
+            "id": "sudan_exemption",
+            "description": "Left Sudan due to violence from April 2023",
+            "requirement": "Living in Sudan before April 2023, left due to violence, has leave or is British/Irish - exempt from past presence test"
+          },
+          {
+            "id": "middle_east_exemption",
+            "description": "Left West Bank/Gaza/East Jerusalem/Golan Heights/Lebanon/Israel due to violence since 7 October 2023",
+            "requirement": "Living in region before violence, left on/after 7 October 2023, has leave or is British/Irish - exempt from past presence test"
+          },
+          {
+            "id": "fco_advice_exemption",
+            "description": "Left country following UK government evacuation advice",
+            "requirement": "Residing in country where UK gov advised British nationals to leave, arrived within 26 weeks of advice, has leave or is British/Irish - exempt from past presence test"
+          },
+          {
+            "id": "humanitarian_route_exemption",
+            "description": "Leave under safe and legal humanitarian immigration route",
+            "requirement": "Has leave under safe and legal humanitarian route - exempt from past presence test"
+          },
+          {
+            "id": "armed_forces_exemption",
+            "description": "Armed Forces connection",
+            "requirement": "Serving in Armed Forces or living with close family member in Armed Forces - exempt from past presence test"
+          }
+        ],
+        "outcomes": {
+          "meets_any_path": "check_habitual_residence",
+          "meets_none": "INELIGIBLE_presence_test_failed"
+        }
+      },
+
+      "check_habitual_residence": {
+        "id": "check_habitual_residence",
+        "type": "boolean_question",
+        "question": "Is the applicant habitually resident in the Common Travel Area (UK, Channel Islands, Isle of Man, Republic of Ireland) with settled intention?",
+        "help_text": "Habitual residence means you normally live in the Common Travel Area and intend to continue living there for the foreseeable future. Requires right to reside and usually an appreciable period (1-3 months) of actual residence, though shorter if strong evidence of settled intention.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "outcomes": {
+          "yes": "check_immigration_status",
+          "no": "INELIGIBLE_not_habitually_resident"
+        }
+      },
+
+      "check_immigration_status": {
+        "id": "check_immigration_status",
+        "type": "multi_path_check",
+        "question": "Does the applicant meet nationality and immigration requirements?",
+        "help_text": "Must not be subject to immigration control (unless sponsored immigrant) and must normally live in or intend to settle in UK/Ireland/Isle of Man/Channel Islands.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "evaluation_logic": "OR logic - meeting any one path satisfies the requirement",
+        "paths": [
+          {
+            "id": "british_or_irish",
+            "description": "British or Irish citizen",
+            "requirement": "British or Irish citizenship"
+          },
+          {
+            "id": "settled_status",
+            "description": "Settled status in UK",
+            "requirement": "Indefinite leave to remain or settled status under EU Settlement Scheme"
+          },
+          {
+            "id": "pre_settled_status",
+            "description": "Pre-settled status under EU Settlement Scheme",
+            "requirement": "Pre-settled status from EU Settlement Scheme (for EU/EEA/Swiss citizens and family)"
+          },
+          {
+            "id": "refugee_or_humanitarian",
+            "description": "Refugee or humanitarian protection",
+            "requirement": "Refugee leave or humanitarian protection status"
+          },
+          {
+            "id": "right_of_abode",
+            "description": "Right of abode",
+            "requirement": "Has right of abode in UK"
+          },
+          {
+            "id": "sponsored_immigrant",
+            "description": "Sponsored immigrant with permission",
+            "requirement": "Subject to immigration control but has sponsor permission to claim public funds"
+          }
+        ],
+        "outcomes": {
+          "meets_any_path": "check_conflicting_benefits",
+          "meets_none": "INELIGIBLE_immigration_status"
+        }
+      },
+
+      "check_conflicting_benefits": {
+        "id": "check_conflicting_benefits",
+        "type": "boolean_question",
+        "question": "Is the applicant currently receiving any of the following benefits: Disability Living Allowance (DLA), Attendance Allowance (AA), or Armed Forces Independence Payment (AFIP)?",
+        "help_text": "Cannot claim PIP simultaneously with DLA, Attendance Allowance, or AFIP. War Pensioners' Mobility Supplement prevents mobility component. Constant Attendance Allowance reduces daily living component.",
+        "reference": "https://www.gov.uk/pip/how-much-youll-get",
+        "outcomes": {
+          "yes": "INELIGIBLE_conflicting_benefits",
+          "no": "check_institutional_circumstances"
+        }
+      },
+
+      "check_institutional_circumstances": {
+        "id": "check_institutional_circumstances",
+        "type": "boolean_question",
+        "question": "Is the applicant currently in any of the following: hospital/hospice for 28+ days, care home funded by public funds for 28+ days, residential school/college, foster care, local authority care, prison, or detention?",
+        "help_text": "PIP daily living component stops after 28 days in hospital or publicly-funded care home. PIP stops entirely if in residential education, foster care, local authority care, prison, or detention (with limited exceptions for under 18s).",
+        "reference": "https://www.gov.uk/pip/change-of-circumstances",
+        "outcomes": {
+          "yes": "check_institutional_details",
+          "no": "check_daily_living_difficulties"
+        }
+      },
+
+      "check_institutional_details": {
+        "id": "check_institutional_details",
+        "type": "routing",
+        "description": "Determine eligibility based on specific institutional circumstance",
+        "routing_logic": "Hospital/care home: eligible if under 28 days or under 18. Prison/detention: not eligible. Residential education: not eligible. Publicly-funded care home: mobility component continues, daily living stops after 28 days.",
+        "reference": "https://www.gov.uk/pip/change-of-circumstances",
+        "outcomes": {
+          "hospital_under_28_days": "check_daily_living_difficulties",
+          "hospital_over_28_days_under_18": "check_daily_living_difficulties",
+          "hospital_over_28_days_adult": "check_mobility_difficulties_only",
+          "care_home_under_28_days": "check_daily_living_difficulties",
+          "care_home_over_28_days_public_funding": "check_mobility_difficulties_only",
+          "care_home_over_28_days_private_funding": "check_daily_living_difficulties",
+          "residential_education": "INELIGIBLE_in_residential_education",
+          "foster_care_or_la_care": "INELIGIBLE_in_care",
+          "prison_or_detention": "INELIGIBLE_imprisoned_or_detained"
+        }
+      },
+
+      "check_daily_living_difficulties": {
+        "id": "check_daily_living_difficulties",
+        "type": "complex_criteria",
+        "question": "Does the applicant have difficulty with daily living activities that meets PIP assessment criteria?",
+        "help_text": "Assessment covers 10 daily living activities: preparing food, eating and drinking, managing medicines, washing and bathing, using toilet, dressing and undressing, reading, managing money, socialising, talking/listening/understanding. Assessed on whether you can do tasks safely, to acceptable standard, repeatedly, and in reasonable time.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "criteria": {
+          "activities_assessed": [
+            "Preparing food",
+            "Eating and drinking",
+            "Managing medicines or treatments",
+            "Washing and bathing",
+            "Using the toilet",
+            "Dressing and undressing",
+            "Reading",
+            "Managing money",
+            "Socialising and being around other people",
+            "Talking, listening, and understanding"
+          ],
+          "reliability_criteria": {
+            "safely": "In a manner unlikely to cause harm to self or others during or after the activity",
+            "acceptable_standard": "To a standard that is 'good enough' - falls within normal acceptable range",
+            "repeatedly": "Able to repeat the activity as often as reasonably required, within a single day and across subsequent days",
+            "reasonable_time": "No more than twice as long as a non-disabled person would normally take"
+          },
+          "frequency_requirement": "Difficulties must apply on more than 50% of days over a 12-month period",
+          "points_thresholds": {
+            "standard_rate": "8-11 points",
+            "enhanced_rate": "12+ points"
+          },
+          "assessment_basis": "Based on need for help, not whether help is currently available. Considers: supervision needed, prompting required, physical assistance required, aids/equipment needed, time taken, safety concerns, outcome quality."
+        },
+        "disclaimer": "PIP assessment is conducted by DWP health professionals who evaluate all evidence and functional ability. Final scoring decisions are made by assessors using detailed descriptor criteria.",
+        "outcomes": {
+          "8_to_11_points": "route_daily_living_standard",
+          "12_plus_points": "route_daily_living_enhanced",
+          "under_8_points": "check_mobility_difficulties"
+        }
+      },
+
+      "check_mobility_difficulties": {
+        "id": "check_mobility_difficulties",
+        "type": "complex_criteria",
+        "question": "Does the applicant have difficulty with mobility activities that meets PIP assessment criteria?",
+        "help_text": "Assessment covers 2 mobility activities: planning and following journeys, moving around. No physical disability required - can qualify with cognitive or mental health conditions like anxiety. Assessed on same reliability criteria: safely, acceptable standard, repeatedly, reasonable time.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "criteria": {
+          "activities_assessed": [
+            "Planning and following journeys (orientation and navigation)",
+            "Moving around physically"
+          ],
+          "reliability_criteria": {
+            "safely": "In a manner unlikely to cause harm to self or others during or after the activity",
+            "acceptable_standard": "To a standard that is 'good enough'",
+            "repeatedly": "Able to repeat as often as reasonably required",
+            "reasonable_time": "No more than twice as long as non-disabled person (walking: approx 30 metres per minute benchmark)"
+          },
+          "frequency_requirement": "Difficulties must apply on more than 50% of days over a 12-month period",
+          "points_thresholds": {
+            "standard_rate": "8-11 points",
+            "enhanced_rate": "12+ points"
+          },
+          "assessment_basis": "Based on need for help, not whether help is currently available. Cognitive/mental health conditions can qualify. Considers: supervision needed, prompting required, physical assistance required, aids/equipment needed, distance can walk, safety concerns."
+        },
+        "disclaimer": "PIP assessment is conducted by DWP health professionals who evaluate all evidence and functional ability. Final scoring decisions are made by assessors using detailed descriptor criteria.",
+        "outcomes": {
+          "8_to_11_points": "route_mobility_standard",
+          "12_plus_points": "route_mobility_enhanced",
+          "under_8_points": "INELIGIBLE_insufficient_points"
+        }
+      },
+
+      "check_mobility_difficulties_only": {
+        "id": "check_mobility_difficulties_only",
+        "type": "complex_criteria",
+        "question": "Does the applicant have difficulty with mobility activities that meets PIP assessment criteria?",
+        "help_text": "Due to institutional circumstances (hospital/care home 28+ days), only mobility component is available. Assessment covers 2 mobility activities: planning and following journeys, moving around.",
+        "reference": "https://www.gov.uk/pip/eligibility",
+        "criteria": {
+          "activities_assessed": [
+            "Planning and following journeys",
+            "Moving around physically"
+          ],
+          "context": "Daily living component not available due to institutional stay of 28+ days",
+          "points_thresholds": {
+            "standard_rate": "8-11 points",
+            "enhanced_rate": "12+ points"
+          }
+        },
+        "disclaimer": "PIP assessment is conducted by DWP health professionals. This assessment is for mobility component only.",
+        "outcomes": {
+          "8_to_11_points": "ELIGIBLE_mobility_standard_only",
+          "12_plus_points": "ELIGIBLE_mobility_enhanced_only",
+          "under_8_points": "INELIGIBLE_insufficient_points_institutional"
+        }
+      },
+
+      "route_daily_living_standard": {
+        "id": "route_daily_living_standard",
+        "type": "routing",
+        "description": "Applicant scores 8-11 points for daily living, now check mobility",
+        "routing_logic": "Standard daily living component awarded. Continue to assess mobility component eligibility.",
+        "outcomes": {
+          "proceed_to_mobility": "check_mobility_difficulties"
+        }
+      },
+
+      "route_daily_living_enhanced": {
+        "id": "route_daily_living_enhanced",
+        "type": "routing",
+        "description": "Applicant scores 12+ points for daily living, now check mobility",
+        "routing_logic": "Enhanced daily living component awarded. Continue to assess mobility component eligibility.",
+        "outcomes": {
+          "proceed_to_mobility": "check_mobility_difficulties"
+        }
+      },
+
+      "route_mobility_standard": {
+        "id": "route_mobility_standard",
+        "type": "routing",
+        "description": "Determine which daily living component (if any) to combine with standard mobility",
+        "routing_logic": "Standard mobility component awarded. Check if daily living component was also awarded.",
+        "outcomes": {
+          "no_daily_living": "ELIGIBLE_mobility_standard_only",
+          "daily_living_standard": "ELIGIBLE_both_standard",
+          "daily_living_enhanced": "ELIGIBLE_daily_enhanced_mobility_standard"
+        }
+      },
+
+      "route_mobility_enhanced": {
+        "id": "route_mobility_enhanced",
+        "type": "routing",
+        "description": "Determine which daily living component (if any) to combine with enhanced mobility",
+        "routing_logic": "Enhanced mobility component awarded. Check if daily living component was also awarded.",
+        "outcomes": {
+          "no_daily_living": "ELIGIBLE_mobility_enhanced_only",
+          "daily_living_standard": "ELIGIBLE_daily_standard_mobility_enhanced",
+          "daily_living_enhanced": "ELIGIBLE_both_enhanced"
+        }
+      },
+
+      "ELIGIBLE_both_standard": {
+        "id": "ELIGIBLE_both_standard",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Eligible for PIP: Standard rate daily living component (£73.90/week) and standard rate mobility component (£29.20/week). Total: £103.10 per week.",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/pip/how-to-claim or call 0800 917 2222 (textphone 0800 917 7777)",
+          "You'll need to complete claim form and attend an assessment (unless terminal illness exemption applies)",
+          "Assessment will be conducted by DWP health professional to confirm points scoring",
+          "If approved, payment usually made every 4 weeks into your bank account",
+          "Must report changes in circumstances that affect your condition or institutional status",
+          "Award will be reviewed periodically (review date specified in award letter)"
+        ],
+        "reference": "https://www.gov.uk/pip/how-to-claim"
+      },
+
+      "ELIGIBLE_both_enhanced": {
+        "id": "ELIGIBLE_both_enhanced",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Eligible for PIP: Enhanced rate daily living component (£110.40/week) and enhanced rate mobility component (£77.05/week). Total: £187.45 per week.",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/pip/how-to-claim or call 0800 917 2222 (textphone 0800 917 7777)",
+          "You'll need to complete claim form and attend an assessment (unless terminal illness exemption applies)",
+          "Assessment will be conducted by DWP health professional to confirm points scoring",
+          "If approved, payment usually made every 4 weeks into your bank account",
+          "Must report changes in circumstances that affect your condition or institutional status",
+          "Award will be reviewed periodically (review date specified in award letter)"
+        ],
+        "reference": "https://www.gov.uk/pip/how-to-claim"
+      },
+
+      "ELIGIBLE_daily_standard_mobility_enhanced": {
+        "id": "ELIGIBLE_daily_standard_mobility_enhanced",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Eligible for PIP: Standard rate daily living component (£73.90/week) and enhanced rate mobility component (£77.05/week). Total: £150.95 per week.",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/pip/how-to-claim or call 0800 917 2222 (textphone 0800 917 7777)",
+          "You'll need to complete claim form and attend an assessment (unless terminal illness exemption applies)",
+          "Assessment will be conducted by DWP health professional to confirm points scoring",
+          "If approved, payment usually made every 4 weeks into your bank account",
+          "Must report changes in circumstances that affect your condition or institutional status",
+          "Award will be reviewed periodically (review date specified in award letter)"
+        ],
+        "reference": "https://www.gov.uk/pip/how-to-claim"
+      },
+
+      "ELIGIBLE_daily_enhanced_mobility_standard": {
+        "id": "ELIGIBLE_daily_enhanced_mobility_standard",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Eligible for PIP: Enhanced rate daily living component (£110.40/week) and standard rate mobility component (£29.20/week). Total: £139.60 per week.",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/pip/how-to-claim or call 0800 917 2222 (textphone 0800 917 7777)",
+          "You'll need to complete claim form and attend an assessment (unless terminal illness exemption applies)",
+          "Assessment will be conducted by DWP health professional to confirm points scoring",
+          "If approved, payment usually made every 4 weeks into your bank account",
+          "Must report changes in circumstances that affect your condition or institutional status",
+          "Award will be reviewed periodically (review date specified in award letter)"
+        ],
+        "reference": "https://www.gov.uk/pip/how-to-claim"
+      },
+
+      "ELIGIBLE_mobility_standard_only": {
+        "id": "ELIGIBLE_mobility_standard_only",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Eligible for PIP: Standard rate mobility component only (£29.20/week).",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/pip/how-to-claim or call 0800 917 2222 (textphone 0800 917 7777)",
+          "You'll need to complete claim form and attend an assessment",
+          "Assessment will be conducted by DWP health professional to confirm points scoring",
+          "If approved, payment usually made every 4 weeks into your bank account",
+          "Must report changes in circumstances that affect your condition",
+          "If your daily living needs increase, you can request a review"
+        ],
+        "reference": "https://www.gov.uk/pip/how-to-claim"
+      },
+
+      "ELIGIBLE_mobility_enhanced_only": {
+        "id": "ELIGIBLE_mobility_enhanced_only",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "Eligible for PIP: Enhanced rate mobility component only (£77.05/week).",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/pip/how-to-claim or call 0800 917 2222 (textphone 0800 917 7777)",
+          "You'll need to complete claim form and attend an assessment",
+          "Assessment will be conducted by DWP health professional to confirm points scoring",
+          "If approved, payment usually made every 4 weeks into your bank account",
+          "Must report changes in circumstances that affect your condition",
+          "If your daily living needs increase, you can request a review"
+        ],
+        "reference": "https://www.gov.uk/pip/how-to-claim"
+      },
+
+      "INELIGIBLE_wrong_geography_scotland": {
+        "id": "INELIGIBLE_wrong_geography_scotland",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "PIP is not available in Scotland",
+        "guidance": "If you live in Scotland, you should apply for Adult Disability Payment (ADP) instead. Visit https://www.mygov.scot/adult-disability-payment or call Social Security Scotland on 0800 182 2222."
+      },
+
+      "INELIGIBLE_wrong_geography_ni": {
+        "id": "INELIGIBLE_wrong_geography_ni",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "PIP in Northern Ireland is administered separately",
+        "guidance": "If you live in Northern Ireland, contact the Department for Communities. Visit https://www.nidirect.gov.uk/articles/personal-independence-payment or call 0800 587 0912."
+      },
+
+      "INELIGIBLE_abroad_no_qualifying_circumstances": {
+        "id": "INELIGIBLE_abroad_no_qualifying_circumstances",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Living abroad without qualifying circumstances for PIP",
+        "guidance": "PIP is generally not payable to people living abroad permanently, except in limited circumstances (temporary absence up to 13 weeks, EU/EEA/Switzerland with work connection for daily living component only, or Armed Forces). If you plan to return to UK, you can apply once you're back and habitually resident. For more information visit https://www.gov.uk/claim-benefits-abroad/disability-benefits"
+      },
+
+      "INELIGIBLE_too_young": {
+        "id": "INELIGIBLE_too_young",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Under the minimum age of 16",
+        "guidance": "PIP is only available from age 16. If you're under 16 and have care or mobility needs due to disability, you may be eligible for Disability Living Allowance (DLA) for children instead. Visit https://www.gov.uk/disability-living-allowance-children"
+      },
+
+      "INELIGIBLE_over_state_pension_age": {
+        "id": "INELIGIBLE_over_state_pension_age",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Over State Pension age and did not receive PIP or ADP in the last 12 months",
+        "guidance": "If you're over State Pension age and haven't received PIP or ADP recently, you should apply for Attendance Allowance instead. Attendance Allowance helps with personal care costs if you're physically or mentally disabled and aged 66 or over. Visit https://www.gov.uk/attendance-allowance or call 0800 731 0122."
+      },
+
+      "INELIGIBLE_no_health_condition": {
+        "id": "INELIGIBLE_no_health_condition",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "No long-term physical or mental health condition or disability",
+        "guidance": "PIP is only for people with long-term health conditions or disabilities that cause difficulty with daily living or mobility. If you develop a condition in the future that lasts or is expected to last 12+ months and causes difficulties, you can apply then."
+      },
+
+      "INELIGIBLE_condition_duration_too_short": {
+        "id": "INELIGIBLE_condition_duration_too_short",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Condition not expected to last at least 12 months",
+        "guidance": "PIP requires that your condition and resulting difficulties are expected to last at least 12 months. If your condition worsens or becomes longer-term, you can apply in the future. For short-term support, speak to your local council about other available services."
+      },
+
+      "INELIGIBLE_insufficient_difficulty_frequency": {
+        "id": "INELIGIBLE_insufficient_difficulty_frequency",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Difficulties with daily living or mobility do not occur more than half the time",
+        "guidance": "PIP requires difficulties to be present on more than 50% of days over a 12-month period. If your condition worsens or becomes more frequent, you can apply or request reassessment in the future. Keep records of how your condition affects you day-to-day."
+      },
+
+      "INELIGIBLE_presence_test_failed": {
+        "id": "INELIGIBLE_presence_test_failed",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Did not meet the presence test requirement",
+        "guidance": "You must have been present in Great Britain for 104 weeks out of the last 156 weeks (2 out of 3 years), unless you qualify for an exemption. If you've recently returned to the UK, you may become eligible once you've met the presence requirement. For advice on your specific situation, contact Citizens Advice at https://www.citizensadvice.org.uk/"
+      },
+
+      "INELIGIBLE_not_habitually_resident": {
+        "id": "INELIGIBLE_not_habitually_resident",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Not habitually resident in the Common Travel Area with settled intention",
+        "guidance": "You must be habitually resident in the UK, Channel Islands, Isle of Man, or Republic of Ireland with intention to settle. This usually requires 1-3 months of actual residence plus evidence of settled intention. If you've recently moved to the UK, you may become eligible once habitual residence is established. For advice contact Citizens Advice at https://www.citizensadvice.org.uk/"
+      },
+
+      "INELIGIBLE_immigration_status": {
+        "id": "INELIGIBLE_immigration_status",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Immigration status does not permit claiming public funds",
+        "guidance": "You must not be subject to immigration control, or if you are, you must have permission from your sponsor to claim public funds. If you're from EU/EEA/Switzerland, you need settled or pre-settled status under the EU Settlement Scheme. For immigration advice, contact an immigration advisor or visit https://www.gov.uk/browse/visas-immigration"
+      },
+
+      "INELIGIBLE_conflicting_benefits": {
+        "id": "INELIGIBLE_conflicting_benefits",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Already receiving a conflicting benefit (DLA, Attendance Allowance, or AFIP)",
+        "guidance": "You cannot receive PIP at the same time as Disability Living Allowance (DLA), Attendance Allowance (AA), or Armed Forces Independence Payment (AFIP). If you're on DLA and want to switch to PIP, wait for DWP to contact you about migration, or contact them if your circumstances change significantly. Do not apply for both. For AFIP recipients, you must choose between AFIP and PIP (cannot have both)."
+      },
+
+      "INELIGIBLE_in_residential_education": {
+        "id": "INELIGIBLE_in_residential_education",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Currently in a residential school or college",
+        "guidance": "PIP is not payable while you're in a residential school or college. If you leave residential education, you can apply for PIP at that time. Contact your educational institution's welfare team for other support options available while studying."
+      },
+
+      "INELIGIBLE_in_care": {
+        "id": "INELIGIBLE_in_care",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Currently in foster care or in the care of a local authority or health and social care trust",
+        "guidance": "PIP is not payable while you're in foster care or local authority care. When you leave care, you can apply for PIP if you meet the other eligibility criteria. Speak to your social worker about other available support."
+      },
+
+      "INELIGIBLE_imprisoned_or_detained": {
+        "id": "INELIGIBLE_imprisoned_or_detained",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Currently imprisoned or held in detention",
+        "guidance": "PIP is not payable while you're in prison or detention. If you were receiving PIP before imprisonment, your claim will be suspended. When you're released, contact DWP to reinstate your claim or make a new application if eligible. Call 0800 121 4433 after release."
+      },
+
+      "INELIGIBLE_insufficient_points": {
+        "id": "INELIGIBLE_insufficient_points",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Scored under 8 points on both daily living and mobility assessments",
+        "guidance": "To qualify for PIP, you need to score at least 8 points in either the daily living component or mobility component (or both). If you believe your difficulties are greater than assessed, you can request a mandatory reconsideration of the decision or provide additional evidence. Citizens Advice can help you understand your assessment and challenge decisions: https://www.citizensadvice.org.uk/benefits/sick-or-disabled-people-and-carers/pip/"
+      },
+
+      "INELIGIBLE_insufficient_points_institutional": {
+        "id": "INELIGIBLE_insufficient_points_institutional",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Scored under 8 points on mobility assessment, and daily living component not available due to institutional circumstances",
+        "guidance": "Due to being in hospital or publicly-funded care home for 28+ days, only the mobility component is available, and you scored under 8 points for mobility. When you leave the institution, you can apply for full PIP assessment including daily living component. You must notify DWP when you leave to restart or initiate your claim."
+      }
+    }
+  },
+
+  "constants": {
+    "age_limits": {
+      "minimum_age": 16,
+      "maximum_age_new_claims": "State Pension age",
+      "exception_over_spa": "Can claim if received PIP or ADP in last 12 months"
+    },
+    "presence_test": {
+      "required_weeks_present": 104,
+      "out_of_weeks": 156,
+      "description": "2 years out of last 3 years"
+    },
+    "condition_duration": {
+      "minimum_months": 12,
+      "description": "Difficulties must be expected to last at least 12 months"
+    },
+    "difficulty_frequency": {
+      "minimum_percentage": 50,
+      "description": "Difficulties must occur on more than 50% of days over a 12-month period"
+    },
+    "assessment_period": {
+      "months_before_assessment": 3,
+      "months_after_assessment": 9,
+      "total_period": "12 months"
+    },
+    "points_thresholds": {
+      "daily_living": {
+        "standard_rate": {
+          "min_points": 8,
+          "max_points": 11,
+          "weekly_amount": 73.90
+        },
+        "enhanced_rate": {
+          "min_points": 12,
+          "weekly_amount": 110.40
+        }
+      },
+      "mobility": {
+        "standard_rate": {
+          "min_points": 8,
+          "max_points": 11,
+          "weekly_amount": 29.20
+        },
+        "enhanced_rate": {
+          "min_points": 12,
+          "weekly_amount": 77.05
+        }
+      }
+    },
+    "institutional_time_limits": {
+      "hospital_days_before_suspension": 28,
+      "care_home_days_before_suspension": 28,
+      "linking_rule_gap_weeks": 4
+    },
+    "temporary_absence": {
+      "standard_weeks": 13,
+      "medical_treatment_weeks": 26
+    },
+    "payment_details": {
+      "frequency": "Every 4 weeks",
+      "tax_status": "Tax-free",
+      "affected_by_income": false,
+      "affected_by_savings": false
+    }
+  },
+
+  "validation_rules": {
+    "component_scoring": {
+      "daily_living_activities_count": 10,
+      "mobility_activities_count": 2,
+      "descriptor_selection": "For each activity, choose highest scoring descriptor that applies on >50% of days",
+      "reliability_test": "Must meet all four criteria: safely, acceptable standard, repeatedly, reasonable time"
+    },
+    "institutional_rules": {
+      "hospital_rule": "Daily living component stops after 28 consecutive days as in-patient (both components for adults)",
+      "care_home_rule": "Daily living component stops after 28 days in publicly-funded care home; mobility continues",
+      "under_18_exception": "Under 18s not affected by hospital stays",
+      "linking_rule": "Multiple stays within 4 weeks linked together, counting towards 28-day limit"
+    },
+    "benefit_interactions": {
+      "mutually_exclusive": ["Disability Living Allowance", "Attendance Allowance", "Armed Forces Independence Payment"],
+      "reduces_pip": {
+        "Constant Attendance Allowance": "Reduces daily living component",
+        "War Pensioners' Mobility Supplement": "Excludes mobility component entirely"
+      }
+    },
+    "geographic_rules": {
+      "pip_available": ["England", "Wales"],
+      "alternative_scotland": "Adult Disability Payment (ADP)",
+      "alternative_ni": "PIP (Northern Ireland) - separate administration"
+    }
+  },
+
+  "external_references": {
+    "pip_main_page": "https://www.gov.uk/pip",
+    "pip_eligibility": "https://www.gov.uk/pip/eligibility",
+    "pip_how_much": "https://www.gov.uk/pip/how-much-youll-get",
+    "pip_how_to_claim": "https://www.gov.uk/pip/how-to-claim",
+    "pip_change_of_circumstances": "https://www.gov.uk/pip/change-of-circumstances",
+    "pip_end_of_life": "https://www.gov.uk/pip/claiming-end-of-life",
+    "pip_assessment_guide": "https://www.gov.uk/government/publications/personal-independence-payment-assessment-guide-for-assessment-providers",
+    "attendance_allowance": "https://www.gov.uk/attendance-allowance",
+    "adult_disability_payment_scotland": "https://www.mygov.scot/adult-disability-payment",
+    "dla_children": "https://www.gov.uk/disability-living-allowance-children",
+    "benefits_abroad": "https://www.gov.uk/claim-benefits-abroad/disability-benefits",
+    "armed_forces_independence_payment": "https://www.gov.uk/guidance/armed-forces-independence-payment-afip",
+    "citizens_advice_pip": "https://www.citizensadvice.org.uk/benefits/sick-or-disabled-people-and-carers/pip/"
+  }
+}

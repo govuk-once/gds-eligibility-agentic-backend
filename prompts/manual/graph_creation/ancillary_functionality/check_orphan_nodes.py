@@ -58,22 +58,8 @@ def find_orphan_nodes(spec, spec_name):
                     referenced_ids.add(target)
                     referenced_by[target].append(f"{node_id}.outcomes.{outcome_key}")
 
-        # Salary checks
-        elif node_type == "salary_check":
-            if "outcomes" in node:
-                for outcome_key, target in node["outcomes"].items():
-                    referenced_ids.add(target)
-                    referenced_by[target].append(f"{node_id}.outcomes.{outcome_key}")
-
-        # Financial checks
-        elif node_type == "financial_check":
-            if "outcomes" in node:
-                for outcome_key, target in node["outcomes"].items():
-                    referenced_ids.add(target)
-                    referenced_by[target].append(f"{node_id}.outcomes.{outcome_key}")
-
-        # Occupation checks
-        elif node_type == "occupation_check":
+        # Criteria checks (including salary, financial, occupation checks)
+        elif node_type == "criteria_check":
             if "outcomes" in node:
                 for outcome_key, target in node["outcomes"].items():
                     referenced_ids.add(target)
@@ -173,7 +159,9 @@ def main():
 
     spec_files = [
         "../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json",
-        "../specifications/child_benefit/child_benefit_eligibility.json"
+        "../specifications/child_benefit/child_benefit_eligibility.json",
+        "../specifications/universal_credit/universal_credit_eligibility.json",
+        "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json"
     ]
 
     all_clean = True
