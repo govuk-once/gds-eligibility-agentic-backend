@@ -21,7 +21,7 @@ def load_eligibility_data(filepath: str) -> Dict:
         return json.load(f)
 
 
-def validate_against_schema(data: Dict, schema_path: str = "eligibility-schema.json") -> List[str]:
+def validate_against_schema(data: Dict, schema_path: str = "../schemas/eligibility-schema.json") -> List[str]:
     """Validate data against JSON Schema if jsonschema library available."""
     issues = []
 
@@ -295,6 +295,14 @@ def main():
     print("UK Child Benefit Eligibility Validator")
     print("=" * 60)
     evaluate_specification("../specifications/child_benefit/child_benefit_eligibility.json")
+    
+    print("Universal Credit Eligibility Validator")
+    print("=" * 60)
+    evaluate_specification("../specifications/universal_credit/universal_credit_eligibility.json")
+    
+    print("PIP Eligibility Validator")
+    print("=" * 60)
+    evaluate_specification("../specifications/personal_independence_payment/personal_independence_payment_eligibility.json")
     return 0
 
 
