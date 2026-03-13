@@ -25,6 +25,8 @@ FIELD RULES:
   - `actions` MUST be null.
 - If `reply_type == "free_text"`:
   - `actions` MUST be null.
+- If `reply_type == "application_form"`:
+  - `actions` MUST be null.
 - If `expects_reply == false`:
   - `actions` MUST be null.
 

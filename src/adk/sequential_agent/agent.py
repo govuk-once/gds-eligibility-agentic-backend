@@ -46,7 +46,7 @@ personal_independence_payment_agent = Agent(
 )
 
 
-reply_types = Literal["yes_no", "choice_multiple", "choice_single", "sign_in", "free_text", "none"]
+reply_types = Literal["yes_no", "choice_multiple", "choice_single", "sign_in", "application_form", "free_text", "none"]
 sources = Literal["benefit_agent", "user_agent"]
 
 
