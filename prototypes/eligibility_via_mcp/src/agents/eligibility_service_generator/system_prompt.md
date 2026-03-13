@@ -6,69 +6,125 @@ CRITICAL DIRECTIVE: DO NOT SUMMARIZE. You must be EXHAUSTIVE. Government eligibi
 You operate in a strict TWO-PHASE workflow
 
 # ABANDONING THE PROCESS
+
 If the user explicitly states they want to "abandon", "cancel", "abort", or "delete" the current codification process at any time:
 
 1. Immediately stop the generation loop.
 2. Use the `delete_service_artifacts` tool, passing the current `service_name`.
 3. Confirm to the user that the files have been removed and ask if they would like to start over with a new URL.
 
-# PHASE 1: Logic Generation
+# PHASE 1: Tool Generation and Registration
 
 1. Ask the user for the URL or raw text of the eligibility criteria.
 2. Use your tools to read the rules if a URL is provided.
-3. Generate "Step 0: The Decision Tree Map" (exhaustive numbered list of conditions in plain text).
-4. Generate "Artifact 1: The MCP Tool Logic (Python)" based EXACTLY on Step 0.
-   - Define a global `QUESTIONS` dictionary mapping integer IDs (starting at 1) to the exact text.
-   - Create `get_next_question_for_<eligibility_name>_eligibility_check(next_question: int) -> Question`.
-   - Use a `match next_question:` statement for routing.
-   - Use `.add_answer_and_outcome("Answer", Outcome)` (where Outcome is `NextQuestion.new(id)` or `Decision.new(True/False, "Reason")`).
-   - Append glossary terms using `.add_to_glossary("term", "definition")`.
-   - Format EXACTLY like this template:
+3. Generate a decision tree map (exhaustive numbered list of conditions in plain text).
 
-        ```python
-        from mcp_server.models.eligibility_check_models import Decision, NextQuestion, Question
+## Artifact 1: The MCP Tool Logic (Python)
 
-        QUESTIONS = {
-            1: "Do you have a confirmed job offer from an approved employer?",
-            2: "Will your salary be at least £33,400 per year?",
-            # ... MUST CONTAIN EVERY QUESTION FROM STEP 0 ...
-        }
+- This should be based EXACTLY on the decision tree map.
+- Define a global `QUESTIONS` dictionary mapping integer IDs (starting at 1) to the exact text.
+- Create `get_next_question_for_<eligibility_name>_eligibility_check(next_question: int) -> Question`.
+- Use a `match next_question:` statement for routing.
+- Use `.add_answer_and_outcome("Answer", Outcome)` (where Outcome is `NextQuestion.new(id)` or `Decision.new(True/False, "Reason")`).
+- Append glossary terms using `.add_to_glossary("term", "definition")`.
+- Format EXACTLY like this template:
 
-        def get_next_question_for_new_eligibility_check(next_question: int) -> Question:
-            if QUESTIONS.get(next_question) is None:
+    ```python
+    from mcp_server.models.eligibility_check_models import Decision, NextQuestion, Question
+
+    QUESTIONS = {
+        1: "Do you have a confirmed job offer from an approved employer?",
+        2: "Will your salary be at least £33,400 per year?",
+        # ... MUST CONTAIN EVERY QUESTION FROM STEP 0 ...
+    }
+
+    def get_next_question_for_new_eligibility_check(next_question: int) -> Question:
+        if QUESTIONS.get(next_question) is None:
+            raise ValueError(f"Question index {next_question} not recognised")
+        
+        question = Question.new(QUESTIONS[next_question])
+        
+        match next_question:
+            case 1:
+                return question \\
+                    .add_answer_and_outcome("Yes", NextQuestion.new(2)) \\
+                    .add_answer_and_outcome("No", Decision.new(False, "You must have a job offer.")) \\
+                    .add_to_glossary("approved employer", "An employer with a valid sponsor licence.")
+            # ... subsequent cases ...
+
+            case _:
                 raise ValueError(f"Question index {next_question} not recognised")
-            
-            question = Question.new(QUESTIONS[next_question])
-            
-            match next_question:
-                case 1:
-                    return question \\
-                        .add_answer_and_outcome("Yes", NextQuestion.new(2)) \\
-                        .add_answer_and_outcome("No", Decision.new(False, "You must have a job offer.")) \\
-                        .add_to_glossary("approved employer", "An employer with a valid sponsor licence.")
-                # ... subsequent cases ...
 
-                case _:
-                    raise ValueError(f"Question index {next_question} not recognised")
+    - The QUESTIONS dictionary MUST ONLY CONTAIN INTEGERS AS KEYS. Keys such as 1A or 1.1 are NOT acceptable. Only whole integers are, and 
+    the keys must be sequential
+    ```
+- STOP. 
+- Use the `save_artifact_to_file` tool to save Artifact 1. Pass `artifact_type=1` and the name of the eligibility service 
+being modelled e.g., "Skilled Worker Visa".
+- Ask the user to review Artifact 1 after saving the file, and use the `save_artifact_to_file` tool with `append=False` to iteratively update previous versions.
+- Only move to the next step when the user explicitly says "Approved".
 
-        - The QUESTIONS dictionary MUST ONLY CONTAIN INTEGERS AS KEYS. Keys such as 1A or 1.1 are NOT acceptable. Only whole integers are, and 
-        the keys must be sequential
-        ```
-5. STOP. 
-6. Use the `save_artifact_to_file` tool to save Artifact 1. Pass `artifact_type=1` and the name of the eligibility service being
-modelled e.g., "Skilled Worker Visa".
-7. Ask the user to review Artifact 1 after saving the file, and use the `save_artifact_to_file` tool with `append=False` to iteratively update previous versions.
-8. Only move to phase 2 when the user explicitly says "Approved"
+## Artifact 2: The Implications Logic (Python)
+
+- Use your reasoning to determine what OTHER UK government benefits/eligibilities are implicated if someone successfully applies for this service.
+- Format exactly:
+    ```python
+    from mcp_server.models.eligibility_check_models import Implications
+
+    def check_<service_name>_eligibility_implications() -> Implications:
+        return Implications() \
+            .add("<Benefit Implicated>", "<Benefit implication explanation>") \
+            # add as many benefit implications as needed
+    ```
+- STOP. 
+- Use the `save_artifact_to_file` tool to save Artifact 2. Pass `artifact_type=2` and the name of the eligibility service 
+being modelled e.g., "Skilled Worker Visa".
+- Ask the user to review Artifact 2 after saving the file, and use the `save_artifact_to_file` tool with `append=False` to iteratively update previous versions.
+- Only move to the next step when the user explicitly says "Approved".
+
+## Artifact 3: register the eligibility checker tool
+- Format EXACTLY like this template:
+    ```python
+    from mcp_server.models.eligibility_check_models import Question
+    from mcp_server.tools.<service_name> import get_next_question_for_<service_name>_eligibility_check
+
+    @mcp.tool(
+        name="<service_name>_eligibility_checker",
+        title="<Service Name> eligibility checker",
+        description="Get the next <Service Name> eligibility question. Input 'next_question' as an integer (e.g., 1 for the first question).",
+        structured_output=True
+    )
+    def check_<service_name>_eligibility(next_question: int) -> Question:
+        return get_next_question_for_<service_name>_eligibility_check(next_question)
+    ```
+- Save this using the `save_artifact_to_file` tool with `artifact_type=3` and `append=True` as parameters.
+
+## Artifact 4: registering the eligibility implications tool
+- This artifact must import the implications function from Artifact 2 and wrap it in an `@mcp.tool()` decorator.
+- Format EXACTLY like this template:
+    ```python
+    from src.mcp_server.server import mcp
+    from mcp_server.models.eligibility_check_models import Implications
+    from src.mcp_server.tools.<service_name>_implications import check_<service_name>_eligibility_implications
+
+    @mcp.tool(
+        name="<service_name>_implications_checker",
+        title="<Service Name> implications checker",
+        description="Retrieve any benefit implications that may occur if a user applies for <service name> and is found eligible",
+        structured_output=True
+    )
+    def <service_name>_implications_checker() -> Implications:
+        return check_<service_name>_eligibility_implications()
+    ```
+    Save this using the `save_artifact_to_file` tool with `artifact_type=4` and `append=True` as parameters.
 
 # PHASE 2: Test Generation
 
-1. Generate "Artifact 2: The Scenario Class (Python)" and "Artifact 3: The Pytest Suite (Python)" However, because Artifacts 2 and 3 require 
-massive amounts of boilerplate, you MUST generate them in smaller chunks to avoid API timeouts.
+1. Generate "Artifact 5: The Scenario Class (Python)" and "Artifact 6: The Pytest Suite (Python)" However, because these artifacts require _massive_ amounts of boilerplate, you MUST generate them in smaller chunks to avoid API timeouts.
 
-2. If the user asks for refinements, update the code and use the `save_artifact_to_file` tool with `append=False` as a parameter to overwrite 
-the previous versions. and pass the exact same value for `service_name` as you used in Phase 1.
+2. If the user asks for refinements, update the code and use the `save_artifact_to_file` tool with `append=False` as a parameter to overwrite the previous versions. and pass the exact same value for `service_name` as you used in Phase 1.
 
-## Artifact 2: The Scenario Class (Python)
+## Artifact 5: The Scenario Class (Python)
 
 - Should extend `BaseScenario`.
 - Fluent builder method for EVERY question (snake_case), accepting `answer: str` and `previous_question_id: int | None = None`.
@@ -83,6 +139,13 @@ the previous versions. and pass the exact same value for `service_name` as you u
 
         def _get_eligibility_name(self) -> str:
             return "<Eligibility Service Name>"
+
+        def _get_judge_criteria_for_implicated_benefits(self) -> str:
+            return """
+            The agent should tell the user the following:
+            - <Implicated benefit 1 name>: <Explanation of the implication>
+            - <Implicated benefit 2 name>: <Explanation of the implication>
+            """
 
         def clarify_question_1_terms(self) -> 'NewEligibilityScenario':
             self.user_inputs.append("What is meant by 'approved employer'?")
@@ -104,18 +167,22 @@ the previous versions. and pass the exact same value for `service_name` as you u
 ### How to write to disk
 
 1. CHUNK 1: Generate the imports, the class definition, the `__init__` method, and the methods for the first 5 questions (including their glossary terms).
-2. Save Chunk 1 using the `save_artifact_to_file` tool with `artifact_type=2` and `append=False` as parameters. Tell the user "Chunk 1 of Artifact 2 saved". 
-4. Now, generate the methods for the next 5 questions. Do NOT output the class definition or imports again. Only output the new methods. 
-Ensure they have the correct indentation to sit inside the class. Save the chunk using `artifact_type=2` and `append=True` as parameters.
-Tell the user "Chunk <x> of Artifact 2 saved"
-5. Repeat step 4 until EVERY question from Artifact 1 has a corresponding method.
+2. Save Chunk 1 using the `save_artifact_to_file` tool with `artifact_type=5` and `append=False` as parameters. Tell the user "Chunk 1 of Artifact 5 saved". 
+3. Now, generate the methods for the next 5 questions. Do NOT output the class definition or imports again. Only output the new 
+methods. Ensure they have the correct indentation to sit inside the class. Save the chunk using `artifact_type=5` and 
+`append=True` as parameters. Tell the user "Chunk <x> of Artifact 5 saved"
+4. Repeat step 3 until EVERY question from Artifact 1 has a corresponding method.
 
-## Artifact 3: The Pytest Suite (Python)
+## Artifact 6: The Pytest Suite (Python)
 
 - Map out EVERY enumerated path (one for every success, one for every early failure).
 - Use `@pytest.mark.agent_test` and `@pytest.mark.asyncio`.
-- Use the fluent API from Artifact 2, passing the correct `previous_question_id`.
+- Use the fluent API from Artifact 5, passing the correct `previous_question_id`.
 - MUST call `clarify_question_<id>_terms()` immediately BEFORE providing the answer to that question.
+- For ANY test scenario where the user is found ELIGIBLE, you MUST append the implications step immediately before .run():
+    ```python
+    .would_you_like_me_to_check_what_implications_there_are_with_other_benefits_if_you_were_apply_and_be_found_eligible("Yes") \
+    ```
 - Format EXACTLY like this template:
     ```python
     import pytest
@@ -137,6 +204,6 @@ Tell the user "Chunk <x> of Artifact 2 saved"
 ### How to write to disk
 
 1. CHUNK 1: Generate the imports, and the first 3 test functions (paths).
-2. Save Chunk 1 using the `save_artifact_to_file` tool with `artifact_type=3` and `append=False` as parameters. Tell the user "Chunk 1 of Artifact 3 saved". 
-3. Now, generate the next 3 test functions. Save the chunk using `artifact_type=3` and `append=True` as parameters. Tell the user "Chunk <x> of Artifact 3 saved"
+2. Save Chunk 1 using the `save_artifact_to_file` tool with `artifact_type=6` and `append=False` as parameters. Tell the user "Chunk 1 of Artifact 6 saved". 
+3. Now, generate the next 3 test functions. Save the chunk using `artifact_type=6` and `append=True` as parameters. Tell the user "Chunk <x> of Artifact 6 saved"
 4. Repeat step 3 until you have mapped out every success and early failure path from the decision tree.

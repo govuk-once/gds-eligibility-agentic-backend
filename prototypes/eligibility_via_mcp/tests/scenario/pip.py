@@ -122,9 +122,8 @@ class PipScenario(BaseScenario):
 
         return self
 
-    def would_you_like_me_to_check_what_implications_there_are_with_other_benefits_if_you_were_apply_and_be_found_eligible(self, value: str) -> PipScenario:
-        self._add_user_input(value)
-        self._add_judge_criteria("""
+    def _get_judge_criteria_for_implicated_benefits(self) -> str:
+        return """
             The agent should tell the user the following:
             
             - Benefit Cap: If you or your partner receive PIP, your household is completely exempt from the benefit cap (the limit on the total amount of benefits you can get).
@@ -136,5 +135,4 @@ class PipScenario(BaseScenario):
             - Vehicle Tax: You can get a 50% discount on your road tax if you get the standard mobility rate, or a 100% exemption if you get the enhanced mobility rate.
             - Motability Scheme: If you receive the enhanced mobility rate, you can use it to lease a new car, wheelchair-accessible vehicle, or mobility scooter through the Motability Scheme.
             - Public Transport: You become eligible for a Disabled Persons Railcard (1/3 off train fares) and a free or discounted local bus pass.
-        """)
-        return self
+        """

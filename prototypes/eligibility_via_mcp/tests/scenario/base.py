@@ -32,6 +32,10 @@ class BaseScenario(ABC):
     def _get_eligibility_name(self) -> str:
         ...
 
+    @abstractmethod
+    def _get_judge_criteria_for_implicated_benefits(self) -> str:
+        ...
+
     def _add_user_input(self, value: str):
         self.user_inputs.append(value)
 
@@ -40,6 +44,11 @@ class BaseScenario(ABC):
 
     def _user_eligibility_str(self) -> str:
         return "eligible" if self.user_should_be_eligible else "ineligible"
+    
+    def would_you_like_me_to_check_what_implications_there_are_with_other_benefits_if_you_were_apply_and_be_found_eligible(self, value: str) -> BaseScenario:
+        self._add_user_input(value)
+        self._add_judge_criteria(self._get_judge_criteria_for_implicated_benefits())
+        return self
 
     async def run(self) -> None:
         self.judge_criteria.append(f"Finally, the agent should tell the user that they are {self._user_eligibility_str()},{ " " + self.decision_addendum + ", " if self.decision_addendum else ""} and the conversation should conclude.")

@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from strands.models import BedrockModel
 import os
 from pathlib import Path
+import shutil
 
 load_dotenv()
 
@@ -44,13 +45,22 @@ def save_artifact_to_file(service_name: str, artifact_type: int, file_content: s
             target_dir = Path(f"src/mcp_server/tools/{safe_service_name}")
             file_name = "eligibility_checker.py"
         elif artifact_type == 2:
+            target_dir = Path(f"src/mcp_server/tools/{safe_service_name}")
+            file_name = f"eligibility_implications.py"
+        elif artifact_type == 3:
+            target_dir = Path("src/mcp_server")
+            file_name = "registered_eligibility_checker_tools.py"
+        elif artifact_type == 4:
+            target_dir = Path("src/mcp_server")
+            file_name = "registered_eligibility_implication_tools.py"
+        elif artifact_type == 5:
             target_dir = Path("tests/scenario")
             file_name = f"{safe_service_name}.py"
-        elif artifact_type == 3:
+        elif artifact_type == 6:
             target_dir = Path("tests")
             file_name = f"test_{safe_service_name}.py"
         else:
-            return f"Error: Invalid artifact_type {artifact_type}. Must be 1, 2, or 3."
+            return f"Error: Invalid artifact_type {artifact_type}. Must be 1, 2, 3, 4, 5, or 6."
             
         # Create directories if they don't exist
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -65,40 +75,44 @@ def save_artifact_to_file(service_name: str, artifact_type: int, file_content: s
         return f"Success: Saved Artifact {artifact_type} to {file_path}"
     except Exception as e:
         return f"Error saving file: {str(e)}"
-    
+
 @tool
 def delete_service_artifacts(service_name: str) -> str:
     """
-    Deletes all generated artifact files for a specific eligibility service.
+    Deletes all generated artifact files and directories for a specific eligibility service.
     Use this if the user wants to abandon or cancel the codification process.
     
     Args:
         service_name: The snake_case name of the eligibility service (e.g., 'skilled_worker_visa').
     """
     try:
-        # Sanitize service name to match the save tool logic
         safe_service_name = service_name.lower().replace(" ", "_").replace("-", "_")
+        deleted_items: list[str] = []
         
-        # Define the exact file paths
+        # 1. Delete the entire service directory and all files inside it
+        service_tools_dir = Path(f"src/mcp_server/tools/{safe_service_name}")
+        if service_tools_dir.exists() and service_tools_dir.is_dir():
+            shutil.rmtree(service_tools_dir)
+            deleted_items.append(f"Directory and all contents: {service_tools_dir}/")
+
+        # 2. Delete the standalone test files
         paths_to_delete = [
-            Path("src/mcp_server/tools") / f"{safe_service_name}.py",
             Path("tests/scenario") / f"{safe_service_name}.py",
             Path("tests") / f"test_{safe_service_name}.py"
         ]
         
-        deleted_files: list[str] = []
         for file_path in paths_to_delete:
-            if file_path.exists():
+            if file_path.exists() and file_path.is_file():
                 file_path.unlink()
-                deleted_files.append(str(file_path))
+                deleted_items.append(f"File: {file_path}")
                 
-        if deleted_files:
-            return f"Success: Deleted the following files:\n" + "\n".join(deleted_files)
+        if deleted_items:
+            return "Success: Deleted the following:\n" + "\n".join(deleted_items)
         else:
-            return f"No files found to delete for service '{service_name}'."
+            return f"No files or directories found to delete for service '{service_name}'."
             
     except Exception as e:
-        return f"Error deleting files: {str(e)}"
+        return f"Error deleting artifacts: {str(e)}"
     
 def load_system_prompt() -> str:
     """Reads the system prompt from a markdown file."""
