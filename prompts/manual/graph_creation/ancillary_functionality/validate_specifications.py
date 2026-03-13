@@ -157,7 +157,8 @@ def main():
     # Files to validate
     spec_files = [
         "../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json",
-        "../specifications/child_benefit/child_benefit_eligibility.json"
+        "../specifications/child_benefit/child_benefit_eligibility.json",
+        "../specifications/universal_credit/universal_credit_eligibility.json"
     ]
 
     all_valid = True

@@ -1,0 +1,473 @@
+{
+  "$schema": "../../schemas/eligibility-schema.json",
+  "version": "1.0",
+  "last_updated": "2026-03-12",
+  "source": "https://www.gov.uk/universal-credit",
+  "description": "Machine-readable representation of UK Universal Credit eligibility criteria",
+
+  "decision_tree": {
+    "root": {
+      "id": "start",
+      "type": "start",
+      "description": "UK Universal Credit Eligibility Assessment",
+      "next": "check_age_eligibility"
+    },
+
+    "nodes": {
+      "check_age_eligibility": {
+        "id": "check_age_eligibility",
+        "type": "routing",
+        "description": "Determine age-based eligibility category",
+        "routing_logic": "Under 16: not eligible. Age 16-17: check special circumstances. Age 18 to State Pension age: check basic eligibility. State Pension age or over: not eligible.",
+        "reference": "https://www.gov.uk/universal-credit/eligibility",
+        "outcomes": {
+          "under_16": "INELIGIBLE_too_young",
+          "age_16_17": "check_youth_eligibility",
+          "age_18_to_pension": "check_uk_residency",
+          "pension_age_or_over": "check_partner_under_pension_age"
+        }
+      },
+
+      "check_youth_eligibility": {
+        "id": "check_youth_eligibility",
+        "type": "multi_path_check",
+        "question": "Does the 16-17 year old meet any special circumstances for eligibility?",
+        "help_text": "16-17 year olds can only claim Universal Credit under specific circumstances",
+        "reference": "https://www.gov.uk/universal-credit/eligibility",
+        "evaluation_logic": "If ANY path is satisfied, proceed to UK residency check. If NONE are met, ineligible due to age.",
+        "paths": [
+          {
+            "id": "youth_health_condition",
+            "description": "Has health condition or disability with medical evidence",
+            "requirement": "Has health condition or disability with medical evidence (fit note)"
+          },
+          {
+            "id": "youth_carer",
+            "description": "Caring for someone receiving health/disability benefit",
+            "requirement": "Caring for someone who receives a health or disability benefit"
+          },
+          {
+            "id": "youth_end_of_life",
+            "description": "Nearing end of life",
+            "requirement": "Nearing end of life"
+          },
+          {
+            "id": "youth_responsible_for_child",
+            "description": "Responsible for a child",
+            "requirement": "Responsible for a child"
+          },
+          {
+            "id": "youth_couple_with_child",
+            "description": "Lives with partner, responsible for child, partner eligible",
+            "criteria": [
+              "Lives with partner",
+              "Responsible for a child",
+              "Partner is eligible for Universal Credit"
+            ]
+          },
+          {
+            "id": "youth_pregnant",
+            "description": "Pregnant with baby due in next 11 weeks",
+            "requirement": "Pregnant and baby is due in the next 11 weeks"
+          },
+          {
+            "id": "youth_recent_birth",
+            "description": "Had baby in last 15 weeks",
+            "requirement": "Had a baby in the last 15 weeks"
+          },
+          {
+            "id": "youth_no_parental_support",
+            "description": "No parental support",
+            "criteria": [
+              "Does not live with parents",
+              "Not under local authority care",
+              "Has no parental support"
+            ]
+          }
+        ],
+        "outcomes": {
+          "eligible_via_any_path": "check_uk_residency",
+          "not_eligible": "INELIGIBLE_age_16_17_no_circumstances"
+        }
+      },
+
+      "check_partner_under_pension_age": {
+        "id": "check_partner_under_pension_age",
+        "type": "boolean_question",
+        "question": "Do you live with a partner who is under State Pension age?",
+        "help_text": "If one partner has reached State Pension age but the other hasn't, you can still claim Universal Credit together until both reach pension age",
+        "reference": "https://www.gov.uk/universal-credit/eligibility",
+        "outcomes": {
+          "yes": "check_uk_residency",
+          "no": "INELIGIBLE_pension_age"
+        }
+      },
+
+      "check_uk_residency": {
+        "id": "check_uk_residency",
+        "type": "boolean_question",
+        "question": "Do you live in the UK (England, Scotland, Wales, or Northern Ireland)?",
+        "help_text": "You must be living in the UK to claim Universal Credit. Armed forces personnel stationed abroad can apply using a specific address.",
+        "reference": "https://www.gov.uk/universal-credit/eligibility",
+        "outcomes": {
+          "yes": "check_eu_eea_swiss_status",
+          "no": "INELIGIBLE_not_uk_resident"
+        }
+      },
+
+      "check_eu_eea_swiss_status": {
+        "id": "check_eu_eea_swiss_status",
+        "type": "conditional_check",
+        "question": "If you are an EU, EEA, or Swiss citizen, do you have settled or pre-settled status under the EU Settlement Scheme?",
+        "help_text": "UK citizens and those with settled/pre-settled status can proceed. Not applicable if you are not an EU/EEA/Swiss citizen.",
+        "reference": "https://www.gov.uk/settled-status-eu-citizens-families/eligibility",
+        "outcomes": {
+          "yes_or_not_applicable": "check_capital_limit",
+          "no": "INELIGIBLE_no_settled_status"
+        }
+      },
+
+      "check_capital_limit": {
+        "id": "check_capital_limit",
+        "type": "criteria_check",
+        "question": "Do you (and your partner if claiming jointly) have £16,000 or less in total savings, capital, and investments?",
+        "help_text": "Savings includes cash, bank accounts, ISAs, Premium Bonds, stocks, shares, cryptoassets, property you don't live in, and certain other capital. Your main home and personal possessions don't count.",
+        "reference": "https://www.gov.uk/guidance/universal-credit-money-savings-and-investments",
+        "criteria": {
+          "maximum_capital": 16000,
+          "tariff_income_threshold": 6000,
+          "tariff_income_rate": 4.35,
+          "tariff_income_band": 250,
+          "calculation_method": "If capital is £16,001 or more: not eligible. If capital is £6,001-£16,000: payment reduced by £4.35 per month for every £250 (or part thereof) above £6,000. If capital is £6,000 or less: no reduction.",
+          "capital_includes": [
+            "Cash and bank accounts (including PayPal, digital-only accounts)",
+            "Savings accounts (bank, building society, credit union)",
+            "ISAs (cash, stocks and shares, Lifetime ISAs)",
+            "Premium Bonds, stocks, shares, cryptoassets",
+            "Property you own but don't live in (with exceptions)",
+            "Money in trust funds",
+            "Inheritance payments",
+            "Redundancy pay",
+            "Unspent benefits",
+            "Unspent income from previous assessment periods"
+          ],
+          "capital_excludes": [
+            "Personal possessions",
+            "Property you own and live in (main residence)",
+            "Life insurance policies not yet paid out",
+            "Funeral plan contracts",
+            "Children's savings in children's names",
+            "Business accounts for active businesses or those closed within 6 months",
+            "Property that is the main home of close relatives who are retired or have severe health condition",
+            "Property that is the main home of former partner who is a lone parent"
+          ]
+        },
+        "outcomes": {
+          "16000_or_less": "check_student_status",
+          "over_16000": "INELIGIBLE_capital_over_16000"
+        }
+      },
+
+      "check_student_status": {
+        "id": "check_student_status",
+        "type": "routing",
+        "description": "Determine if student status affects eligibility",
+        "routing_logic": "If not a student or studying part-time and available for work: eligible. If studying full-time: check for student eligibility exceptions.",
+        "reference": "https://www.gov.uk/guidance/universal-credit-and-students",
+        "outcomes": {
+          "not_a_student": "check_joint_claim_requirement",
+          "part_time_available_for_work": "check_joint_claim_requirement",
+          "full_time_student": "check_student_eligibility_exceptions"
+        }
+      },
+
+      "check_student_eligibility_exceptions": {
+        "id": "check_student_eligibility_exceptions",
+        "type": "multi_path_check",
+        "question": "As a full-time student, do you meet any of the eligibility exceptions?",
+        "help_text": "Full-time students are generally not eligible for Universal Credit unless they meet specific circumstances",
+        "reference": "https://www.gov.uk/guidance/universal-credit-and-students",
+        "evaluation_logic": "If ANY path is satisfied, proceed to joint claim check. If NONE are met, ineligible as full-time student.",
+        "paths": [
+          {
+            "id": "student_under_21_no_support",
+            "description": "Age 21 or under in full-time non-advanced education without parental support",
+            "criteria": [
+              "Aged 21 or under",
+              "Studying full-time non-advanced education (A-levels, T-levels, NVQ Level 3 or below)",
+              "No parental support"
+            ],
+            "reference": "https://www.gov.uk/guidance/universal-credit-and-education-course-levels"
+          },
+          {
+            "id": "student_responsible_for_child",
+            "description": "Responsible for a child (adopted or foster)",
+            "requirement": "Responsible for a child (adopted child or foster child)"
+          },
+          {
+            "id": "student_lives_with_eligible_partner",
+            "description": "Lives with partner who is eligible for Universal Credit",
+            "requirement": "Lives with a partner who is eligible for Universal Credit"
+          },
+          {
+            "id": "student_pension_age_with_partner",
+            "description": "Reached State Pension age and lives with partner below that age",
+            "requirement": "Reached State Pension age and lives with a partner who is below State Pension age"
+          },
+          {
+            "id": "student_migration_notice",
+            "description": "Received a Migration Notice letter",
+            "requirement": "Received a Migration Notice letter requiring move to Universal Credit"
+          },
+          {
+            "id": "student_disabled_with_lcw",
+            "description": "Disabled with limited capability for work and receiving qualifying benefit",
+            "criteria": [
+              "Assessed as having limited capability for work BEFORE starting the course",
+              "Receiving one of: Personal Independence Payment (PIP), Disability Living Allowance (DLA), Attendance Allowance, Armed Forces Independence Payment, Adult Disability Payment (ADP) in Scotland, Child Disability Payment (CDP) in Scotland, Pension Age Disability Payment (PADP) in Scotland, Scottish Adult Disability Living Allowance (SADLA)"
+            ]
+          },
+          {
+            "id": "student_non_advanced_no_loan_available",
+            "description": "Studying full-time non-advanced education with no student loan/grant and available for work",
+            "criteria": [
+              "Studying full-time non-advanced education",
+              "No student loan or maintenance grant",
+              "Available for work",
+              "From 1 September after 19th birthday if course is more than 12 hours per week"
+            ]
+          }
+        ],
+        "outcomes": {
+          "eligible_via_any_path": "check_joint_claim_requirement",
+          "not_eligible": "INELIGIBLE_full_time_student"
+        }
+      },
+
+      "check_joint_claim_requirement": {
+        "id": "check_joint_claim_requirement",
+        "type": "conditional_check",
+        "question": "If you live with a partner, are you making a joint claim together?",
+        "help_text": "Couples living together must make a joint claim for Universal Credit, even if only one partner is eligible. Both partners' income and savings are combined for assessment.",
+        "reference": "https://www.gov.uk/universal-credit/eligibility",
+        "outcomes": {
+          "yes_or_single": "ELIGIBLE",
+          "no_separate_claims": "INELIGIBLE_must_claim_jointly"
+        }
+      },
+
+      "ELIGIBLE": {
+        "id": "ELIGIBLE",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "You meet the basic eligibility criteria for Universal Credit",
+        "next_steps": [
+          "Apply online at www.gov.uk/apply-universal-credit",
+          "You'll need: email address, bank account details, housing details (rent/mortgage), childcare costs if applicable",
+          "If you have capital between £6,000-£16,000, your payment will be reduced by £4.35 per month for every £250 (or part thereof) above £6,000",
+          "You may be eligible for additional payments if you have a health condition, disability, caring responsibilities, or children",
+          "Await your first payment (usually 5 weeks after application)",
+          "You may be able to request an advance payment if in financial hardship"
+        ],
+        "reference": "https://www.gov.uk/how-to-claim-universal-credit"
+      },
+
+      "INELIGIBLE_too_young": {
+        "id": "INELIGIBLE_too_young",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Under 16 years old",
+        "guidance": "Universal Credit is not available for people under 16. Your parent or guardian may be able to claim Universal Credit which includes an amount for you as a dependent child."
+      },
+
+      "INELIGIBLE_age_16_17_no_circumstances": {
+        "id": "INELIGIBLE_age_16_17_no_circumstances",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Age 16-17 without qualifying special circumstances",
+        "guidance": "16-17 year olds can only claim Universal Credit if they: have a health condition/disability with medical evidence, are caring for someone receiving health/disability benefit, are nearing end of life, are responsible for a child, live with eligible partner and responsible for child, are pregnant (baby due in 11 weeks), had baby in last 15 weeks, or have no parental support. If none apply, you may be eligible for other benefits. Check www.gov.uk/benefits-calculators"
+      },
+
+      "INELIGIBLE_pension_age": {
+        "id": "INELIGIBLE_pension_age",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "At or above State Pension age without eligible partner under pension age",
+        "guidance": "Universal Credit is not available once you reach State Pension age (unless your partner is under State Pension age). You may be eligible for Pension Credit instead. Check www.gov.uk/pension-credit"
+      },
+
+      "INELIGIBLE_not_uk_resident": {
+        "id": "INELIGIBLE_not_uk_resident",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Not living in the UK",
+        "guidance": "You must live in the UK (England, Scotland, Wales, or Northern Ireland) to claim Universal Credit. If you are in the armed forces and stationed abroad, you may still be able to apply using a specific address. Contact your unit's welfare officer for guidance."
+      },
+
+      "INELIGIBLE_no_settled_status": {
+        "id": "INELIGIBLE_no_settled_status",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "EU, EEA, or Swiss citizen without settled or pre-settled status",
+        "guidance": "EU, EEA, and Swiss citizens generally need settled or pre-settled status under the EU Settlement Scheme to claim Universal Credit. Apply for settled status at www.gov.uk/settled-status-eu-citizens-families. If you arrived in the UK after 31 December 2020, different immigration rules may apply."
+      },
+
+      "INELIGIBLE_capital_over_16000": {
+        "id": "INELIGIBLE_capital_over_16000",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Total capital, savings, and investments exceed £16,000",
+        "guidance": "You are not eligible for Universal Credit if you (and your partner if claiming jointly) have more than £16,000 in total capital, savings, and investments. This includes: cash, bank accounts, ISAs, Premium Bonds, stocks, shares, cryptoassets, and property you don't live in (with some exceptions). Your main home and personal possessions don't count. If your capital reduces to £16,000 or below in the future, you can reapply. See www.gov.uk/guidance/universal-credit-money-savings-and-investments for full details of what counts."
+      },
+
+      "INELIGIBLE_full_time_student": {
+        "id": "INELIGIBLE_full_time_student",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Full-time student without qualifying circumstances",
+        "guidance": "Full-time students are generally not eligible for Universal Credit unless they: are aged 21 or under in non-advanced education without parental support, are responsible for a child, live with an eligible partner, have reached State Pension age with younger partner, received a Migration Notice, are disabled with limited capability for work and receiving qualifying disability benefits, or are in non-advanced education with no student loan/grant and available for work. If none apply, you may be able to claim Student Finance. Part-time students who are available for work can claim Universal Credit. See www.gov.uk/guidance/universal-credit-and-students"
+      },
+
+      "INELIGIBLE_must_claim_jointly": {
+        "id": "INELIGIBLE_must_claim_jointly",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Living with partner but not making a joint claim",
+        "guidance": "If you live with a partner, you must make a joint claim for Universal Credit together. You cannot make separate claims. Both partners' income and savings will be combined and assessed together, even if only one of you is working or eligible. To proceed, you need to apply jointly at www.gov.uk/apply-universal-credit"
+      }
+    }
+  },
+
+  "constants": {
+    "age_limits": {
+      "minimum_age": 18,
+      "youth_minimum_age": 16,
+      "maximum_age_description": "Under State Pension age (varies by date of birth)",
+      "note": "State Pension age varies - check www.gov.uk/state-pension-age"
+    },
+    "capital_limits": {
+      "maximum_capital": 16000,
+      "lower_tariff_threshold": 6000,
+      "tariff_income_rate_per_month": 4.35,
+      "tariff_income_band": 250,
+      "calculation_note": "For every £250 (or part thereof) between £6,000 and £16,000, Universal Credit is reduced by £4.35 per month"
+    },
+    "student_criteria": {
+      "non_advanced_education_levels": [
+        "GCSE",
+        "AS level",
+        "A level",
+        "T level",
+        "NVQ levels 1-3",
+        "BTEC up to level 3",
+        "Access to higher education diploma",
+        "International Baccalaureate diploma"
+      ],
+      "advanced_education_levels": [
+        "University degrees",
+        "Postgraduate qualifications",
+        "NVQ level 4 or above",
+        "Degree apprenticeships",
+        "Diploma/Certificate of Higher Education",
+        "Higher National Diploma (HND)",
+        "Higher National Certificate (HNC)",
+        "Foundation degrees",
+        "Teaching qualifications",
+        "Graduate diplomas"
+      ],
+      "qualifying_disability_benefits": [
+        "Personal Independence Payment (PIP)",
+        "Disability Living Allowance (DLA)",
+        "Attendance Allowance",
+        "Armed Forces Independence Payment",
+        "Adult Disability Payment (ADP) in Scotland",
+        "Child Disability Payment (CDP) in Scotland",
+        "Pension Age Disability Payment (PADP) in Scotland",
+        "Scottish Adult Disability Living Allowance (SADLA)"
+      ],
+      "student_income_disregard_per_assessment_period": 110
+    },
+    "assessment_period": {
+      "length_in_days": 28,
+      "note": "Universal Credit is paid monthly based on your circumstances in each assessment period"
+    }
+  },
+
+  "validation_rules": {
+    "capital_calculation": {
+      "rule": "Capital between £6,000-£16,000 generates tariff income that reduces Universal Credit payment",
+      "formula": "Monthly reduction = CEILING((capital - £6,000) / £250) × £4.35",
+      "examples": [
+        {
+          "capital": 6300,
+          "calculation": "(£6,300 - £6,000) / £250 = 1.2, rounded up to 2",
+          "monthly_reduction": 8.70,
+          "explanation": "£300 above threshold, treated as 2 complete bands of £250"
+        },
+        {
+          "capital": 14500,
+          "calculation": "(£14,500 - £6,000) / £250 = 34",
+          "monthly_reduction": 147.90,
+          "explanation": "£8,500 above threshold, exactly 34 bands of £250"
+        },
+        {
+          "capital": 16000,
+          "calculation": "(£16,000 - £6,000) / £250 = 40",
+          "monthly_reduction": 174.00,
+          "explanation": "At maximum capital limit, £10,000 above threshold"
+        }
+      ],
+      "note": "Any remaining amount that is not a complete £250 counts as another full band (always round up)"
+    },
+    "joint_claim": {
+      "rule": "Couples living together must make a joint claim",
+      "assessment": "Both partners' income and savings are combined",
+      "exception": "No exceptions - even if one partner is not eligible, must claim jointly",
+      "consequence": "Separate claims by partners living together will be rejected"
+    },
+    "student_eligibility": {
+      "general_rule": "Full-time students are not eligible unless they meet specific exceptions",
+      "part_time_rule": "Part-time students can claim if available for work",
+      "student_income": "Student loans and maintenance grants are counted as income, with £110 per assessment period disregarded for full-time students",
+      "non_advanced_education_threshold": "From 1 September after 19th birthday, if course is more than 12 hours per week and no student loan/grant available",
+      "limited_capability_for_work": "Must be assessed BEFORE starting course to qualify as disabled student",
+      "qualifying_benefits_required": "Disabled students must receive one of the qualifying disability benefits listed in constants"
+    },
+    "age_16_17_eligibility": {
+      "rule": "16-17 year olds can only claim under specific circumstances",
+      "circumstances": [
+        "Health condition/disability with medical evidence (fit note)",
+        "Caring for someone receiving health/disability benefit",
+        "Nearing end of life",
+        "Responsible for a child",
+        "Live with partner who is eligible and responsible for child",
+        "Pregnant with baby due in next 11 weeks",
+        "Had baby in last 15 weeks",
+        "No parental support (not living with parents, not in local authority care)"
+      ],
+      "assessment": "Any ONE of these circumstances is sufficient for eligibility"
+    },
+    "pension_age_transition": {
+      "rule": "Universal Credit stops when both partners reach State Pension age",
+      "mixed_age_couple": "If one partner has reached State Pension age but the other hasn't, can still claim Universal Credit together",
+      "transition": "When second partner reaches State Pension age, Universal Credit ends and couple should claim Pension Credit",
+      "reference": "https://www.gov.uk/pension-credit"
+    }
+  },
+
+  "external_references": {
+    "main_page": "https://www.gov.uk/universal-credit",
+    "eligibility": "https://www.gov.uk/universal-credit/eligibility",
+    "how_to_claim": "https://www.gov.uk/how-to-claim-universal-credit",
+    "apply_online": "https://www.gov.uk/apply-universal-credit",
+    "money_savings_investments": "https://www.gov.uk/guidance/universal-credit-money-savings-and-investments",
+    "students": "https://www.gov.uk/guidance/universal-credit-and-students",
+    "education_course_levels": "https://www.gov.uk/guidance/universal-credit-and-education-course-levels",
+    "health_conditions_disability": "https://www.gov.uk/health-conditions-disability-universal-credit",
+    "end_of_life_claims": "https://www.gov.uk/health-conditions-disability-universal-credit/claiming-end-of-life",
+    "state_pension_age": "https://www.gov.uk/state-pension-age",
+    "pension_credit": "https://www.gov.uk/pension-credit",
+    "eu_settlement_scheme": "https://www.gov.uk/settled-status-eu-citizens-families/eligibility",
+    "benefits_calculator": "https://www.gov.uk/benefits-calculators"
+  }
+}
