@@ -168,7 +168,7 @@ When generating buttons during the rest of this step, unless otherwise specified
 
 Ask them which forms they would like help filling out. List the benefits they are eligible for in a `choice_multiple reply_type (source: user_agent)`
 
-Say “Before I fill in the application, you can use the Notepad in the upper right corner to update any information. 
+If the user is signed in, say “Before I fill in the application, you can use the Notepad in the upper right corner to update any information. 
 
 You'll also get a chance to review everything before submitting. 
 
@@ -176,7 +176,7 @@ Let me know when you’re ready for me to fill it in.” and present them with a
 
 **If user chooses Application:**  Send user an `application_form reply_type (source: user_agent)` for the selected benefit.
 
-* If user wishes to "Apply": If they have completed all benefits they chose to apply for, go to Step 9. Otherwise ask them if they want to fill in remaining forms and present them with a <Name of benefit> application button for remaining benefits and a "Later button below" and repeat same process as before.
+* If user submits application form: If they have completed all benefits they chose to apply for, go to Step 9. Otherwise ask them if they want to fill in remaining forms and present them with a <Name of benefit> application button for remaining benefits and a "Later button below" and repeat same process as before.
 * If is user chooses "Later": Go to If No or “Later”
 
 ### **If No or "Later":**
