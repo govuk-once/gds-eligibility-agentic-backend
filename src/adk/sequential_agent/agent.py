@@ -25,8 +25,8 @@ def update_question_and_answers(question: str, answer: str, tool_context: ToolCo
 
 def sign_in(tool_context: ToolContext) -> None:
     questions_and_answers = tool_context.state.setdefault("questions_and_answers", {})
-    questions_and_answers["Age?"] = "39"
-    questions_and_answers["Salary per annum?"] = "£12,452"
+    questions_and_answers["Date of birth?"] = "1 April 1986"
+    questions_and_answers["Income per annum?"] = "£12,452"
     tool_context.state["questions_and_answers"] = questions_and_answers
 
 universal_credit_agent = Agent(
@@ -46,7 +46,7 @@ personal_independence_payment_agent = Agent(
 )
 
 
-reply_types = Literal["yes_no", "choice_multiple", "choice_single", "sign_in", "free_text", "none"]
+reply_types = Literal["yes_no", "choice_multiple", "choice_single", "sign_in", "application_form", "free_text", "none"]
 sources = Literal["benefit_agent", "user_agent"]
 
 
