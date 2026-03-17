@@ -22,9 +22,9 @@ from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "structured_specification_opus",
+    "hypothesis_name": "structured_specification_haiku",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-opus-4-5-20251101-v1:0",
+    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md",
     "test_cohort": "child_benefit",
@@ -33,11 +33,11 @@ config = {
     "app_user_id": "test_user",
     "url_tool_call_allowed": True,
     "eligibility_agent": "structured_specification",
-    "max_concurrent_cases": 10,
-    # 20 is fine for Sonnet (limits: requests/min 10k, tokens/min 5m)
+    "max_concurrent_cases": 22,
+    # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
     # 30 is too many.
     # For Opus the requests/min are 10k and tokens/min 2m
-    # 20 is too many for Opus. 10 seems OK.
+    # 20 is too many for Opus. 15 seems OK.
     # other models may vary.
     # check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
     "max_retries": 3,
