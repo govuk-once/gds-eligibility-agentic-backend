@@ -1,11 +1,5 @@
 #!/bin/bash
 
-<<<<<<< HEAD
-=======
-# setup_env.sh
-
-# Function to setup and run commands
->>>>>>> 46781da (ELIG-243: complete)
 run_with_aws_profile() {
     local AWS_PROFILE=$1
     shift # Remove the AWS_PROFILE from the arguments list

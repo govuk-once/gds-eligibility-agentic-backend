@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 from mcp_server.models.eligibility_check_models import Decision, NextQuestion, Question
 
 def get_next_question_for_pip_eligibility_check(next_question: int) -> Question:
-=======
-from models.eligibility_check_models import Question, Decision, NextQuestion
-
-def get_next_question(next_question: int) -> Question:
->>>>>>> 46781da (ELIG-243: complete)
     match next_question:
         case 1:
             return Question.new("How old are you?") \
@@ -16,11 +10,7 @@ def get_next_question(next_question: int) -> Question:
         case 2:
             return Question.new("Do you live in England or Wales?") \
                 .add_answer_and_outcome("Yes", NextQuestion.new(3)) \
-<<<<<<< HEAD
                 .add_answer_and_outcome("No", Decision.new(False, "If you live in Scotland, you can apply for 'Adult Disability Payment' instead.")
-=======
-                .add_answer_and_outcome("No", Decision.new(False, "If you live in Scotland, you can apply for 'Adulut Disability Payment' instead.")
->>>>>>> 46781da (ELIG-243: complete)
             )
         case 3:
             return Question.new("Have you lived in the UK for at least 2 of the last 3 years?") \

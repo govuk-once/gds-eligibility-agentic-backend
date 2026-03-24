@@ -1,9 +1,6 @@
 import os
 from strands import Agent
-<<<<<<< HEAD
 from strands.agent import NullConversationManager
-=======
->>>>>>> 46781da (ELIG-243: complete)
 from strands.models import BedrockModel
 from strands.tools.mcp import MCPClient
 from mcp.client.stdio import stdio_client, StdioServerParameters
@@ -14,11 +11,7 @@ load_dotenv()
 
 mcp_client = MCPClient(lambda: stdio_client(
     StdioServerParameters(
-<<<<<<< HEAD
         command='uv',
-=======
-        command='/opt/homebrew/bin/uv',
->>>>>>> 46781da (ELIG-243: complete)
         args=["--quiet", "--directory", str((Path(__file__).parent / "../../mcp_server").resolve()), "run", "server.py"]
     )
 ))
@@ -26,7 +19,6 @@ mcp_client = MCPClient(lambda: stdio_client(
 def create() -> Agent:
     return Agent(
         model=BedrockModel(
-<<<<<<< HEAD
             model_id=os.getenv("ELIGIBILITY_AGENT_AWS_BEDROCK_MODEL_ID", ""),
             region_name="eu-west-2"
         ),
@@ -37,19 +29,12 @@ def create() -> Agent:
         # being caused by the tool's output being truncated by SlidingWindowConversationManager, so the agent had
         # no idea how to proceed!
         conversation_manager=NullConversationManager(), 
-=======
-            model_id=os.getenv("ELIGIBILITY_AGENT_AWS_BEDROCK_MODEL_ID"),
-            region_name="eu-west-2"
-        ),
-        tools=[mcp_client], 
->>>>>>> 46781da (ELIG-243: complete)
         system_prompt="""
 
         # Persona
         You are a UK Government Eligibility Coordinator. Your role is to help users find the right support by offering a choice of available assessment tools.
 
         # Core Directives
-<<<<<<< HEAD
         1. **Intent Matching**: If the user describes a situation (e.g., "I lost my job"), look for matching tools. If matches are found, ask: "I can help with that using our 
         [Tool Name 1, Tool Name 2, ...] checker. Which one would you like to start with?"
         2. **Session Locked**: Once a user selects a tool (e.g., `pip_checker`), stick to that tool's specific sequential logic. Follow its questions exactly.
@@ -62,11 +47,6 @@ def create() -> Agent:
             - If it maps to an eligible decision (e.g., "eligible": true), report the outcome, and ask the user if they would like to see how successfully applying for the given
             eligibility would affect their eligibility for other services. If so, find the correct tool to service this request, and report the result.
             - NEVER guess the next step. ALWAYS follow the exact mapping in the tool's JSON result.
-=======
-        1. **Intent Matching**: If the user describes a situation (e.g., "I lost my job"), look for matching tools. If matches are found, ask: "I can help with that using our [Tool Name 1, Tool Name 2, ...] checker. Which one would you like to start with?"
-        2. **Session Locked**: Once a user selects a tool (e.g., `pip_checker`), stick to that tool's specific sequential logic. Follow its questions exactly.
-        3. **Processing answers**: When a user provides an answer for a tool's question, match it exactly to the questions answers. If the answer yields a further step, make sure to display any addendums before getting the next question. If it yields a decision, report the outcome ONLY, i.e. NO ADDITIONAL INFORMATION, and stop contacting the tool.
->>>>>>> 46781da (ELIG-243: complete)
         4. **Formatting**: Use bold headings for tool names and bullet points for options. Never show raw JSON.
         """
     )
