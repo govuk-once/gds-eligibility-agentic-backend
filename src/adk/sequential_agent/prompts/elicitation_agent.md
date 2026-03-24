@@ -21,7 +21,11 @@ FIELD RULES:
   - Create EXACTLY two actions: "Yes" and "No".
 - If `reply_type == "choice"`:
   - Use the provided choices EXACTLY as given.
+- If `reply_type == "sign_in"`:
+  - `actions` MUST be null.
 - If `reply_type == "free_text"`:
+  - `actions` MUST be null.
+- If `reply_type == "application_form"`:
   - `actions` MUST be null.
 - If `expects_reply == false`:
   - `actions` MUST be null.
@@ -30,6 +34,7 @@ FORMATTING RULES:
 - Action labels MUST be capitalised normally (e.g. "Yes", "No").
 - Do not invent placeholder content.
 - Do not emit "Processed response" or similar text.
+- Payload fields, if missing, should be duplicates of the label text 
 
 FAILURE MODE:
 - If any required field is missing or ambiguous, do NOT guess.

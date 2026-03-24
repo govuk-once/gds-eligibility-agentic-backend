@@ -9,7 +9,22 @@
 5. `aws-vault exec <AWS_PROFILE> -- terraform apply`
 
 ## Local development
+
 1. `aws-vault exec <AWS_PROFILE> -- docker-compose up`
+
+## Test Runner
+
+1. `cd ./src/adk`
+2. `uv venv --allow-existing && uv sync --dev`
+3. `source ./.venv/bin/activate`
+4. `aws-vault exec <AWS_PROFILE> -- python3 ./test_runner.py`
+
+## Judge Runner
+
+1. `cd ./src/adk`
+2. `uv venv --allow-existing && uv sync --dev`
+3. `source ./.venv/bin/activate`
+4. `aws-vault exec <AWS_PROFILE> -- python3 ./judge_runner.py`
 
 ## Setting up Knowledge Base
 
@@ -29,7 +44,7 @@ CREATE TABLE IF NOT EXISTS eligibility_results (
       benefit VARCHAR(100),
       eligible BOOLEAN
     );
-    
+
 INSERT INTO eligibility_results (user_id, benefit, eligible)
     VALUES ('test-user-123', 'free_school_meals', true);
 ```
@@ -63,5 +78,3 @@ INSERT INTO eligibility_results (user_id, benefit, eligible)
     - Ask about `test-user-456` - you should receive a response indicating no information was found for this user.
 
 <b>IMPORTANT:</b> Any data added to the Redshift database will not be available to the agent until the Knowledge Base is synced again. After inserting or updating data, return to the Knowledge Base overview page and click <b>Sync</b>.
-
-
