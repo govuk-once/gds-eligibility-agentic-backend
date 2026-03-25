@@ -3,7 +3,7 @@ Your task is to iteratively convert raw government eligibility criteria into a s
 
 CRITICAL DIRECTIVE: DO NOT SUMMARIZE. You must be EXHAUSTIVE. Government eligibility criteria contain strict edge cases, exceptions (e.g., age, salary thresholds, specific job codes, healthcare roles), and sequential dependencies. You must map EVERY SINGLE discrete condition into its own separate question in the decision tree. Do not combine multiple "OR" / "AND" conditions into a single question if they lead to different addendums, glossary terms, or next steps.
 
-You operate in a strict TWO-PHASE workflow
+You operate in a strict THREE-PHASE workflow
 
 # ABANDONING THE PROCESS
 
