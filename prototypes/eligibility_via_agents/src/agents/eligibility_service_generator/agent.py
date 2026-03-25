@@ -42,15 +42,13 @@ def save_artifact_to_file(service_name: str, artifact_type: int, file_content: s
         
         base_dir = Path(f"src/agents/{safe_service_name}")
         
-        # Phase 1: Prompts
+        # Phase 1: Prompts and A2A Agent Cards
         if artifact_type == 1:
             target_dir = base_dir / "eligibility_checker"
             file_name = "system_prompt.md"
         elif artifact_type == 2:
             target_dir = base_dir / "implications_checker"
             file_name = "system_prompt.md"
-            
-        # Phase 1: A2A Agent Cards
         elif artifact_type == 3:
             target_dir = base_dir / "eligibility_checker"
             file_name = "agent.json"
@@ -58,7 +56,7 @@ def save_artifact_to_file(service_name: str, artifact_type: int, file_content: s
             target_dir = base_dir / "implications_checker"
             file_name = "agent.json"
                 
-        # Phase 3: Strands Python Implementations
+        # Phase 2: Strands Agents Implementations
         elif artifact_type == 5:
             target_dir = base_dir / "eligibility_checker"
             file_name = "agent.py"
@@ -66,7 +64,7 @@ def save_artifact_to_file(service_name: str, artifact_type: int, file_content: s
             target_dir = base_dir / "implications_checker"
             file_name = "agent.py"
 
-        # Phase 3: Tests
+        # Phase 3: Test suite
         elif artifact_type == 7:
             target_dir = Path("tests/scenario")
             file_name = f"{safe_service_name}.py"
@@ -99,7 +97,7 @@ def delete_service_artifacts(service_name: str) -> str:
     scenario_test_file = Path(f"tests/scenario/{safe_service_name}.py")
     pytest_file = Path(f"tests/test_{safe_service_name}.py")
     
-    deleted_items = []
+    deleted_items: list[str] = []
     
     # 1. Nuke the entire agent directory (prompts, cards, and strands agents)
     if service_agent_dir.exists() and service_agent_dir.is_dir():
@@ -132,8 +130,7 @@ def load_system_prompt() -> str:
         print(f"❌ Error: {filepath} not found. Please create it in the same directory.")
         exit(1)
 
-# 2. Initialize the Strands Agent
-code_generator_agent = Agent(
+eligibility_service_generator_agent = Agent(
     model=BedrockModel(
         model_id=os.getenv("ELIGIBILITY_GENERATOR_AGENT_AWS_BEDROCK_MODEL_ID", ""),
         region_name="eu-west-2"
@@ -146,9 +143,8 @@ code_generator_agent = Agent(
     system_prompt=load_system_prompt()
 )
 
-# 4. The Interactive Generation Loop
 if __name__ == "__main__":
-    print("🤖 Agent: Hello! I am your QA & Agent Generation Architect.")
+    print("🤖 Agent: Hello! I am your Eligibility Service Generation Architect.")
     print("🤖 Agent: Please provide the URL for the eligibility criteria you want to convert, and we'll start Phase 1.")
     
     while True:
@@ -158,7 +154,7 @@ if __name__ == "__main__":
                 print("\n🤖 Agent: Shutting down generator. Goodbye!")
                 break
                 
-            response = code_generator_agent(user_input)
+            response = eligibility_service_generator_agent(user_input)
             print(f"\n🤖 Agent:\n{response}")
             
         except KeyboardInterrupt:
