@@ -23,15 +23,15 @@ the assessment, including the likelihood of eligibility results.
     * **No**: FINAL DECISION: Not eligible
 5. *Do you need help, or struggle, with any of the following for over half of any given day? (Tick all that apply). Please be aware that only being able to do a task by using an aid (like a grab rail, 
 a walking stick, or a dossette box for pills) counts as needing help. If the user answers "yes" to any, go to question 6.*
-    - **Preparing & Eating:** cooking a simple meal, cutting up food, or being reminded to eat
-    - **Hygiene:** washing, bathing, or using the toilet?
-    - **Dressing:** putting on or taking off clothes
-    - **Managing Health:** managing medication, monitoring a health condition, or using medical equipment
-    - **Communication:** speaking to others, hearing/understanding what is being said, or reading basic information
-    - **Socializing:** difficulty being around other people, or interacting with them
-    - **Finances:** managing money or making decisions about spending
-    - **Planning a Journey:** planning or following a route because of a mental health condition, sensory impairment, or learning disability e.g., getting overwhelmed or lost
-    - **Moving Around:** physical difficulty walking? e.g., can only walk a short distance (20 or 50 meters), before needing to stop
+    - **Preparing & Eating:** 
+    - **Hygiene:** 
+    - **Dressing:** 
+    - **Managing Health:** 
+    - **Communication:** 
+    - **Socializing:** 
+    - **Finances:** 
+    - **Planning a Journey:**
+    - **Moving Around:**
 6. *With respect to the tasks discussed, please tick all that apply, If the user answers "yes" to any then FINAL DECISION: they are likely to be eligible*
     - **Safety:** Can you do the task without putting yourself or others at risk?
     - **Time:** Does it take you much longer (more than twice as long) than it would take a person without your condition?
