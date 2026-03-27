@@ -3,12 +3,15 @@ import pandas as pd
 from IPython.display import display
 from pathlib import Path
 import json
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
+
 
 # This is where we'll want to add something like "Structured rules"
 PROMPT_MAPPING = {
-    "Accuracy-ChildBenefit-structuredOutput-v2.md": "Rules in URLs",
+    "Accuracy-ChildBenefit-structuredOutput-v2.md": "Rules via URLs",
     "Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md": "Training data only",
-    "Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md": "Rules in prompt",
+    "Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md": "Free text rules",
     "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec"
 }
 
@@ -113,3 +116,108 @@ def create_df_runs(
     display(df_runs["config_key"].value_counts().to_frame("Count"))
 
     return df_runs
+
+def apply_presentation_theme(
+    fig: plt.Figure,
+    *,
+    bg_color: str = "#F8F8F8",
+    text_color: str = "#111111",
+    grid_color: str = "#D0D0D0",
+    rounded: bool = True,
+    corner_radius: float = 0.03,
+    add_panel: bool = True,
+    panel_pad: float = 0.008,
+    panel_edgecolor: str | None = None,
+    panel_linewidth: float = 0.0,
+) -> plt.Figure:
+    """
+    Apply a presentation-style theme to an existing matplotlib figure.
+
+    Parameters
+    ----------
+    fig
+        Existing matplotlib figure.
+    bg_color
+        Main background colour for the figure and axes.
+    text_color
+        Colour for titles, labels, ticks, and visible spines.
+    grid_color
+        Colour for grid lines.
+    rounded
+        If True, clip axes backgrounds to rounded corners.
+    corner_radius
+        Rounded corner size in figure coordinates. Values around 0.02-0.04
+        usually work well.
+    add_panel
+        If True, draw a rounded panel behind each axes.
+    panel_pad
+        Padding around each axes panel in figure coordinates.
+    panel_edgecolor
+        Optional border colour for the rounded panel.
+    panel_linewidth
+        Border width for the rounded panel.
+
+    Returns
+    -------
+    plt.Figure
+        The themed figure.
+    """
+    fig.patch.set_facecolor(bg_color)
+
+    for ax in fig.axes:
+        # Base axes styling
+        ax.set_facecolor(bg_color)
+
+        ax.title.set_color(text_color)
+        ax.xaxis.label.set_color(text_color)
+        ax.yaxis.label.set_color(text_color)
+
+        ax.tick_params(axis="both", colors=text_color)
+
+        # Spines
+        for spine in ax.spines.values():
+            spine.set_color(text_color)
+            spine.set_linewidth(1.0)
+
+        # Grid
+        ax.grid(True, color=grid_color, linewidth=0.8, alpha=0.6)
+        ax.set_axisbelow(True)
+
+        # Legend
+        legend = ax.get_legend()
+        if legend is not None:
+            legend.get_frame().set_facecolor(bg_color)
+            legend.get_frame().set_edgecolor("none")
+            for text in legend.get_texts():
+                text.set_color(text_color)
+
+        # Rounded panel behind axes
+        if add_panel:
+            pos = ax.get_position()
+            panel = FancyBboxPatch(
+                (pos.x0 - panel_pad, pos.y0 - panel_pad),
+                pos.width + 2 * panel_pad,
+                pos.height + 2 * panel_pad,
+                boxstyle=f"round,pad=0,rounding_size={corner_radius}",
+                transform=fig.transFigure,
+                facecolor=bg_color,
+                edgecolor=panel_edgecolor if panel_edgecolor else "none",
+                linewidth=panel_linewidth,
+                zorder=-10,
+            )
+            fig.patches.append(panel)
+
+        # Rounded clipping of the axes area itself
+        if rounded:
+            rounded_patch = FancyBboxPatch(
+                (0, 0),
+                1,
+                1,
+                boxstyle=f"round,pad=0,rounding_size={corner_radius}",
+                transform=ax.transAxes,
+                facecolor=bg_color,
+                edgecolor="none",
+            )
+            ax.patch = rounded_patch
+
+    return fig

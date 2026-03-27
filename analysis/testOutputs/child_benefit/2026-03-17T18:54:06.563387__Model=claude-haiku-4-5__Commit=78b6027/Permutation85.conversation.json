@@ -1,0 +1,248 @@
+{
+    "case_id": "RND_036",
+    "meta": {
+        "permutation": 85,
+        "test_case": {
+            "case_id": "RND_036",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 19
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": true
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": true
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 11
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": true
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 19 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 19 and in approved education\n  - Another claimant who lives with the child has priority\n  - Child is not in local authority care\n  - Child in hospital for 11 weeks (within 12-week limit)\n  - Child is not fostered\n  - Child works 24+ hours/week but is in approved education\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Another claimant who lives with the child has priority",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 19 and in approved education",
+                        "Another claimant who lives with the child has priority",
+                        "Child is not in local authority care",
+                        "Child in hospital for 11 weeks (within 12-week limit)",
+                        "Child is not fostered",
+                        "Child works 24+ hours/week but is in approved education",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-17T18:54:06.563387",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "78b6027",
+            "hypothesis_name": "structured_specification_haiku",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 20
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 21871,
+        "total_completion_tokens": 1261,
+        "total_overall_tokens": 23132,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 10987,
+                "completion_tokens": 1061,
+                "total": 12048
+            },
+            "actor": {
+                "prompt_tokens": 10884,
+                "completion_tokens": 200,
+                "total": 11084
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 22.71
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-17T18:55:44.337705",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine your eligibility for Child Benefit.\n\nTo get started, could you please tell me the **name and date of birth of the child or children** you're inquiring about?"
+        },
+        {
+            "timestamp": "2026-03-17T18:55:46.597238",
+            "author": "actor",
+            "text": "Hi! I'm asking about my son Alex. He just turned 19 in December, so he's 19 years old now. I wanted to check if I can still claim Child Benefit for him."
+        },
+        {
+            "timestamp": "2026-03-17T18:55:47.742425",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I understand you're asking about your son Alex, who is now 19 years old.\n\nBefore I can assess his eligibility, I need to ask: **Is Alex in full-time education or an approved training course?**"
+        },
+        {
+            "timestamp": "2026-03-17T18:55:49.166695",
+            "author": "actor",
+            "text": "Yes, he is! He's studying for his A-levels at the local sixth form college."
+        },
+        {
+            "timestamp": "2026-03-17T18:55:50.431352",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that. That's helpful information.\n\nOne more question to complete my assessment: **Does Alex have any disability or health condition that would prevent him from working?** This includes whether he's registered as disabled or receiving any disability-related benefits."
+        },
+        {
+            "timestamp": "2026-03-17T18:55:52.486351",
+            "author": "actor",
+            "text": "No, he doesn't have any disability or health condition. He's healthy, though he has been in hospital recently - he's been there for a few months now actually."
+        },
+        {
+            "timestamp": "2026-03-17T18:55:53.937602",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I have a follow-up question about his recent hospital stay:\n\n**Is Alex receiving treatment in hospital as an inpatient, and if so, is he expected to remain there for an extended period, or is this a temporary admission while he continues his studies?**\n\nThis matters because there are specific rules about Child Benefit eligibility when a young person is in hospital care."
+        },
+        {
+            "timestamp": "2026-03-17T18:55:55.832563",
+            "author": "actor",
+            "text": "Yes, he's been an inpatient at the hospital - it's been about 11 weeks now. He's still doing his A-level work when he can, but he's in the hospital ward for treatment."
+        },
+        {
+            "timestamp": "2026-03-17T18:55:56.986608",
+            "author": "eligibility_agent",
+            "text": "Thank you for that important detail. I have one more clarification question:\n\n**How much longer is Alex expected to remain in the hospital as an inpatient?** Is there an expected discharge date, or is his length of stay still uncertain?"
+        },
+        {
+            "timestamp": "2026-03-17T18:55:58.885349",
+            "author": "actor",
+            "text": "We're not entirely sure yet - the doctors haven't given us a firm discharge date. It could be another week or two, or it might be a bit longer depending on how his treatment goes."
+        },
+        {
+            "timestamp": "2026-03-17T18:56:03.650768",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I now have all the details I need to assess Alex's eligibility for Child Benefit.\n\nLet me review the situation carefully based on the Child Benefit rules:\n\n- Alex is 19 years old\n- He is in full-time education (A-levels at sixth form college)\n- He has no disability\n- He is currently an inpatient in hospital and has been for approximately 11 weeks\n\nBased on the Child Benefit eligibility rules, when a young person is in hospital as an inpatient, there are specific time limits on how long Child Benefit can continue to be paid. The rules state that Child Benefit can be paid for up to 12 weeks while a young person is an inpatient in hospital. After 12 weeks, eligibility ends.\n\nSince Alex has already been hospitalized for 11 weeks, he is approaching this 12-week limit. However, as he has not yet reached the 12-week threshold, he would currently still be eligible."
+        },
+        {
+            "timestamp": "2026-03-17T18:56:05.884633",
+            "author": "eligibility_agent",
+            "text": "**Summary:**\n\nYes, you are currently eligible to claim Child Benefit for Alex. Here's why:\n\n- **Age**: Alex is 19, which is within the eligible age range (under 20)\n- **Full-time education**: He is studying for his A-levels, which qualifies him\n- **Hospital stay**: While Alex is an inpatient, the rules allow Child Benefit to continue for up to 12 weeks. Since he has been hospitalized for about 11 weeks, he is still within this eligible period\n\n**Important note**: Once Alex reaches 12 weeks of continuous hospitalization, his eligibility will end unless he is discharged before that point. I'd recommend contacting HMRC if his hospitalization extends beyond 12 weeks to discuss any changes to his circumstances.\n\nIs there anything else you'd like to know?"
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-17T18:56:03.650757",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    true
+                ],
+                "reasonings": [
+                    "Alex is currently eligible for Child Benefit because: (1) He is under 20 years old; (2) He is in full-time education (A-levels); (3) He has no disability that would affect his eligibility; (4) He is currently an inpatient in hospital and has been for approximately 11 weeks. Child Benefit can be paid for up to 12 weeks while a young person remains an inpatient in hospital. As Alex has not yet reached the 12-week limit, he remains eligible at this time. However, once he reaches 12 weeks of continuous hospitalization, eligibility will end unless he is discharged before that point."
+                ],
+                "overall_reasoning": "Alex qualifies for Child Benefit as a 19-year-old in full-time education. His recent hospitalization does not currently disqualify him, as the rules allow for continued payment during hospital stays of up to 12 weeks. With approximately 11 weeks already spent as an inpatient, he has approximately one week remaining within the eligible period, unless he is discharged sooner.\">"
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_aEkXU6SlrOWlEusltlE08j",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": true,
+                        "reasoning": "Alex is currently eligible for Child Benefit because: (1) He is under 20 years old; (2) He is in full-time education (A-levels); (3) He has no disability that would affect his eligibility; (4) He is currently an inpatient in hospital and has been for approximately 11 weeks. Child Benefit can be paid for up to 12 weeks while a young person remains an inpatient in hospital. As Alex has not yet reached the 12-week limit, he remains eligible at this time. However, once he reaches 12 weeks of continuous hospitalization, eligibility will end unless he is discharged before that point."
+                    }
+                ],
+                "overall_reasoning": "Alex qualifies for Child Benefit as a 19-year-old in full-time education. His recent hospitalization does not currently disqualify him, as the rules allow for continued payment during hospital stays of up to 12 weeks. With approximately 11 weeks already spent as an inpatient, he has approximately one week remaining within the eligible period, unless he is discharged sooner.\">"
+            }
+        }
+    }
+}
