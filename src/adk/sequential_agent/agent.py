@@ -25,12 +25,13 @@ def update_question_and_answers(question: str, answer: str, tool_context: ToolCo
 
 def sign_in(tool_context: ToolContext) -> None:
     questions_and_answers = tool_context.state.setdefault("questions_and_answers", {})
-    questions_and_answers["Age?"] = "39"
-    questions_and_answers["Salary per annum?"] = "£12,452"
+    questions_and_answers["Date of birth?"] = "1 April 1986"
+    questions_and_answers["Income per annum?"] = "£12,452"
     tool_context.state["questions_and_answers"] = questions_and_answers
 
 universal_credit_agent = Agent(
-    model=LiteLlm(model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    model=LiteLlm(model="bedrock/eu.anthropic.claude-haiku-4-5-20251001-v1:0"),
+    # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     # model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="universal_credit_agent",
     description="An agent that can determine if a user would be eligible for universal credit",
@@ -38,7 +39,8 @@ universal_credit_agent = Agent(
 )
 
 personal_independence_payment_agent = Agent(
-    model=LiteLlm(model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    model=LiteLlm(model="bedrock/eu.anthropic.claude-haiku-4-5-20251001-v1:0"),
+    # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     # model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="personal_independence_payment_agent",
     description="An agent that can determine the likelihood of a user being eligible for universal credit",
@@ -46,7 +48,7 @@ personal_independence_payment_agent = Agent(
 )
 
 
-reply_types = Literal["yes_no", "choice_multiple", "choice_single", "sign_in", "free_text", "none"]
+reply_types = Literal["yes_no", "choice_multiple", "choice_single", "sign_in", "application_form", "free_text", "none"]
 sources = Literal["benefit_agent", "user_agent"]
 
 
@@ -121,7 +123,7 @@ elicitation_agent = Agent(
 user_agent = Agent(
     model=LiteLlm(
         # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        model="bedrock/eu.anthropic.claude-sonnet-4-6"
+        model="bedrock/eu.anthropic.claude-sonnet-4-6",
         # response_format causes this bug with claude: https://github.com/BerriAI/litellm/issues/18381
         # response_format={
         #     "type": "json_schema",
