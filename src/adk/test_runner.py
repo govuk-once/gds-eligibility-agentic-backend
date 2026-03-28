@@ -22,21 +22,18 @@ from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "structured_specification_haiku",
+    "hypothesis_name": "opus_no_links",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
-#    "eligibility_prompt": "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md",
+    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
-    "url_tool_call_allowed": False,
- #   "url_tool_call_allowed": True,
-    #"eligibility_agent": "structured_specification",
-    "eligibility_agent": "gds_eligibility",
-    "max_concurrent_cases": 20,
+    "url_tool_call_allowed": False, # if rules via URLs then should be True
+     "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
+    "max_concurrent_cases": 15,
     # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
     # 30 is too many.
     # For Opus the requests/min are 10k and tokens/min 2m
