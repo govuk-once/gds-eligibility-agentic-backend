@@ -106,7 +106,7 @@ def main(input_folder_path: str = None):
         if not subdirs:
             print(f"No test run directories found in {base_dir.resolve()}")
             sys.exit(1)
-            
+        
         # Sort lexicographically and pick the latest
         # as they're all named things like 2026-03-04T08:55:32.859368__RepoCommit=3890395
         subdirs.sort(key=lambda x: x.name)
@@ -165,7 +165,11 @@ def main(input_folder_path: str = None):
 
         # Find the final judgement tool call in the activity log
         judgement_call = next(
-            (activity for activity in tool_activity if activity.get("tool_name") == "eligibility_judgement_outcome"), 
+            (
+                activity 
+                for activity in tool_activity 
+                if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
+            ), 
             None
         )
 
