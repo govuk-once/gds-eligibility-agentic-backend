@@ -32,6 +32,10 @@ resource "aws_apprunner_service" "frontend_app" {
           CHILD_BENEFIT_ADK_APP_NAME = "gds_eligibility"
           ADK_USER_ID                = "user"
         }
+        runtime_environment_secrets = {
+          AUTH_USERNAME              = aws_ssm_parameter.frontend_username.arn
+          AUTH_PASSWORD              = aws_ssm_parameter.frontend_password.arn
+        }
       }
     }
     auto_deployments_enabled = true
@@ -52,6 +56,59 @@ resource "aws_apprunner_service" "frontend_app" {
     protocol = "HTTP"
     path     = "/health"
   }
+}
+
+resource "aws_ssm_parameter" "frontend_password" {
+  name        = "/frontend/apprunner/env/AUTH_PASSWORD"
+  description = "Password for basic auth on the frontend"
+  type        = "SecureString"
+  key_id      = aws_kms_key.ssm_aws_custom.arn
+  value       = "CHANGEME"
+  overwrite   = false
+}
+
+resource "aws_ssm_parameter" "frontend_username" {
+  name        = "/frontend/apprunner/env/AUTH_USERNAME"
+  description = "Username for basic auth on the frontend"
+  type        = "SecureString"
+  key_id      = aws_kms_key.ssm_aws_custom.arn
+  value       = "CHANGEME"
+  overwrite   = false
+}
+
+resource "aws_kms_key" "ssm_aws_custom" {
+  description             = "Key for securing (frontend) service credentials"
+  enable_key_rotation     = true
+  deletion_window_in_days = 20
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id      = "key-default-1"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow use of the key"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_iam_role.frontend_app_service.arn
+        },
+        Action = [
+          "kms:DescribeKey",
+          "kms:List*",
+          "kms:Get*",
+          "kms:Decrypt",
+        ],
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role" "frontend_app_service" {
@@ -95,6 +152,11 @@ resource "aws_iam_role_policy_attachment" "frontend_app_ecr_role_ecr" {
 resource "aws_iam_role_policy_attachment" "frontend_app_service_apprunner" {
   role       = aws_iam_role.frontend_app_service.name
   policy_arn = "arn:aws:iam::aws:policy/AWSAppRunnerFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "frontend_app_service_ssm_parameterstore_key" {
+  role       = aws_iam_role.frontend_app_service.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 }
 
 resource "aws_iam_role_policy" "frontend_app_service_bedrock" {
