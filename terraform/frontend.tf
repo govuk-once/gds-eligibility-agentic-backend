@@ -1,28 +1,13 @@
 locals {
   app_ecr_repo_name = "gds-eligability-frontend-repo"
-  environment_specific_lookup = {
-    "goe-dev" = {
-      account_id = "453624448465"
-    }
-    "goe-staging" = {
-      account_id = "173331852279"
-    }
-  }
-  account_id   = local.environment_specific_lookup[terraform.workspace].account_id
-  env_specific = local.environment_specific_lookup[terraform.workspace]
+  account_id   = data.aws_caller_identity.current.account_id
 }
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_ecr_repository" "frontend_app" {
-  #count = terraform.workspace == "stable" ? 1 : 0
   name = local.app_ecr_repo_name
 }
-
-# # Both stable and unstable share the same ecr repo, use this accessor instead of the resource
-# # to make sure the reference is always valid
-# data "aws_ecr_image" "frontend_app" {
-#   repository_name = local.app_ecr_repo_name
-#   image_tag       = terraform.workspace
-# }
 
 resource "aws_apprunner_service" "frontend_app" {
   service_name = "gds-eligability-frontend-app"

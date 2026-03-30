@@ -3,8 +3,6 @@
 1. `cd terraform`
 2. `aws-vault exec <AWS_PROFILE> -- terraform init -backend-config=./<SHORT_ENV>.s3.tfbackend -reconfigure`
     - `<SHORT_ENV>` should be `dev` or `staging`
-3. `aws-vault exec <AWS_PROFILE> -- terraform workspace select <ENV>`
-    - `<ENV>` should be `goe-dev` or `goe-staging`
 4. `aws-vault exec <AWS_PROFILE> -- terraform plan`
 5. `aws-vault exec <AWS_PROFILE> -- terraform apply`
 

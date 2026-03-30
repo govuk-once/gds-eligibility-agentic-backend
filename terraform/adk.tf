@@ -3,7 +3,6 @@ locals {
 }
 
 resource "aws_ecr_repository" "adk_server" {
-  count = terraform.workspace == "stable" ? 1 : 0
   name  = local.adk_ecr_repo_name
 }
 
