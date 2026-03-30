@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from typing import List, TypedDict
 
@@ -8,14 +9,14 @@ from google.adk.tools.tool_context import ToolContext
 
 from tools.web_scraper import read_webpage
 
-prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
-
+prompts_dir = Path(os.environ.get("PROMPTS_DIR", "../../prompts"))
 
 def get_prompt(rel_path: str) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
     return "\n".join(prompt_lines)
+
 
 def eligibility_judgement_outcome(
         child_names: List[str], 
@@ -50,10 +51,8 @@ def eligibility_judgement_outcome(
         "overall_reasoning": overall_reasoning
     }
 
+
 root_agent = Agent(
-    ##model=LiteLlm(model="bedrock/converse/google.gemma-3-4b-it"),  # Small model
-    #model=LiteLlm(model="bedrock/converse/google.gemma-3-27b-it"), # Large model
-    #model=LiteLlm(model="bedrock/converse/anthropic.claude-3-7-sonnet-20250219-v1:0"),
     model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     name="eligibility_agent",
     description="A helpful assistant for determining eligibility for benefits.",

@@ -30,7 +30,8 @@ def sign_in(tool_context: ToolContext) -> None:
     tool_context.state["questions_and_answers"] = questions_and_answers
 
 universal_credit_agent = Agent(
-    model=LiteLlm(model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    model=LiteLlm(model="bedrock/eu.anthropic.claude-haiku-4-5-20251001-v1:0"),
+    # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     # model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="universal_credit_agent",
     description="An agent that can determine if a user would be eligible for universal credit",
@@ -38,7 +39,8 @@ universal_credit_agent = Agent(
 )
 
 personal_independence_payment_agent = Agent(
-    model=LiteLlm(model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    model=LiteLlm(model="bedrock/eu.anthropic.claude-haiku-4-5-20251001-v1:0"),
+    # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     # model="bedrock/converse/openai.gpt-oss-120b-1:0"),
     name="personal_independence_payment_agent",
     description="An agent that can determine the likelihood of a user being eligible for universal credit",
@@ -121,7 +123,7 @@ elicitation_agent = Agent(
 user_agent = Agent(
     model=LiteLlm(
         # model="bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        model="bedrock/eu.anthropic.claude-sonnet-4-6"
+        model="bedrock/eu.anthropic.claude-sonnet-4-6",
         # response_format causes this bug with claude: https://github.com/BerriAI/litellm/issues/18381
         # response_format={
         #     "type": "json_schema",

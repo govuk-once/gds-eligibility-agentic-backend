@@ -3,38 +3,38 @@
 ```mermaid
 graph TB
     Start([Start: Skilled Worker Visa<br/>Eligibility Assessment])
-    
+
     %% Employer & CoS checks
     Start --> HasEmployer{Has job offer from<br/>approved UK employer?}
     HasEmployer -->|Yes| HasCoS{Has Certificate<br/>of Sponsorship?}
     HasEmployer -->|No| IneligEmployer[❌ INELIGIBLE<br/>No approved employer]
-    
+
     HasCoS -->|Yes| CheckOcc[Check if occupation<br/>is eligible]
     HasCoS -->|No| IneligCoS[❌ INELIGIBLE<br/>No Certificate of Sponsorship]
-    
+
     %% Occupation eligibility
     CheckOcc -->|Higher Skilled| DetermineSalary((Determine<br/>salary route))
     CheckOcc -->|Medium Skilled| CheckLists{On Immigration Salary List<br/>OR Temporary Shortage List?}
     CheckOcc -->|Not Eligible| IneligOcc[❌ INELIGIBLE<br/>Occupation not eligible]
-    
+
     CheckLists -->|Yes| DetermineSalary
     CheckLists -->|No| IneligMedium[❌ INELIGIBLE<br/>Medium skilled not on lists]
-    
+
     %% Salary determination
     DetermineSalary -->|Healthcare/Education| HealthcareSal[Healthcare/Education Salary<br/>Min £25,000 + national pay scale]
     DetermineSalary -->|Standard| StandardSal[Standard Salary<br/>Min £41,700 or going rate,<br/>whichever is HIGHER]
-    
+
     %% Healthcare path
     HealthcareSal -->|Meets| CareWorkerCheck{Care worker 6135/6136<br/>in England?}
     HealthcareSal -->|Below| IneligSal[❌ INELIGIBLE<br/>Salary too low]
-    
+
     CareWorkerCheck -->|Yes, CQC registered<br/>OR Not applicable| CheckEng
     CareWorkerCheck -->|No, not registered| IneligCQC[❌ INELIGIBLE<br/>Not CQC registered]
-    
+
     %% Standard salary path
     StandardSal -->|Meets| CheckEng
     StandardSal -->|Below| ReducedSalary{{Check reduced<br/>salary eligibility}}
-    
+
     %% Reduced salary options
     ReducedSalary -->|Immigration Salary List:<br/>£33,400 + going rate| CheckEng
     ReducedSalary -->|Under 26/Graduate/Training:<br/>£33,400 + 70% going rate| CheckEng
@@ -42,7 +42,7 @@ graph TB
     ReducedSalary -->|Non-STEM PhD:<br/>£37,500 + 90% going rate| CheckEng
     ReducedSalary -->|Postdoctoral role:<br/>£33,400 + 70% going rate| CheckEng
     ReducedSalary -->|None apply| IneligSal
-    
+
     %% English language
     CheckEng{{English language<br/>requirement}}
     CheckEng -->|Exempt nationality| CheckFin
@@ -53,23 +53,23 @@ graph TB
     CheckEng -->|Overseas degree in English<br/>verified by Ecctis| CheckFin
     CheckEng -->|SELT test at B2 level| CheckFin
     CheckEng -->|Does not meet| IneligEng[❌ INELIGIBLE<br/>English language requirement]
-    
+
     %% Financial requirement
     CheckFin[Financial Requirement<br/>£1,270 for 28 days]
     CheckFin -->|Meets OR employer certifies<br/>OR in UK 12+ months| Eligible
     CheckFin -->|Does not meet| IneligFin[❌ INELIGIBLE<br/>Insufficient funds]
-    
+
     %% Final outcome
     Eligible[✅ ELIGIBLE<br/>Can apply for Skilled Worker visa]
-    
+
     %% Styling
     classDef eligible fill:#228B22,stroke:#000,stroke-width:2px,color:#fff
     classDef ineligible fill:#DC143C,stroke:#000,stroke-width:2px,color:#fff
-    classDef check fill:#87CEEB,stroke:#000,stroke-width:2px
+    classDef check fill:#000,stroke:#000,stroke-width:2px
     classDef multi fill:#DDA0DD,stroke:#000,stroke-width:2px
-    classDef salary fill:#FFA500,stroke:#000,stroke-width:2px
+    classDef salary fill:#555,stroke:#000,stroke-width:2px
     classDef start fill:#90EE90,stroke:#000,stroke-width:2px
-    
+
     class Start start
     class Eligible eligible
     class IneligEmployer,IneligCoS,IneligOcc,IneligMedium,IneligSal,IneligCQC,IneligEng,IneligFin ineligible
