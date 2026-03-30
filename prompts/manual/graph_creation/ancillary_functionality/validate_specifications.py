@@ -11,7 +11,7 @@ from pathlib import Path
 
 def load_json(filepath):
     """Load and parse JSON file."""
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         return json.load(f)
 
 
@@ -21,7 +21,14 @@ def validate_specification(spec, spec_name):
     warnings = []
 
     # Check required top-level fields
-    required_fields = ["version", "last_updated", "source", "description", "decision_tree", "constants"]
+    required_fields = [
+        "version",
+        "last_updated",
+        "source",
+        "description",
+        "decision_tree",
+        "constants",
+    ]
     for field in required_fields:
         if field not in spec:
             errors.append(f"Missing required field: {field}")
@@ -36,7 +43,9 @@ def validate_specification(spec, spec_name):
         else:
             root = dt["root"]
             if root.get("type") != "start":
-                errors.append(f"Root node type must be 'start', got '{root.get('type')}'")
+                errors.append(
+                    f"Root node type must be 'start', got '{root.get('type')}'"
+                )
             if "next" not in root:
                 errors.append("Root node missing 'next' field")
 
@@ -52,7 +61,9 @@ def validate_specification(spec, spec_name):
                 if "id" not in node:
                     errors.append(f"Node '{node_id}' missing 'id' field")
                 elif node["id"] != node_id:
-                    errors.append(f"Node key '{node_id}' doesn't match node.id '{node['id']}'")
+                    errors.append(
+                        f"Node key '{node_id}' doesn't match node.id '{node['id']}'"
+                    )
 
                 if "type" not in node:
                     errors.append(f"Node '{node_id}' missing 'type' field")
@@ -62,8 +73,13 @@ def validate_specification(spec, spec_name):
 
                 # Validate node types
                 valid_types = [
-                    "boolean_question", "multi_path_check", "criteria_check",
-                    "conditional_check", "complex_criteria", "routing", "outcome"
+                    "boolean_question",
+                    "multi_path_check",
+                    "criteria_check",
+                    "conditional_check",
+                    "complex_criteria",
+                    "routing",
+                    "outcome",
                 ]
 
                 if node_type not in valid_types:
@@ -73,45 +89,71 @@ def validate_specification(spec, spec_name):
                 # Type-specific validation
                 if node_type == "outcome":
                     if "result" not in node:
-                        errors.append(f"Outcome node '{node_id}' missing 'result' field")
+                        errors.append(
+                            f"Outcome node '{node_id}' missing 'result' field"
+                        )
                     else:
                         result = node["result"]
                         valid_results = ["ELIGIBLE", "INELIGIBLE", "DEFERRED"]
                         if result not in valid_results:
-                            errors.append(f"Outcome node '{node_id}' has invalid result '{result}', must be one of {valid_results}")
+                            errors.append(
+                                f"Outcome node '{node_id}' has invalid result '{result}', must be one of {valid_results}"
+                            )
 
                         # Check result-specific requirements
                         if result == "ELIGIBLE":
                             if "description" not in node:
-                                errors.append(f"ELIGIBLE outcome '{node_id}' missing 'description'")
+                                errors.append(
+                                    f"ELIGIBLE outcome '{node_id}' missing 'description'"
+                                )
                             if "next_steps" not in node:
-                                warnings.append(f"ELIGIBLE outcome '{node_id}' should have 'next_steps'")
+                                warnings.append(
+                                    f"ELIGIBLE outcome '{node_id}' should have 'next_steps'"
+                                )
 
                         elif result == "INELIGIBLE":
                             if "reason" not in node:
-                                errors.append(f"INELIGIBLE outcome '{node_id}' missing 'reason'")
+                                errors.append(
+                                    f"INELIGIBLE outcome '{node_id}' missing 'reason'"
+                                )
                             if "guidance" not in node:
-                                errors.append(f"INELIGIBLE outcome '{node_id}' missing 'guidance'")
+                                errors.append(
+                                    f"INELIGIBLE outcome '{node_id}' missing 'guidance'"
+                                )
 
                         elif result == "DEFERRED":
                             if "reason" not in node:
-                                errors.append(f"DEFERRED outcome '{node_id}' missing 'reason'")
+                                errors.append(
+                                    f"DEFERRED outcome '{node_id}' missing 'reason'"
+                                )
                             if "guidance" not in node:
-                                errors.append(f"DEFERRED outcome '{node_id}' missing 'guidance'")
+                                errors.append(
+                                    f"DEFERRED outcome '{node_id}' missing 'guidance'"
+                                )
 
                 elif node_type == "boolean_question":
                     if "question" not in node:
-                        errors.append(f"Boolean question '{node_id}' missing 'question'")
+                        errors.append(
+                            f"Boolean question '{node_id}' missing 'question'"
+                        )
                     if "outcomes" not in node:
-                        errors.append(f"Boolean question '{node_id}' missing 'outcomes'")
+                        errors.append(
+                            f"Boolean question '{node_id}' missing 'outcomes'"
+                        )
                     elif not isinstance(node["outcomes"], dict):
-                        errors.append(f"Boolean question '{node_id}' outcomes must be object")
+                        errors.append(
+                            f"Boolean question '{node_id}' outcomes must be object"
+                        )
                     else:
                         outcomes = node["outcomes"]
                         if "yes" not in outcomes:
-                            errors.append(f"Boolean question '{node_id}' missing 'yes' outcome")
+                            errors.append(
+                                f"Boolean question '{node_id}' missing 'yes' outcome"
+                            )
                         if "no" not in outcomes:
-                            errors.append(f"Boolean question '{node_id}' missing 'no' outcome")
+                            errors.append(
+                                f"Boolean question '{node_id}' missing 'no' outcome"
+                            )
 
                 elif node_type == "routing":
                     if "description" not in node:
@@ -127,7 +169,11 @@ def validate_specification(spec, spec_name):
                     if "outcomes" not in node:
                         errors.append(f"{node_type} '{node_id}' missing 'outcomes'")
 
-                elif node_type in ["multi_path_check", "conditional_check", "complex_criteria"]:
+                elif node_type in [
+                    "multi_path_check",
+                    "conditional_check",
+                    "complex_criteria",
+                ]:
                     if "question" not in node:
                         errors.append(f"{node_type} '{node_id}' missing 'question'")
                     if "outcomes" not in node:
@@ -159,7 +205,9 @@ def main():
         "../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json",
         "../specifications/child_benefit/child_benefit_eligibility.json",
         "../specifications/universal_credit/universal_credit_eligibility.json",
-        "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json"
+        "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json",
+        "../specifications/jobseekers_allowance/jobseekers_allowance_eligibility.json",
+        "../specifications/carers_allowance/carers_allowance_eligibility.json",
     ]
 
     all_valid = True
@@ -200,8 +248,11 @@ def main():
             # Count nodes
             if "decision_tree" in spec and "nodes" in spec["decision_tree"]:
                 node_count = len(spec["decision_tree"]["nodes"])
-                outcome_count = sum(1 for n in spec["decision_tree"]["nodes"].values()
-                                  if n.get("type") == "outcome")
+                outcome_count = sum(
+                    1
+                    for n in spec["decision_tree"]["nodes"].values()
+                    if n.get("type") == "outcome"
+                )
                 print(f"\n📊 Statistics:")
                 print(f"  • Total nodes: {node_count}")
                 print(f"  • Outcome nodes: {outcome_count}")

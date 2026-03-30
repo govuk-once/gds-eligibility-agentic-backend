@@ -17,11 +17,13 @@ from typing import Dict, List, Set, Tuple
 
 def load_eligibility_data(filepath: str) -> Dict:
     """Load the eligibility JSON file."""
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def validate_against_schema(data: Dict, schema_path: str = "../schemas/eligibility-schema.json") -> List[str]:
+def validate_against_schema(
+    data: Dict, schema_path: str = "../schemas/eligibility-schema.json"
+) -> List[str]:
     """Validate data against JSON Schema if jsonschema library available."""
     issues = []
 
@@ -31,7 +33,7 @@ def validate_against_schema(data: Dict, schema_path: str = "../schemas/eligibili
         return ["jsonschema library not installed - skipping schema validation"]
 
     try:
-        with open(schema_path, 'r', encoding='utf-8') as f:
+        with open(schema_path, "r", encoding="utf-8") as f:
             schema = json.load(f)
     except FileNotFoundError:
         return [f"Schema file not found: {schema_path}"]
@@ -54,86 +56,96 @@ def validate_structure(data: Dict) -> List[str]:
     issues = []
 
     # Check required top-level keys
-    required_keys = ['version', 'last_updated', 'source', 'decision_tree', 'constants']
+    required_keys = ["version", "last_updated", "source", "decision_tree", "constants"]
     for key in required_keys:
         if key not in data:
             issues.append(f"Missing required top-level key: {key}")
 
-    if 'decision_tree' not in data:
+    if "decision_tree" not in data:
         return issues
 
-    tree = data['decision_tree']
+    tree = data["decision_tree"]
 
     # Check root exists
-    if 'root' not in tree:
+    if "root" not in tree:
         issues.append("Missing 'root' in decision_tree")
         return issues
 
-    if 'nodes' not in tree:
+    if "nodes" not in tree:
         issues.append("Missing 'nodes' in decision_tree")
         return issues
 
-    root = tree['root']
-    nodes = tree['nodes']
+    root = tree["root"]
+    nodes = tree["nodes"]
 
     # Collect all node IDs
-    all_node_ids = {root['id']} | set(nodes.keys())
+    all_node_ids = {root["id"]} | set(nodes.keys())
 
     # Check root points to valid node
-    if 'next' in root and root['next'] not in all_node_ids:
+    if "next" in root and root["next"] not in all_node_ids:
         issues.append(f"Root points to non-existent node: {root['next']}")
 
     # Validate each node
     referenced_nodes = set()
-    if 'next' in root:
-        referenced_nodes.add(root['next'])
+    if "next" in root:
+        referenced_nodes.add(root["next"])
 
     for node_id, node in nodes.items():
         # Check required fields
-        if 'id' not in node:
+        if "id" not in node:
             issues.append(f"Node {node_id} missing 'id' field")
-        elif node['id'] != node_id:
+        elif node["id"] != node_id:
             issues.append(f"Node key '{node_id}' doesn't match id '{node['id']}'")
 
-        if 'type' not in node:
+        if "type" not in node:
             issues.append(f"Node {node_id} missing 'type' field")
 
         # Check outcomes point to valid nodes
-        if 'outcomes' in node:
-            for outcome, target in node['outcomes'].items():
+        if "outcomes" in node:
+            for outcome, target in node["outcomes"].items():
                 if target not in all_node_ids:
-                    issues.append(f"Node {node_id} outcome '{outcome}' points to non-existent node: {target}")
+                    issues.append(
+                        f"Node {node_id} outcome '{outcome}' points to non-existent node: {target}"
+                    )
                 else:
                     referenced_nodes.add(target)
 
         # Check 'next' field if present
-        if 'next' in node and node['next']:
-            if node['next'] not in all_node_ids:
-                issues.append(f"Node {node_id} 'next' points to non-existent node: {node['next']}")
+        if "next" in node and node["next"]:
+            if node["next"] not in all_node_ids:
+                issues.append(
+                    f"Node {node_id} 'next' points to non-existent node: {node['next']}"
+                )
             else:
-                referenced_nodes.add(node['next'])
+                referenced_nodes.add(node["next"])
 
     # Find unreachable nodes (excluding outcomes)
-    outcome_nodes = {nid for nid, node in nodes.items() if node.get('type') == 'outcome'}
+    outcome_nodes = {
+        nid for nid, node in nodes.items() if node.get("type") == "outcome"
+    }
     non_outcome_nodes = set(nodes.keys()) - outcome_nodes
     unreachable = non_outcome_nodes - referenced_nodes
 
     if unreachable:
-        issues.append(f"Unreachable nodes (not outcomes): {', '.join(sorted(unreachable))}")
+        issues.append(
+            f"Unreachable nodes (not outcomes): {', '.join(sorted(unreachable))}"
+        )
 
     # Check for cycles (simple check - no outcome node should be referenced as source)
     for node_id in outcome_nodes:
-        if 'outcomes' in nodes[node_id] or 'next' in nodes[node_id]:
-            issues.append(f"Outcome node {node_id} has outgoing edges (should be terminal)")
+        if "outcomes" in nodes[node_id] or "next" in nodes[node_id]:
+            issues.append(
+                f"Outcome node {node_id} has outgoing edges (should be terminal)"
+            )
 
     return issues
 
 
 def get_all_paths(data: Dict) -> List[List[str]]:
     """Extract all paths from root to outcome nodes."""
-    tree = data['decision_tree']
-    root = tree['root']
-    nodes = tree['nodes']
+    tree = data["decision_tree"]
+    root = tree["root"]
+    nodes = tree["nodes"]
 
     paths = []
 
@@ -144,52 +156,52 @@ def get_all_paths(data: Dict) -> List[List[str]]:
             node = nodes[node_id]
 
             # Terminal node
-            if node.get('type') == 'outcome':
+            if node.get("type") == "outcome":
                 paths.append(current_path.copy())
                 return
 
             # Follow outcomes
-            if 'outcomes' in node:
-                for outcome, target in node['outcomes'].items():
+            if "outcomes" in node:
+                for outcome, target in node["outcomes"].items():
                     traverse(target, current_path.copy())
             # Follow next
-            elif 'next' in node and node['next']:
-                traverse(node['next'], current_path.copy())
+            elif "next" in node and node["next"]:
+                traverse(node["next"], current_path.copy())
 
     # Start from root's next node
-    if 'next' in root:
-        traverse(root['next'], [root['id']])
+    if "next" in root:
+        traverse(root["next"], [root["id"]])
 
     return paths
 
 
 def generate_summary_stats(data: Dict) -> Dict:
     """Generate summary statistics about the decision tree."""
-    tree = data['decision_tree']
-    nodes = tree['nodes']
+    tree = data["decision_tree"]
+    nodes = tree["nodes"]
 
     node_types = {}
     for node in nodes.values():
-        node_type = node.get('type', 'unknown')
+        node_type = node.get("type", "unknown")
         node_types[node_type] = node_types.get(node_type, 0) + 1
 
     outcomes = {}
     for node in nodes.values():
-        if node.get('type') == 'outcome':
-            result = node.get('result', 'unknown')
+        if node.get("type") == "outcome":
+            result = node.get("result", "unknown")
             outcomes[result] = outcomes.get(result, 0) + 1
 
     paths = get_all_paths(data)
     path_lengths = [len(p) for p in paths]
 
     return {
-        'total_nodes': len(nodes) + 1,  # +1 for root
-        'node_types': node_types,
-        'outcomes': outcomes,
-        'total_paths': len(paths),
-        'avg_path_length': sum(path_lengths) / len(path_lengths) if path_lengths else 0,
-        'min_path_length': min(path_lengths) if path_lengths else 0,
-        'max_path_length': max(path_lengths) if path_lengths else 0
+        "total_nodes": len(nodes) + 1,  # +1 for root
+        "node_types": node_types,
+        "outcomes": outcomes,
+        "total_paths": len(paths),
+        "avg_path_length": sum(path_lengths) / len(path_lengths) if path_lengths else 0,
+        "min_path_length": min(path_lengths) if path_lengths else 0,
+        "max_path_length": max(path_lengths) if path_lengths else 0,
     }
 
 
@@ -198,60 +210,74 @@ def generate_graphviz(data: Dict, output_file: str):
     try:
         import graphviz
     except ImportError:
-        print("Warning: graphviz library not installed. Install with: pip install graphviz")
+        print(
+            "Warning: graphviz library not installed. Install with: pip install graphviz"
+        )
         return False
 
-    tree = data['decision_tree']
-    root = tree['root']
-    nodes = tree['nodes']
+    tree = data["decision_tree"]
+    root = tree["root"]
+    nodes = tree["nodes"]
 
-    dot = graphviz.Digraph(comment='UK {}'.format(output_file.replace("_", " ").capitalize()))
-    dot.attr(rankdir='TB')
-    dot.attr('node', fontname='Arial', fontsize='10')
-    dot.attr('edge', fontname='Arial', fontsize='9')
+    dot = graphviz.Digraph(
+        comment="UK {}".format(output_file.replace("_", " ").capitalize())
+    )
+    dot.attr(rankdir="TB")
+    dot.attr("node", fontname="Arial", fontsize="10")
+    dot.attr("edge", fontname="Arial", fontsize="9")
 
     # Node styling by type
     type_styles = {
-        'start': {'shape': 'box', 'style': 'rounded,filled', 'fillcolor': 'lightgreen'},
-        'boolean_question': {'shape': 'diamond', 'style': 'filled', 'fillcolor': 'lightblue'},
-        'multi_path_check': {'shape': 'hexagon', 'style': 'filled', 'fillcolor': 'plum'},
-        'salary_check': {'shape': 'box', 'style': 'filled', 'fillcolor': 'orange'},
-        'complex_criteria': {'shape': 'box', 'style': 'filled', 'fillcolor': 'orange'},
-        'financial_check': {'shape': 'box', 'style': 'filled', 'fillcolor': 'gold'},
-        'occupation_check': {'shape': 'box', 'style': 'filled', 'fillcolor': 'lightcyan'},
-        'conditional_check': {'shape': 'diamond', 'style': 'filled', 'fillcolor': 'lightblue'},
-        'routing': {'shape': 'circle', 'style': 'filled', 'fillcolor': 'lightgray'},
-        'outcome': {'shape': 'box', 'style': 'rounded,filled', 'fillcolor': 'white'}
+        "start": {"shape": "box", "style": "rounded,filled", "fillcolor": "lightgreen"},
+        "boolean_question": {
+            "shape": "diamond",
+            "style": "filled",
+            "fillcolor": "lightblue",
+        },
+        "multi_path_check": {
+            "shape": "hexagon",
+            "style": "filled",
+            "fillcolor": "plum",
+        },
+        "criteria_check": {"shape": "box", "style": "filled", "fillcolor": "orange"},
+        "complex_criteria": {"shape": "box", "style": "filled", "fillcolor": "orange"},
+        "conditional_check": {
+            "shape": "diamond",
+            "style": "filled",
+            "fillcolor": "lightblue",
+        },
+        "routing": {"shape": "circle", "style": "filled", "fillcolor": "lightgray"},
+        "outcome": {"shape": "box", "style": "rounded,filled", "fillcolor": "white"},
     }
 
     # Add root node
-    root_label = root.get('description', root['id'])
-    dot.node(root['id'], root_label, **type_styles.get('start', {}))
+    root_label = root.get("description", root["id"])
+    dot.node(root["id"], root_label, **type_styles.get("start", {}))
 
     # Add root edge
-    if 'next' in root:
-        dot.edge(root['id'], root['next'])
+    if "next" in root:
+        dot.edge(root["id"], root["next"])
 
     # Add all other nodes
     for node_id, node in nodes.items():
-        node_type = node.get('type', 'unknown')
+        node_type = node.get("type", "unknown")
 
         # Create label
-        if node_type == 'outcome':
-            result = node.get('result', 'UNKNOWN')
-            reason = node.get('reason', '')
+        if node_type == "outcome":
+            result = node.get("result", "UNKNOWN")
+            reason = node.get("reason", "")
             label = f"{result}\\n{reason}"
 
             # Color outcome nodes
             style = type_styles.get(node_type, {}).copy()
-            if result == 'ELIGIBLE':
-                style['fillcolor'] = 'green'
-                style['fontcolor'] = 'white'
+            if result == "ELIGIBLE":
+                style["fillcolor"] = "green"
+                style["fontcolor"] = "white"
             else:
-                style['fillcolor'] = 'red'
-                style['fontcolor'] = 'white'
+                style["fillcolor"] = "red"
+                style["fontcolor"] = "white"
         else:
-            label = node.get('question', node.get('description', node_id))
+            label = node.get("question", node.get("description", node_id))
             # Truncate long labels
             #  if len(label) > 50:
             #      label = label[:47] + '...'
@@ -260,23 +286,23 @@ def generate_graphviz(data: Dict, output_file: str):
         dot.node(node_id, label, **style)
 
         # Add edges
-        if 'outcomes' in node:
-            for outcome, target in node['outcomes'].items():
+        if "outcomes" in node:
+            for outcome, target in node["outcomes"].items():
                 # Simplify outcome labels
-                edge_label = outcome.replace('_', ' ').title()
+                edge_label = outcome.replace("_", " ").title()
                 #  if len(edge_label) > 20:
                 #      edge_label = edge_label[:17] + '...'
                 dot.edge(node_id, target, label=edge_label)
-        elif 'next' in node and node['next']:
-            dot.edge(node_id, node['next'])
+        elif "next" in node and node["next"]:
+            dot.edge(node_id, node["next"])
 
     # Save DOT file
     dot.save(output_file)
 
     # Try to render
     try:
-        output_base = output_file.replace('.dot', '')
-        dot.render(output_base, format='png', cleanup=False)
+        output_base = output_file.replace(".dot", "")
+        dot.render(output_base, format="png", cleanup=False)
         print(f"✓ Generated graph visualization: {output_base}.png")
         return True
     except Exception as e:
@@ -288,22 +314,43 @@ def generate_graphviz(data: Dict, output_file: str):
 
 def main():
     """Main validation and visualization routine."""
-    print("UK Skilled Worker Visa Eligibility Validator")
-    print("=" * 60)
-    evaluate_specification("../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json")
+    exit_code = 0
 
-    print("UK Child Benefit Eligibility Validator")
-    print("=" * 60)
-    evaluate_specification("../specifications/child_benefit/child_benefit_eligibility.json")
-    
-    print("Universal Credit Eligibility Validator")
-    print("=" * 60)
-    evaluate_specification("../specifications/universal_credit/universal_credit_eligibility.json")
-    
-    print("PIP Eligibility Validator")
-    print("=" * 60)
-    evaluate_specification("../specifications/personal_independence_payment/personal_independence_payment_eligibility.json")
-    return 0
+    specs = [
+        (
+            "UK Skilled Worker Visa Eligibility Validator",
+            "../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json",
+        ),
+        (
+            "UK Child Benefit Eligibility Validator",
+            "../specifications/child_benefit/child_benefit_eligibility.json",
+        ),
+        (
+            "Universal Credit Eligibility Validator",
+            "../specifications/universal_credit/universal_credit_eligibility.json",
+        ),
+        (
+            "PIP Eligibility Validator",
+            "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json",
+        ),
+        (
+            "Jobseekers Allowance Eligibility Validator",
+            "../specifications/jobseekers_allowance/jobseekers_allowance_eligibility.json",
+        ),
+        (
+            "Carers Allowance Eligibility Validator",
+            "../specifications/carers_allowance/carers_allowance_eligibility.json",
+        ),
+    ]
+
+    for title, path in specs:
+        print(title)
+        print("=" * 60)
+        result = evaluate_specification(path)
+        if result:
+            exit_code = result
+
+    return exit_code
 
 
 def evaluate_specification(json_file: str):
@@ -359,14 +406,16 @@ def evaluate_specification(json_file: str):
     print(f"✓ Decision tree statistics:")
     print(f"  - Total nodes: {stats['total_nodes']}")
     print(f"  - Node types:")
-    for node_type, count in sorted(stats['node_types'].items()):
+    for node_type, count in sorted(stats["node_types"].items()):
         print(f"    • {node_type}: {count}")
     print(f"  - Outcomes:")
-    for outcome, count in sorted(stats['outcomes'].items()):
+    for outcome, count in sorted(stats["outcomes"].items()):
         print(f"    • {outcome}: {count}")
     print(f"  - Total paths to outcomes: {stats['total_paths']}")
-    print(f"  - Path lengths: min={stats['min_path_length']}, "
-          f"avg={stats['avg_path_length']:.1f}, max={stats['max_path_length']}")
+    print(
+        f"  - Path lengths: min={stats['min_path_length']}, "
+        f"avg={stats['avg_path_length']:.1f}, max={stats['max_path_length']}"
+    )
 
     # Generate visualization
     print("\n5. Generating graph visualization...")
@@ -384,5 +433,5 @@ def evaluate_specification(json_file: str):
     print("  • Unambiguous (all conditions are explicit)")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

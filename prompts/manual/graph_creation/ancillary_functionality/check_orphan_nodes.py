@@ -12,7 +12,7 @@ from collections import defaultdict
 
 def load_json(filepath):
     """Load and parse JSON file."""
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         return json.load(f)
 
 
@@ -58,7 +58,7 @@ def find_orphan_nodes(spec, spec_name):
                     referenced_ids.add(target)
                     referenced_by[target].append(f"{node_id}.outcomes.{outcome_key}")
 
-        # Criteria checks (including salary, financial, occupation checks)
+        # Criteria checks
         elif node_type == "criteria_check":
             if "outcomes" in node:
                 for outcome_key, target in node["outcomes"].items():
@@ -102,17 +102,21 @@ def find_orphan_nodes(spec, spec_name):
         # Get node description/question for context
         context = ""
         if "question" in node:
-            context = node["question"][:60] + "..." if len(node["question"]) > 60 else node["question"]
+            context = (
+                node["question"][:60] + "..."
+                if len(node["question"]) > 60
+                else node["question"]
+            )
         elif "description" in node:
-            context = node["description"][:60] + "..." if len(node["description"]) > 60 else node["description"]
+            context = (
+                node["description"][:60] + "..."
+                if len(node["description"]) > 60
+                else node["description"]
+            )
         elif "result" in node:
             context = f"Result: {node['result']}"
 
-        orphan_details.append({
-            "id": orphan_id,
-            "type": node_type,
-            "context": context
-        })
+        orphan_details.append({"id": orphan_id, "type": node_type, "context": context})
 
     return orphan_details, referenced_by
 
@@ -145,7 +149,9 @@ def check_unreferenced_ids(spec, spec_name):
         if "outcomes" in node and isinstance(node["outcomes"], dict):
             for outcome_key, target in node["outcomes"].items():
                 if target not in all_node_ids:
-                    dangling_refs.append(f"{node_id}.outcomes.{outcome_key} -> '{target}' (node does not exist)")
+                    dangling_refs.append(
+                        f"{node_id}.outcomes.{outcome_key} -> '{target}' (node does not exist)"
+                    )
 
     return dangling_refs
 
@@ -161,7 +167,9 @@ def main():
         "../specifications/skilled_worker_visa/skilled_worker_visa_eligibility.json",
         "../specifications/child_benefit/child_benefit_eligibility.json",
         "../specifications/universal_credit/universal_credit_eligibility.json",
-        "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json"
+        "../specifications/personal_independence_payment/personal_independence_payment_eligibility.json",
+        "../specifications/jobseekers_allowance/jobseekers_allowance_eligibility.json",
+        "../specifications/carers_allowance/carers_allowance_eligibility.json",
     ]
 
     all_clean = True
@@ -194,7 +202,7 @@ def main():
                 for orphan in orphans:
                     print(f"  • {orphan['id']}")
                     print(f"    Type: {orphan['type']}")
-                    if orphan['context']:
+                    if orphan["context"]:
                         print(f"    Context: {orphan['context']}")
                     print()
                 all_clean = False
@@ -227,6 +235,7 @@ def main():
         except Exception as e:
             print(f"❌ Unexpected error: {e}")
             import traceback
+
             traceback.print_exc()
             all_clean = False
 
