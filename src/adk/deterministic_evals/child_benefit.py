@@ -85,13 +85,13 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
     return case_report
 
 
-def main(input_folder_path: str = None):
+def run_evaluation(input_folder_path: str = None):
     """
     Evaluates test outputs. If no path is provided, automatically finds 
     and evaluates the most recent run. Saves summary and detailed JSONs.
     """
-    base_dir = Path("../../../analysis/testOutputs/child_benefit/")
-    
+    repo_root = Path(__file__).resolve().parents[3]
+    base_dir = repo_root / "analysis" / "testOutputs" / "child_benefit"
     # Determine target directory
     if input_folder_path:
         target_dir = Path(base_dir / input_folder_path)
@@ -247,4 +247,4 @@ def main(input_folder_path: str = None):
 if __name__ == "__main__":
     # If a path is passed use it. Otherwise, default to auto-find latest.
     target_path = sys.argv[1] if len(sys.argv) > 1 else None
-    main(target_path)
+    run_evaluation(target_path)

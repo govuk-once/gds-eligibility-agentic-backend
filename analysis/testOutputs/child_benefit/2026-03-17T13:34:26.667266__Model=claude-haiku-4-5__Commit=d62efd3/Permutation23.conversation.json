@@ -1,0 +1,264 @@
+{
+    "case_id": "RESPONSIBILITY_FAIL_UPKEEP_ZERO",
+    "meta": {
+        "permutation": 23,
+        "test_case": {
+            "case_id": "RESPONSIBILITY_FAIL_UPKEEP_ZERO",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 8
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": false
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 8 years old and does not live with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 8 (under 16)\n  - Child does not live with claimant and weekly upkeep (\u00a30.00) is below the Child Benefit rate (\u00a326.05)\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child does not live with claimant and weekly upkeep (\u00a30.00) is below the Child Benefit rate (\u00a326.05)",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 8 (under 16)",
+                        "Child does not live with claimant and weekly upkeep (\u00a30.00) is below the Child Benefit rate (\u00a326.05)",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-17T13:34:26.667266",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "d62efd3",
+            "hypothesis_name": "rules_in_prompt_opus",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true,
+            "max_concurrent_cases": 25
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 29737,
+        "total_completion_tokens": 1256,
+        "total_overall_tokens": 30993,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 20196,
+                "completion_tokens": 1165,
+                "total": 21361
+            },
+            "actor": {
+                "prompt_tokens": 9541,
+                "completion_tokens": 91,
+                "total": 9632
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 27.13
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-17T13:34:28.707091",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine your eligibility for Child Benefit. To do this properly, I'll need to gather some information about you and your children.\n\nLet me start with the first question:\n\n**How many children do you have that you'd like me to assess for Child Benefit eligibility?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:34:30.281248",
+            "author": "actor",
+            "text": "I have one child \u2013 my son Alex. He's 8 years old."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:32.408157",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information! I'm pleased to help assess Alex's eligibility for Child Benefit.\n\nBefore I can make a determination, I need to understand your family circumstances better. Let me ask you this:\n\n**Does Alex live with you full-time, or does he live with someone else for part of the time?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:34:33.919509",
+            "author": "actor",
+            "text": "No, Alex doesn't live with me. He lives with his mum."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:36.077118",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that. Before I can properly assess the situation, I need to understand a bit more about the arrangement.\n\n**Are you Alex's father, and if so, do you have any legal responsibility or shared care for Alex (for example, through a custody agreement or court order)?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:34:38.008795",
+            "author": "actor",
+            "text": "Yes, I'm his father. I see him regularly and we have arrangements, but he lives with his mum full-time."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:39.949319",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. To properly assess your eligibility, I need to check the specific rules about this situation. Let me do that now."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:42.102400",
+            "author": "eligibility_agent",
+            "text": "Thank you for waiting. I've reviewed the specific rules about this situation. Now I have one more important question:\n\n**Do you currently make regular financial contributions towards Alex's upkeep (such as maintenance payments, help with clothes, food, or contributions towards his living costs), either under a formal court order/agreement or informally?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:34:44.212577",
+            "author": "actor",
+            "text": "No, I'm not currently able to contribute financially towards his upkeep at the moment."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:45.890758",
+            "author": "eligibility_agent",
+            "text": "Thank you for that clarification. Let me also check the main eligibility criteria to ensure I have the complete picture."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:52.767941",
+            "author": "eligibility_agent",
+            "text": "Based on the information you've provided and the rules I've reviewed, I can now provide you with a clear assessment of your eligibility for Child Benefit for Alex.\n\nAccording to the government's rules, you would normally qualify for Child Benefit if you're responsible for a child under 16 and you live in the UK. However, the rules are different when a child lives with someone else.\n\nIn your case:\n- Alex lives with his mum full-time\n- You don't currently make financial contributions towards his upkeep (which would be at least the same amount as the Child Benefit payment)\n\nAccording to the rules, you could continue to receive Child Benefit payments for up to 8 weeks after Alex went to live with his mum if nobody else was claiming. However, to continue receiving payments beyond that 8-week period, you would need to be contributing financially to his upkeep.\n\nSince you've indicated you're not currently able to make financial contributions, **you would not be eligible to receive Child Benefit for Alex** beyond the initial 8-week period.\n\nHowever, it's important to note that Alex's mum may be eligible to claim Child Benefit for him, as he lives with her full-time. I'd recommend that you ensure she's aware of this potential benefit for your son.\n\nIf your circumstances change and you're able to make regular financial contributions towards Alex's upkeep in the future, you could potentially become eligible again - in which case you should contact the Child Benefit Office."
+        },
+        {
+            "timestamp": "2026-03-17T13:34:53.882193",
+            "author": "eligibility_agent",
+            "text": "Is there anything else you'd like to know about Child Benefit eligibility?"
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-17T13:34:39.949316",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-child-lives-with-someone-else"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:34:45.890753",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit/eligibility"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:34:52.767936",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 8 years old and lives full-time with his mother. According to the Child Benefit eligibility rules, you would normally qualify if you're responsible for a child and live with them, or if you're paying at least the same amount as Child Benefit towards their upkeep. Since Alex lives with someone else (his mum) and you are not currently making financial contributions towards his upkeep that meet or exceed the Child Benefit payment amount, you do not meet the eligibility criteria. You could receive payments for 8 weeks after he went to live with his mum, but beyond that period, contributions are required to maintain eligibility."
+                ],
+                "overall_reasoning": "As a father with no current financial contributions towards Alex's upkeep, you do not meet the eligibility criteria for Child Benefit. The child lives full-time with his mother, and without making regular financial contributions equal to or exceeding the Child Benefit amount, you cannot claim. It would be advisable for Alex's mother to claim Child Benefit for him, as she is responsible for his full-time care.\""
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_zWGUVTcURYLFqQx2wnAcPQ",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 8 years old and lives full-time with his mother. According to the Child Benefit eligibility rules, you would normally qualify if you're responsible for a child and live with them, or if you're paying at least the same amount as Child Benefit towards their upkeep. Since Alex lives with someone else (his mum) and you are not currently making financial contributions towards his upkeep that meet or exceed the Child Benefit payment amount, you do not meet the eligibility criteria. You could receive payments for 8 weeks after he went to live with his mum, but beyond that period, contributions are required to maintain eligibility."
+                    }
+                ],
+                "overall_reasoning": "As a father with no current financial contributions towards Alex's upkeep, you do not meet the eligibility criteria for Child Benefit. The child lives full-time with his mother, and without making regular financial contributions equal to or exceeding the Child Benefit amount, you cannot claim. It would be advisable for Alex's mother to claim Child Benefit for him, as she is responsible for his full-time care.\""
+            }
+        }
+    }
+}

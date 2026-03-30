@@ -1,0 +1,285 @@
+{
+    "case_id": "HOSPITAL_FAIL_OVER_12_WEEKS_NOT_SPENDING",
+    "meta": {
+        "permutation": 32,
+        "test_case": {
+            "case_id": "HOSPITAL_FAIL_OVER_12_WEEKS_NOT_SPENDING",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 8
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 15
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 8 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 8 (under 16)\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child in hospital/residential accommodation for 15 weeks (>12) and claimant is not regularly spending money on child\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child in hospital/residential accommodation for 15 weeks (>12) and claimant is not regularly spending money on child",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 8 (under 16)",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child in hospital/residential accommodation for 15 weeks (>12) and claimant is not regularly spending money on child",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-05T19:48:11.152784",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "63c7add",
+            "hypothesis_name": "opus_accuracy_latency",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 70641,
+        "total_completion_tokens": 1410,
+        "total_overall_tokens": 72051,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 37943,
+                "completion_tokens": 1259,
+                "total": 39202
+            },
+            "actor": {
+                "prompt_tokens": 32698,
+                "completion_tokens": 151,
+                "total": 32849
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 39.52
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-05T20:06:56.541125",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine if you're eligible for Child Benefit.\n\nTo assess your eligibility, I'll need to ask you some questions about your circumstances. Let me start by reading the official guidance to ensure I give you accurate information."
+        },
+        {
+            "timestamp": "2026-03-05T20:06:59.203051",
+            "author": "eligibility_agent",
+            "text": "Thank you for waiting. Now I can help you determine your eligibility for Child Benefit.\n\nTo start, could you tell me: **Do you have any children, and if so, how many?**"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:01.252698",
+            "author": "actor",
+            "text": "Hello! Yes, I'd like to find out if I'm eligible for Child Benefit. I have one child - my son Alex, he's 8 years old and lives with me here in Manchester."
+        },
+        {
+            "timestamp": "2026-03-05T20:07:03.483315",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information! It's helpful to know you have an 8-year-old son named Alex who lives with you in Manchester.\n\nTo assess your eligibility for Child Benefit for Alex, I need to ask a few more questions.\n\n**Are you currently living in the UK?**"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:05.409152",
+            "author": "actor",
+            "text": "Yes, I live in the UK - in Manchester, as I mentioned."
+        },
+        {
+            "timestamp": "2026-03-05T20:07:07.634254",
+            "author": "eligibility_agent",
+            "text": "Perfect, thank you for confirming that.\n\nNow I need to ask: **Are you responsible for Alex's care?** By this I mean, do you provide for his day-to-day needs such as food, clothes, and general care?"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:09.443181",
+            "author": "actor",
+            "text": "Yes, I am. He lives with me and I look after him."
+        },
+        {
+            "timestamp": "2026-03-05T20:07:11.181578",
+            "author": "eligibility_agent",
+            "text": "Excellent, thank you for confirming that.\n\nJust a few more questions to complete the assessment:\n\n**Is anyone else currently claiming Child Benefit for Alex?**"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:12.798352",
+            "author": "actor",
+            "text": "No, nobody else is claiming Child Benefit for him."
+        },
+        {
+            "timestamp": "2026-03-05T20:07:14.853789",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information.\n\nOne more important question: **Is Alex currently in hospital, care, or any residential accommodation arranged by the local council?**"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:16.636350",
+            "author": "actor",
+            "text": "Actually, yes - Alex has been in hospital for a while now. It's been about 3 or 4 months."
+        },
+        {
+            "timestamp": "2026-03-05T20:07:19.276949",
+            "author": "eligibility_agent",
+            "text": "Thank you for sharing that information. I understand that must be a difficult time for you and Alex.\n\nThis is relevant to your Child Benefit eligibility. Let me ask a follow-up question:\n\n**Do you regularly spend money on Alex while he's in hospital - for example, on things like clothes, toys, books, or other items for him?**"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:21.038268",
+            "author": "actor",
+            "text": "No, I haven't been able to afford to spend money on his needs while he's in there."
+        },
+        {
+            "timestamp": "2026-03-05T20:07:27.831307",
+            "author": "eligibility_agent",
+            "text": "Thank you for being honest about your circumstances. I have enough information now to assess your eligibility for Child Benefit for Alex.\n\nBased on the information you've provided and the official UK government guidance, here is my assessment:"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:33.193395",
+            "author": "eligibility_agent",
+            "text": "I'm sorry to inform you that based on your circumstances, **you are not currently eligible for Child Benefit for Alex**.\n\nHere's why: While you normally would qualify for Child Benefit - since Alex is under 16, lives with you in the UK, you're responsible for him, and no one else is claiming - the fact that Alex has been in hospital for 3-4 months affects your eligibility.\n\nAccording to the rules, Child Benefit usually stops after a child has been in hospital for more than 12 weeks. There is an exception that allows you to continue receiving it if you regularly spend money on your child while they're in hospital (such as on clothes, toys, or other items). However, since you've indicated that you haven't been able to afford to spend money on Alex's needs during his hospital stay, this exception doesn't apply in your case.\n\nI understand this is disappointing news, especially during what must be a very difficult time. If your circumstances change - for example, if you start regularly spending money on items for Alex - you may want to contact HMRC to discuss your situation, as this could affect your eligibility.\n\nI wish Alex a full and speedy recovery."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-05T20:06:56.541107",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit/eligibility"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-05T20:06:56.541116",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-child-lives-with-someone-else"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-05T20:06:56.541118",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-05T20:07:27.831297",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 8 years old and lives with you in the UK. You are responsible for his care. However, Alex has been in hospital for 3-4 months, which exceeds the 12-week limit. According to the official guidance, after 12 weeks in hospital, you are usually no longer entitled to Child Benefit. There is an exception to this rule: you can continue to receive Child Benefit for a child in a UK hospital if you regularly spend money on them. Unfortunately, you have indicated that you have not been able to afford to spend money on Alex's needs while he's in hospital. Therefore, you do not meet the exception criteria, and you are not eligible for Child Benefit for Alex at this time."
+                ],
+                "overall_reasoning": "The claimant lives in the UK with their 8-year-old son Alex and is responsible for his care, which would normally make them eligible for Child Benefit. However, Alex has been in hospital for 3-4 months (exceeding the 12-week limit), and the claimant has not been able to regularly spend money on Alex during this time. Under the rules, Child Benefit usually stops after 12 weeks in hospital unless the parent regularly spends money on the child. Since this exception does not apply, the claimant is not currently eligible for Child Benefit for Alex."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_SiWzPyX6S2TLqc21d4UZf9",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 8 years old and lives with you in the UK. You are responsible for his care. However, Alex has been in hospital for 3-4 months, which exceeds the 12-week limit. According to the official guidance, after 12 weeks in hospital, you are usually no longer entitled to Child Benefit. There is an exception to this rule: you can continue to receive Child Benefit for a child in a UK hospital if you regularly spend money on them. Unfortunately, you have indicated that you have not been able to afford to spend money on Alex's needs while he's in hospital. Therefore, you do not meet the exception criteria, and you are not eligible for Child Benefit for Alex at this time."
+                    }
+                ],
+                "overall_reasoning": "The claimant lives in the UK with their 8-year-old son Alex and is responsible for his care, which would normally make them eligible for Child Benefit. However, Alex has been in hospital for 3-4 months (exceeding the 12-week limit), and the claimant has not been able to regularly spend money on Alex during this time. Under the rules, Child Benefit usually stops after 12 weeks in hospital unless the parent regularly spends money on the child. Since this exception does not apply, the claimant is not currently eligible for Child Benefit for Alex."
+            }
+        }
+    }
+}
