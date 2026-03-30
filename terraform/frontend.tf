@@ -58,6 +58,10 @@ resource "aws_apprunner_service" "frontend_app" {
     ingress_configuration {
       is_publicly_accessible = true
     }
+    egress_configuration {
+      egress_type       = "VPC"
+      vpc_connector_arn = aws_apprunner_vpc_connector.frontend_egress_connector.arn
+    }
   }
   health_check_configuration {
     protocol = "HTTP"
