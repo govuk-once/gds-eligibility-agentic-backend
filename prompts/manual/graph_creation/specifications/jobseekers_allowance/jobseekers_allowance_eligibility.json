@@ -1,0 +1,275 @@
+{
+  "$schema": "../../schemas/eligibility-schema.json",
+  "version": "1.0",
+  "last_updated": "2026-03-13",
+  "source": "https://www.gov.uk/jobseekers-allowance",
+  "description": "Eligibility criteria for Jobseeker's Allowance (JSA) - New Style JSA for people who have paid National Insurance contributions and are looking for work",
+  "decision_tree": {
+    "root": {
+      "id": "start",
+      "type": "start",
+      "description": "Start of Jobseeker's Allowance eligibility assessment",
+      "next": "check_age"
+    },
+    "nodes": {
+      "check_age": {
+        "id": "check_age",
+        "type": "boolean_question",
+        "question": "Is the applicant 18 years old or over and under State Pension age?",
+        "help_text": "JSA is only available for adults who have not yet reached State Pension age.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_location",
+          "no": "INELIGIBLE_age"
+        }
+      },
+      "check_location": {
+        "id": "check_location",
+        "type": "boolean_question",
+        "question": "Is the applicant in Great Britain?",
+        "help_text": "New Style JSA is available in England, Scotland, and Wales. Different rules apply in Northern Ireland.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_employment_type",
+          "no": "INELIGIBLE_location"
+        }
+      },
+      "check_employment_type": {
+        "id": "check_employment_type",
+        "type": "boolean_question",
+        "question": "Has the applicant worked as an employee (not self-employed)?",
+        "help_text": "JSA requires previous employment as an employee. Self-employed individuals who only paid Class 2 National Insurance are not eligible, except for share fishermen and volunteer development workers.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_ni_contributions",
+          "no": "check_self_employment_exception"
+        }
+      },
+      "check_self_employment_exception": {
+        "id": "check_self_employment_exception",
+        "type": "boolean_question",
+        "question": "Is the applicant a share fisherman or volunteer development worker?",
+        "help_text": "Share fishermen and volunteer development workers are exceptions to the self-employment rule.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_ni_contributions",
+          "no": "INELIGIBLE_self_employed"
+        }
+      },
+      "check_ni_contributions": {
+        "id": "check_ni_contributions",
+        "type": "complex_criteria",
+        "question": "Has the applicant paid or been credited with Class 1 National Insurance contributions in the previous 2 tax years?",
+        "help_text": "The required tax years depend on the application date. National Insurance credits can count towards one of these 2 years.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "criteria": {
+          "ni_contributions_required": "Paid or credited with Class 1 NI contributions in previous 2 tax years",
+          "tax_year_calculation": "Tax years are calculated from application date (e.g., applying in Jan 2026 requires contributions in 2023-24 and 2024-25)",
+          "credits_allowed": "Credits can count for one of the 2 years",
+          "alternative_eligibility": "Alternative eligibility if claimed JSA, ESA, Carer's Allowance, Maternity Allowance, or lived abroad with armed forces partner during previous 2 tax years"
+        },
+        "disclaimer": "Determining exact NI contribution history requires verification through HMRC records. Applicants should provide their NI number for assessment.",
+        "outcomes": {
+          "meets_criteria": "check_working_hours",
+          "does_not_meet": "INELIGIBLE_ni_contributions"
+        }
+      },
+      "check_working_hours": {
+        "id": "check_working_hours",
+        "type": "boolean_question",
+        "question": "Is the applicant currently working 16 or more hours per week?",
+        "help_text": "Working 16+ hours per week disqualifies applicants from JSA. Working less than 16 hours may reduce the benefit amount.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "INELIGIBLE_working_hours",
+          "no": "check_trade_dispute"
+        }
+      },
+      "check_trade_dispute": {
+        "id": "check_trade_dispute",
+        "type": "boolean_question",
+        "question": "Is the applicant currently involved in a trade dispute with their employer?",
+        "help_text": "A trade dispute is a disagreement with an employer about employment-related issues.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "INELIGIBLE_trade_dispute",
+          "no": "check_illness_disability"
+        }
+      },
+      "check_illness_disability": {
+        "id": "check_illness_disability",
+        "type": "boolean_question",
+        "question": "Does the applicant have an illness or disability that prevents them from working?",
+        "help_text": "If unable to work due to health conditions, Employment and Support Allowance (ESA) may be more appropriate.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "INELIGIBLE_illness_disability",
+          "no": "check_full_time_study"
+        }
+      },
+      "check_full_time_study": {
+        "id": "check_full_time_study",
+        "type": "boolean_question",
+        "question": "Is the applicant studying full-time?",
+        "help_text": "Full-time students may be eligible if studying for Level 4 or below qualifications without maintenance support and able to meet work-related requirements.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_study_eligibility",
+          "no": "check_available_for_work"
+        }
+      },
+      "check_study_eligibility": {
+        "id": "check_study_eligibility",
+        "type": "complex_criteria",
+        "question": "Does the applicant meet all the requirements for full-time student JSA eligibility?",
+        "criteria": {
+          "qualification_level": "Studying for a qualification at Level 4 or below",
+          "no_financial_support": "Does not receive a maintenance loan, grant, or bursary for the qualification",
+          "work_related_requirements": "Can meet the work-related requirements agreed with their work coach"
+        },
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "meets_criteria": "check_available_for_work",
+          "does_not_meet": "INELIGIBLE_full_time_study"
+        }
+      },
+      "check_available_for_work": {
+        "id": "check_available_for_work",
+        "type": "boolean_question",
+        "question": "Is the applicant available to start work straight away?",
+        "help_text": "Applicants must be immediately available for work to receive JSA.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_work_search_commitment",
+          "no": "INELIGIBLE_not_available"
+        }
+      },
+      "check_work_search_commitment": {
+        "id": "check_work_search_commitment",
+        "type": "boolean_question",
+        "question": "Is the applicant willing to actively look for work and agree to a Claimant Commitment?",
+        "help_text": "Applicants must agree to look for work and meet regularly with a work coach. The Claimant Commitment sets out specific job search activities and hours per week.",
+        "reference": "https://www.gov.uk/jobseekers-allowance/your-jsa-claim",
+        "outcomes": {
+          "yes": "ELIGIBLE",
+          "no": "INELIGIBLE_no_commitment"
+        }
+      },
+      "ELIGIBLE": {
+        "id": "ELIGIBLE",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "The applicant is eligible for New Style Jobseeker's Allowance.",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/jobseekers-allowance/apply-new-style-jsa",
+          "Prepare required information: National Insurance number, bank account details, employment details for past 6 months, and any pension income statements",
+          "DWP will contact you within 14 days of applying",
+          "Attend mandatory interview at local Jobcentre Plus office",
+          "Sign Claimant Commitment agreeing to job search activities",
+          "Attend regular appointments with work coach (every 1-2 weeks)",
+          "Payment: Up to £72.90/week (under 25) or £92.05/week (25+) for up to 182 days",
+          "Report any changes in circumstances immediately",
+          "Continue job search activities as agreed with work coach to avoid sanctions"
+        ]
+      },
+      "INELIGIBLE_age": {
+        "id": "INELIGIBLE_age",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant does not meet the age requirements for Jobseeker's Allowance.",
+        "guidance": "JSA is only available for people aged 18 or over and under State Pension age If under 18, check eligibility for other support at https://www.gov.uk/browse/benefits If at or over State Pension age, check Pension Credit at https://www.gov.uk/pension-credit"
+      },
+      "INELIGIBLE_location": {
+        "id": "INELIGIBLE_location",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is not in Great Britain.",
+        "guidance": "New Style JSA is available in England, Scotland, and Wales For Northern Ireland, visit https://www.nidirect.gov.uk/articles/jobseekers-allowance If temporarily abroad, check eligibility for JSA while abroad at https://www.gov.uk/claim-benefits-abroad"
+      },
+      "INELIGIBLE_self_employed": {
+        "id": "INELIGIBLE_self_employed",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Self-employed individuals who only paid Class 2 National Insurance are not eligible for JSA.",
+        "guidance": "JSA requires employment as an employee with Class 1 National Insurance contributions Check eligibility for Universal Credit at https://www.gov.uk/universal-credit Universal Credit may provide support for self-employed individuals Exceptions: Share fishermen and volunteer development workers may be eligible"
+      },
+      "INELIGIBLE_ni_contributions": {
+        "id": "INELIGIBLE_ni_contributions",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant does not have sufficient National Insurance contributions in the previous 2 tax years.",
+        "guidance": "JSA requires Class 1 NI contributions or credits in the previous 2 tax years Check your National Insurance record at https://www.gov.uk/check-national-insurance-record You may be eligible for Universal Credit instead at https://www.gov.uk/universal-credit National Insurance credits from claiming JSA, ESA, Carer's Allowance, or Maternity Allowance can count If you lived abroad with a partner serving in the armed forces, different rules may apply"
+      },
+      "INELIGIBLE_working_hours": {
+        "id": "INELIGIBLE_working_hours",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is working 16 or more hours per week.",
+        "guidance": "JSA is not available if working 16+ hours per week If working less than 16 hours, you may be eligible but earnings will reduce your JSA amount Check eligibility for Universal Credit at https://www.gov.uk/universal-credit Universal Credit may be available for people working part-time with low income"
+      },
+      "INELIGIBLE_trade_dispute": {
+        "id": "INELIGIBLE_trade_dispute",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is currently involved in a trade dispute with their employer.",
+        "guidance": "JSA is not available during a trade dispute A trade dispute is a disagreement with your employer about employment-related issues You may be able to claim JSA after the trade dispute ends Contact ACAS for advice on resolving workplace disputes at https://www.acas.org.uk/"
+      },
+      "INELIGIBLE_illness_disability": {
+        "id": "INELIGIBLE_illness_disability",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant has an illness or disability that prevents them from working.",
+        "guidance": "JSA is for people actively seeking and able to work Check eligibility for Employment and Support Allowance (ESA) at https://www.gov.uk/employment-support-allowance ESA provides support for people unable to work due to illness or disability You may also be eligible for Personal Independence Payment (PIP) at https://www.gov.uk/pip Consider applying for Universal Credit which includes health condition support at https://www.gov.uk/universal-credit"
+      },
+      "INELIGIBLE_full_time_study": {
+        "id": "INELIGIBLE_full_time_study",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is studying full-time and does not meet the eligibility requirements for students.",
+        "guidance": "Full-time students can only get JSA if studying for Level 4 or below without maintenance support and able to meet work requirements Part-time students may be eligible for JSA Check eligibility for student finance at https://www.gov.uk/student-finance Check eligibility for Universal Credit at https://www.gov.uk/universal-credit Some students may be eligible for Disabled Students' Allowance at https://www.gov.uk/disabled-students-allowance-dsa"
+      },
+      "INELIGIBLE_not_available": {
+        "id": "INELIGIBLE_not_available",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is not available to start work straight away.",
+        "guidance": "JSA requires immediate availability for work If you become available for work in the future, you can apply then If temporarily unavailable due to caring responsibilities, check Carer's Allowance at https://www.gov.uk/carers-allowance Check other benefits you may be eligible for at https://www.gov.uk/browse/benefits"
+      },
+      "INELIGIBLE_no_commitment": {
+        "id": "INELIGIBLE_no_commitment",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is not willing to actively look for work or sign a Claimant Commitment.",
+        "guidance": "JSA requires agreement to actively seek work and meet regularly with a work coach The Claimant Commitment sets out specific job search activities you must undertake Failure to meet these requirements can result in sanctions (reduced or stopped payments) If circumstances change and you're willing to commit to job search, you can apply then For information on what JSA requires, visit https://www.gov.uk/jobseekers-allowance/your-jsa-claim"
+      }
+    }
+  },
+  "constants": {
+    "minimum_age": 18,
+    "maximum_age": "State Pension age",
+    "minimum_working_hours_limit": 16,
+    "payment_duration_days": 182,
+    "payment_frequency_weeks": 2,
+    "payment_amount_under_25": 72.9,
+    "payment_amount_25_and_over": 92.05,
+    "sanction_maximum_weeks": 26,
+    "work_coach_appointment_frequency_weeks": "1-2",
+    "first_payment_delay_days": 7,
+    "backdate_maximum_months": 3,
+    "dwp_contact_timeline_days": 14
+  },
+  "validation_rules": {
+    "ni_contribution_years": "Must have paid or been credited with Class 1 National Insurance contributions in the previous 2 tax years, calculated from application date",
+    "working_hours_threshold": "Cannot work 16 or more hours per week to be eligible",
+    "payment_calculation": "Payment amount depends on age: under 25 receives £72.90/week, 25+ receives £92.05/week",
+    "claimant_commitment": "Must agree to actively seek work and meet regularly with work coach as specified in Claimant Commitment"
+  },
+  "external_references": {
+    "ni_record_check": "https://www.gov.uk/check-national-insurance-record",
+    "find_a_job_service": "https://www.gov.uk/find-a-job",
+    "jsa_application": "https://www.gov.uk/jobseekers-allowance/apply-new-style-jsa",
+    "sanctions_information": "https://www.gov.uk/jobseekers-allowance/your-jsa-claim",
+    "mandatory_reconsideration": "https://www.gov.uk/mandatory-reconsideration",
+    "appeal_tribunal": "https://www.gov.uk/appeal-benefit-decision"
+  }
+}

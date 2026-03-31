@@ -1,0 +1,385 @@
+{
+  "$schema": "../../schemas/eligibility-schema.json",
+  "version": "1.0",
+  "last_updated": "2026-03-13",
+  "source": "https://www.gov.uk/carers-allowance",
+  "description": "Eligibility criteria for Carer's Allowance - a benefit for people who spend at least 35 hours a week caring for someone with a disability",
+  "decision_tree": {
+    "root": {
+      "id": "start",
+      "type": "start",
+      "description": "Start of Carer's Allowance eligibility assessment",
+      "next": "check_age"
+    },
+    "nodes": {
+      "check_age": {
+        "id": "check_age",
+        "type": "boolean_question",
+        "question": "Is the applicant 16 years old or over?",
+        "help_text": "Carer's Allowance is available for carers aged 16 and over with no upper age limit.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_location",
+          "no": "INELIGIBLE_age"
+        }
+      },
+      "check_location": {
+        "id": "check_location",
+        "type": "boolean_question",
+        "question": "Does the applicant normally live in England or Wales (or are they a member of the armed forces living abroad)?",
+        "help_text": "Carer's Allowance is for England and Wales. Scotland has Carer Support Payment. EEA countries and Switzerland may also be eligible.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_residency_period",
+          "no": "check_eea_or_scotland"
+        }
+      },
+      "check_eea_or_scotland": {
+        "id": "check_eea_or_scotland",
+        "type": "routing",
+        "description": "Route applicants based on location (Scotland, EEA, or ineligible)",
+        "routing_logic": "Direct Scotland residents to Carer Support Payment, EEA residents may be eligible with settled status",
+        "outcomes": {
+          "scotland": "INELIGIBLE_scotland",
+          "eea": "check_eea_settled_status",
+          "other": "INELIGIBLE_location"
+        }
+      },
+      "check_eea_settled_status": {
+        "id": "check_eea_settled_status",
+        "type": "boolean_question",
+        "question": "Does the EEA/Swiss applicant have settled or pre-settled status under the EU Settlement Scheme?",
+        "help_text": "EU, Swiss, Norwegian, Icelandic, or Liechtenstein citizens need settled or pre-settled status. Deadline was 30 June 2021 for most, but late applications may still be possible.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_residency_period",
+          "no": "INELIGIBLE_eea_status"
+        }
+      },
+      "check_residency_period": {
+        "id": "check_residency_period",
+        "type": "boolean_question",
+        "question": "Has the applicant been in England, Scotland, or Wales for at least 2 of the last 3 years?",
+        "help_text": "This requirement does not apply if you're a refugee or have humanitarian protection status.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_immigration_control",
+          "no": "check_refugee_status"
+        }
+      },
+      "check_refugee_status": {
+        "id": "check_refugee_status",
+        "type": "boolean_question",
+        "question": "Is the applicant a refugee or do they have humanitarian protection status?",
+        "help_text": "Refugees and those with humanitarian protection are exempt from the 2 out of 3 years residency requirement.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_immigration_control",
+          "no": "INELIGIBLE_residency_period"
+        }
+      },
+      "check_immigration_control": {
+        "id": "check_immigration_control",
+        "type": "boolean_question",
+        "question": "Is the applicant subject to immigration control?",
+        "help_text": "People subject to immigration control are not eligible for Carer's Allowance.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "INELIGIBLE_immigration_control",
+          "no": "check_full_time_education"
+        }
+      },
+      "check_full_time_education": {
+        "id": "check_full_time_education",
+        "type": "boolean_question",
+        "question": "Is the applicant in full-time education or studying for 21 hours a week or more?",
+        "help_text": "Full-time education or studying 21+ hours per week makes you ineligible for Carer's Allowance.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "INELIGIBLE_full_time_education",
+          "no": "check_care_hours"
+        }
+      },
+      "check_care_hours": {
+        "id": "check_care_hours",
+        "type": "boolean_question",
+        "question": "Does the applicant spend at least 35 hours a week caring for someone?",
+        "help_text": "Care can include helping with washing, cooking, taking to appointments, and managing household tasks like bills and shopping.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_person_gets_qualifying_benefit",
+          "no": "INELIGIBLE_insufficient_care_hours"
+        }
+      },
+      "check_person_gets_qualifying_benefit": {
+        "id": "check_person_gets_qualifying_benefit",
+        "type": "multi_path_check",
+        "question": "Does the person being cared for receive one of the qualifying disability benefits?",
+        "help_text": "The person must already be receiving one of the specified disability benefits before you can claim Carer's Allowance.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "evaluation_logic": "OR - any one of these benefits qualifies",
+        "paths": [
+          {
+            "id": "pip_daily_living",
+            "description": "Personal Independence Payment (daily living component)"
+          },
+          {
+            "id": "dla_middle_highest",
+            "description": "Disability Living Allowance (middle or highest care rate)"
+          },
+          {
+            "id": "scottish_adla",
+            "description": "Scottish Adult Disability Living Allowance (middle or highest care rate)"
+          },
+          {
+            "id": "attendance_allowance",
+            "description": "Attendance Allowance"
+          },
+          {
+            "id": "pension_age_disability",
+            "description": "Pension Age Disability Payment"
+          },
+          {
+            "id": "constant_attendance_iidb",
+            "description": "Constant Attendance Allowance at or above normal maximum rate with Industrial Injuries Disablement Benefit"
+          },
+          {
+            "id": "constant_attendance_war",
+            "description": "Constant Attendance Allowance at basic full day rate with War Disablement Pension"
+          },
+          {
+            "id": "afip",
+            "description": "Armed Forces Independence Payment"
+          },
+          {
+            "id": "child_disability_payment",
+            "description": "Child Disability Payment (middle or highest care rate)"
+          },
+          {
+            "id": "adult_disability_payment",
+            "description": "Adult Disability Payment (daily living component at standard or enhanced rate)"
+          }
+        ],
+        "outcomes": {
+          "eligible_via_any_path": "check_shared_care",
+          "not_eligible": "INELIGIBLE_no_qualifying_benefit"
+        }
+      },
+      "check_shared_care": {
+        "id": "check_shared_care",
+        "type": "boolean_question",
+        "question": "Is another carer already claiming Carer's Allowance, Carer Support Payment, or the Universal Credit extra amount for caring for this same person?",
+        "help_text": "Only one person can claim Carer's Allowance for the same disabled person. If someone else is already claiming, only they can receive it unless DWP decides otherwise.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "INELIGIBLE_shared_care",
+          "no": "check_earnings"
+        }
+      },
+      "check_earnings": {
+        "id": "check_earnings",
+        "type": "criteria_check",
+        "question": "Are the applicant's weekly earnings £196 or less after tax, National Insurance, and allowable expenses?",
+        "help_text": "Earnings include employment and self-employment income only. Allowable expenses include 50% of pension contributions, work equipment, travel between workplaces, business costs (if self-employed), and eligible care costs.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "criteria": {
+          "threshold": 196,
+          "frequency": "weekly",
+          "calculation_method": "After tax, NI, and allowable expenses",
+          "income_types_included": [
+            "Employment income",
+            "Self-employment income"
+          ],
+          "income_types_excluded": [
+            "Occupational pensions",
+            "Private pensions",
+            "Contributions from housemates",
+            "Income from boarders (first £20/week + 50% of remainder)",
+            "Employer loans or advances"
+          ]
+        },
+        "outcomes": {
+          "meets_requirement": "check_state_pension_interaction",
+          "does_not_meet": "INELIGIBLE_earnings_too_high"
+        }
+      },
+      "check_state_pension_interaction": {
+        "id": "check_state_pension_interaction",
+        "type": "boolean_question",
+        "question": "Does the applicant receive State Pension?",
+        "help_text": "State Pension affects Carer's Allowance payments. If State Pension is £83.30/week or more, you won't get Carer's Allowance payment but may get extra Pension Credit instead.",
+        "reference": "https://www.gov.uk/carers-allowance/eligibility",
+        "outcomes": {
+          "yes": "check_state_pension_amount",
+          "no": "ELIGIBLE"
+        }
+      },
+      "check_state_pension_amount": {
+        "id": "check_state_pension_amount",
+        "type": "routing",
+        "description": "Determine Carer's Allowance payment based on State Pension amount",
+        "routing_logic": "If State Pension >= £83.30/week, no CA payment but eligible for benefits/credits. If State Pension < £83.30/week, CA tops up to £83.30/week.",
+        "outcomes": {
+          "pension_83_30_or_more": "ELIGIBLE_no_payment_pension_credit",
+          "pension_less_than_83_30": "ELIGIBLE_top_up_payment"
+        }
+      },
+      "ELIGIBLE": {
+        "id": "ELIGIBLE",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "The applicant is eligible for full Carer's Allowance payment of £83.30 per week.",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/carers-allowance/how-to-claim",
+          "You will need: National Insurance number for yourself and the person you care for, their date of birth, address, benefit details",
+          "Payment: £83.30 per week (does not increase for caring for multiple people)",
+          "Paid weekly in advance or every 4 weeks",
+          "You'll automatically get National Insurance Class 1 credits",
+          "Report changes in circumstances: care hours drop below 35/week, earnings exceed £196/week, person you care for stops getting qualifying benefit, or dies",
+          "Consider applying for: Council Tax Reduction, Universal Credit (if low income), Pension Credit (if over working age)",
+          "Be aware: The person you care for may lose Severe Disability Premium or reduced Council Tax",
+          "Universal Credit will be reduced by the Carer's Allowance amount, but you may still get extra disability caring amount",
+          "You must pay tax on Carer's Allowance if total income exceeds Personal Allowance"
+        ]
+      },
+      "ELIGIBLE_top_up_payment": {
+        "id": "ELIGIBLE_top_up_payment",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "The applicant is eligible for Carer's Allowance but payment will be topped up to £83.30 per week (difference between State Pension and £83.30).",
+        "next_steps": [
+          "Apply online at https://www.gov.uk/carers-allowance/how-to-claim",
+          "Your Carer's Allowance payment will top up your State Pension to £83.30 per week total",
+          "Example: If State Pension is £60/week, Carer's Allowance pays £23.30/week",
+          "You will still receive National Insurance Class 1 credits",
+          "Report changes in circumstances immediately",
+          "Consider applying for Pension Credit and Council Tax Reduction",
+          "You must pay tax on Carer's Allowance if total income exceeds Personal Allowance"
+        ]
+      },
+      "ELIGIBLE_no_payment_pension_credit": {
+        "id": "ELIGIBLE_no_payment_pension_credit",
+        "type": "outcome",
+        "result": "ELIGIBLE",
+        "description": "The applicant qualifies for Carer's Allowance but will not receive payment because State Pension is £83.30 per week or more. However, they will receive National Insurance credits and may get increased Pension Credit.",
+        "next_steps": [
+          "Apply for Carer's Allowance at https://www.gov.uk/carers-allowance/how-to-claim even though you won't get payment",
+          "Benefit: Your Pension Credit payments will increase instead of receiving Carer's Allowance payment",
+          "You'll still get National Insurance Class 1 credits which help with State Pension",
+          "Check Pension Credit eligibility at https://www.gov.uk/pension-credit",
+          "Report changes in circumstances, especially if State Pension amount changes",
+          "Consider applying for Council Tax Reduction"
+        ]
+      },
+      "INELIGIBLE_age": {
+        "id": "INELIGIBLE_age",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is under 16 years old.",
+        "guidance": "Carer's Allowance is only available for carers aged 16 and over If you're a young carer under 16, check support available at https://www.gov.uk/help-for-disabled-child Contact your local council for young carer support services When you turn 16, you can apply for Carer's Allowance if you meet other criteria"
+      },
+      "INELIGIBLE_scotland": {
+        "id": "INELIGIBLE_scotland",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant lives in Scotland.",
+        "guidance": "Scotland has its own carer benefit called Carer Support Payment Apply for Carer Support Payment at https://www.mygov.scot/carer-support-payment If you move from Scotland to England/Wales, your Carer's Allowance stops 13 weeks after the move and you must make a new claim If you move from England/Wales to Scotland, make a new claim for Carer Support Payment"
+      },
+      "INELIGIBLE_location": {
+        "id": "INELIGIBLE_location",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant does not live in an eligible location.",
+        "guidance": "Carer's Allowance is for England and Wales residents only Scotland: Apply for Carer Support Payment at https://www.mygov.scot/carer-support-payment Northern Ireland: Visit https://www.nidirect.gov.uk/articles/carers-allowance If you live in an EEA country or Switzerland, you may be eligible - check https://www.gov.uk/carers-allowance/eligibility"
+      },
+      "INELIGIBLE_eea_status": {
+        "id": "INELIGIBLE_eea_status",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The EEA/Swiss applicant does not have settled or pre-settled status under the EU Settlement Scheme.",
+        "guidance": "EU, Swiss, Norwegian, Icelandic, or Liechtenstein citizens need settled or pre-settled status The deadline was 30 June 2021 for most people, but late applications may still be accepted Apply at https://www.gov.uk/settled-status-eu-citizens-families Once you have settled/pre-settled status, you can apply for Carer's Allowance if you meet other criteria"
+      },
+      "INELIGIBLE_residency_period": {
+        "id": "INELIGIBLE_residency_period",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant has not been in England, Scotland, or Wales for at least 2 of the last 3 years.",
+        "guidance": "You must have been in England, Scotland, or Wales for at least 2 of the last 3 years This requirement does not apply if you're a refugee or have humanitarian protection status Once you meet the residency requirement, you can apply if you meet other criteria Consider applying for Carer's Credit at https://www.gov.uk/carers-credit if you're not eligible for Carer's Allowance"
+      },
+      "INELIGIBLE_immigration_control": {
+        "id": "INELIGIBLE_immigration_control",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is subject to immigration control.",
+        "guidance": "People subject to immigration control are not eligible for Carer's Allowance Check your immigration status and what benefits you can claim at https://www.gov.uk/government/publications/public-funds Seek advice from an immigration advisor or solicitor Some visa types eventually allow access to public funds - check your visa conditions"
+      },
+      "INELIGIBLE_full_time_education": {
+        "id": "INELIGIBLE_full_time_education",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant is in full-time education or studying 21 hours or more per week.",
+        "guidance": "You cannot claim Carer's Allowance if in full-time education or studying 21+ hours per week Part-time study (under 21 hours/week) is allowed Consider applying for Carer's Credit instead at https://www.gov.uk/carers-credit Check if you're eligible for student support including grants and bursaries When your course ends or reduces to under 21 hours/week, you can apply for Carer's Allowance"
+      },
+      "INELIGIBLE_insufficient_care_hours": {
+        "id": "INELIGIBLE_insufficient_care_hours",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant does not spend at least 35 hours per week caring for someone.",
+        "guidance": "Carer's Allowance requires at least 35 hours of caring per week Care includes: helping with washing, cooking, taking to appointments, managing bills, shopping, and other support You do not need to live with the person you care for Consider applying for Carer's Credit at https://www.gov.uk/carers-credit if caring for less than 35 hours If your caring hours increase to 35+, you can apply then Check other support available from your local council"
+      },
+      "INELIGIBLE_no_qualifying_benefit": {
+        "id": "INELIGIBLE_no_qualifying_benefit",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The person being cared for does not receive a qualifying disability benefit.",
+        "guidance": "The person you care for must already receive one of these benefits: PIP (daily living), DLA (middle/highest care rate), Attendance Allowance, or other qualifying benefits Help them apply for the appropriate disability benefit first: - Personal Independence Payment: https://www.gov.uk/pip - Attendance Allowance (65+): https://www.gov.uk/attendance-allowance - Disability Living Allowance (children): https://www.gov.uk/disability-living-allowance-children Once they receive a qualifying benefit, you can apply for Carer's Allowance Consider applying for Carer's Credit at https://www.gov.uk/carers-credit in the meantime"
+      },
+      "INELIGIBLE_shared_care": {
+        "id": "INELIGIBLE_shared_care",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "Another carer is already claiming Carer's Allowance, Carer Support Payment, or Universal Credit extra caring amount for the same person.",
+        "guidance": "Only one person can claim Carer's Allowance for the same disabled person DWP will decide who receives the benefit if multiple people apply The other carer may need to stop their claim before you can claim Consider applying for Carer's Credit at https://www.gov.uk/carers-credit instead You may still be able to claim Universal Credit with the extra caring amount if circumstances are different Contact DWP to discuss your situation if you believe you should be the main carer receiving the benefit"
+      },
+      "INELIGIBLE_earnings_too_high": {
+        "id": "INELIGIBLE_earnings_too_high",
+        "type": "outcome",
+        "result": "INELIGIBLE",
+        "reason": "The applicant's weekly earnings exceed £196 after tax, National Insurance, and allowable expenses.",
+        "guidance": "Maximum earnings: £196 per week after tax, NI, and expenses Allowable expenses: 50% of pension contributions, work equipment, travel between workplaces, business costs (self-employed), eligible care costs Income NOT counted: occupational/private pensions, contributions from housemates, income from boarders (first £20/week + 50% remainder) Consider applying for Carer's Credit at https://www.gov.uk/carers-credit If your earnings decrease below £196/week, you can apply then Check if you're eligible for Universal Credit at https://www.gov.uk/universal-credit Your employer may offer flexible working arrangements - see https://www.gov.uk/flexible-working"
+      }
+    }
+  },
+  "constants": {
+    "minimum_age": 16,
+    "weekly_payment_amount": 83.3,
+    "minimum_care_hours_per_week": 35,
+    "maximum_weekly_earnings": 196,
+    "residency_requirement_years": "2 of last 3 years",
+    "study_hours_limit_per_week": 21,
+    "pension_contribution_deduction_percentage": 50,
+    "boarder_income_first_20_exempt": 20,
+    "boarder_income_remaining_deduction_percentage": 50
+  },
+  "validation_rules": {
+    "care_hours": "Must spend at least 35 hours per week caring for someone",
+    "earnings_calculation": "Maximum £196 per week after tax, National Insurance, and allowable expenses (50% pension contributions, work equipment, travel, business costs, eligible care costs)",
+    "qualifying_benefits": "Person cared for must receive PIP (daily living), DLA (middle/highest care), Attendance Allowance, or other specified disability benefits",
+    "shared_care": "Only one person can claim for the same disabled person",
+    "state_pension_interaction": "If State Pension >= £83.30/week, no CA payment but may get Pension Credit increase. If < £83.30/week, CA tops up to £83.30/week total",
+    "education_restriction": "Cannot be in full-time education or study 21+ hours per week"
+  },
+  "external_references": {
+    "application_page": "https://www.gov.uk/carers-allowance/how-to-claim",
+    "carers_credit": "https://www.gov.uk/carers-credit",
+    "pension_credit": "https://www.gov.uk/pension-credit",
+    "universal_credit": "https://www.gov.uk/universal-credit",
+    "pip": "https://www.gov.uk/pip",
+    "attendance_allowance": "https://www.gov.uk/attendance-allowance",
+    "dla_children": "https://www.gov.uk/disability-living-allowance-children",
+    "carer_support_payment_scotland": "https://www.mygov.scot/carer-support-payment",
+    "ni_carers_allowance": "https://www.nidirect.gov.uk/articles/carers-allowance",
+    "eu_settlement_scheme": "https://www.gov.uk/settled-status-eu-citizens-families",
+    "effect_on_other_benefits": "https://www.gov.uk/carers-allowance/effect-on-other-benefits"
+  }
+}
