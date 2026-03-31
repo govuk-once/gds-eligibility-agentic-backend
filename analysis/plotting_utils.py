@@ -5,7 +5,7 @@ from pathlib import Path
 import json
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
-
+from collections.abc import Mapping
 
 # This is where we'll want to add something like "Structured rules"
 PROMPT_MAPPING = {
@@ -221,3 +221,77 @@ def apply_presentation_theme(
             ax.patch = rounded_patch
 
     return fig
+
+def flatten_run_row_children(row) -> list[dict]:
+    """
+    Extracts data at the child-level.
+    A case with 3 children will return 3 dictionaries.
+    """
+    run_name = row.run_name
+    timestamp_str = run_name.split("__")[0]
+
+    model_string = str(row.model)
+    if model_string.lower() == "unknown":
+        return []
+
+    results = row.results
+    if not isinstance(results, Mapping):
+        return []
+
+    output = []
+
+    for case_id, case_data in results.items():
+        if case_id == "run_config":
+            continue
+
+        duration = case_data.get("duration_seconds")
+        if duration is None:
+            continue
+
+        # Grab the child_evaluations dictionary (defaulting to an empty dict if missing)
+        child_results = case_data.get("child_evaluations", {})
+
+        # Handle if the evaluator stores children as a list of dictionaries
+        if isinstance(child_results, list):
+            for child in child_results:
+                output.append(
+                    {
+                        "run_name": run_name,
+                        "timestamp": pd.to_datetime(timestamp_str),
+                        "config_label": row.config_label,
+                        "case_id": case_id,
+                        "child_id": child.get("child_id", child.get("name", "unknown")),
+                        "child_is_correct": int(child.get("is_correct", False)),
+                        "duration": float(duration),
+                    }
+                )
+
+        # Handle if the evaluator stores children as a dictionary {child_id: {data}}
+        elif isinstance(child_results, dict):
+            for child_id, child_data in child_results.items():
+                output.append(
+                    {
+                        "run_name": run_name,
+                        "timestamp": pd.to_datetime(timestamp_str),
+                        "config_label": row.config_label,
+                        "case_id": case_id,
+                        "child_id": child_id,  # e.g., "Alex", "Blake"
+                        "child_is_correct": int(child_data.get("is_correct", False)),
+                        "duration": float(duration),
+                    }
+                )
+
+    return output
+
+
+def flatten_runs_to_children(df_runs: pd.DataFrame) -> pd.DataFrame:
+    """
+    Creates a DataFrame where every row is an individual child's evaluation.
+    """
+    flat_data = [
+        record
+        for row in df_runs.itertuples(index=False)
+        for record in flatten_run_row_children(row)
+    ]
+
+    return pd.DataFrame(flat_data)
