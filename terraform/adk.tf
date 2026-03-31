@@ -3,7 +3,6 @@ locals {
 }
 
 resource "aws_ecr_repository" "adk_server" {
-  count = terraform.workspace == "stable" ? 1 : 0
   name  = local.adk_ecr_repo_name
 }
 
@@ -32,13 +31,12 @@ resource "aws_apprunner_service" "adk_server" {
   }
   network_configuration {
     ingress_configuration {
-      is_publicly_accessible = true
+      is_publicly_accessible = false
     }
   }
   health_check_configuration {
     protocol = "HTTP"
     path     = "/dev-ui/assets/config/runtime-config.json"
-
   }
 }
 
@@ -79,5 +77,3 @@ resource "aws_iam_role_policy" "adk_app_service_bedrock" {
     ]
   })
 }
-
-
