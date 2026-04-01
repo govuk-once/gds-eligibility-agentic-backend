@@ -1,0 +1,249 @@
+{
+    "case_id": "RND_042",
+    "meta": {
+        "permutation": 91,
+        "test_case": {
+            "case_id": "RND_042",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 21
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": false
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 20.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": true
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 21 years old and does not live with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 21, which is 20 or over\n  - Child does not live with claimant and weekly upkeep (\u00a320.00) is below the Child Benefit rate (\u00a326.05)\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child is 21, which is 20 or over; Child does not live with claimant and weekly upkeep (\u00a320.00) is below the Child Benefit rate (\u00a326.05)",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 21, which is 20 or over",
+                        "Child does not live with claimant and weekly upkeep (\u00a320.00) is below the Child Benefit rate (\u00a326.05)",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-17T13:49:10.524158",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "d62efd3",
+            "hypothesis_name": "rules_in_prompt_opus",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true,
+            "max_concurrent_cases": 25
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 21016,
+        "total_completion_tokens": 1051,
+        "total_overall_tokens": 22067,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 14574,
+                "completion_tokens": 988,
+                "total": 15562
+            },
+            "actor": {
+                "prompt_tokens": 6442,
+                "completion_tokens": 63,
+                "total": 6505
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 18.92
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-17T13:50:43.219704",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine your eligibility for Child Benefit. \n\nTo get started, I'll need to gather some information about your circumstances and the children you're inquiring about.\n\n**Could you please tell me the name and age of the child (or children) you're claiming Child Benefit for?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:50:44.818415",
+            "author": "actor",
+            "text": "Hello! I'm looking to claim Child Benefit for my child. His name is Alex and he's 21 years old."
+        },
+        {
+            "timestamp": "2026-03-17T13:50:46.741814",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I appreciate you providing Alex's details.\n\nI need to let you know that based on the age you've mentioned, there may be an eligibility issue. Child Benefit typically has an age limit, and 21 years old is likely beyond that limit.\n\nHowever, let me ask a clarifying question to ensure I have the full picture:\n\n**Is Alex still in full-time education or training (such as approved vocational training)?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:50:48.185137",
+            "author": "actor",
+            "text": "No, Alex isn't in any education or training at the moment."
+        },
+        {
+            "timestamp": "2026-03-17T13:50:49.198463",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that.\n\nBefore I provide you with my final assessment, let me just confirm one more thing to be thorough:\n\n**Is Alex living with you as part of your household?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:50:50.715477",
+            "author": "actor",
+            "text": "No, Alex doesn't live with me. He lives separately."
+        },
+        {
+            "timestamp": "2026-03-17T13:50:53.286187",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I now have enough details to assess your eligibility. Let me review the Child Benefit eligibility rules to provide you with an accurate outcome."
+        },
+        {
+            "timestamp": "2026-03-17T13:50:58.154020",
+            "author": "eligibility_agent",
+            "text": "Based on the information you've provided and the eligibility rules I've reviewed, I can now provide you with my assessment."
+        },
+        {
+            "timestamp": "2026-03-17T13:51:00.760388",
+            "author": "eligibility_agent",
+            "text": "## Summary\n\nI'm sorry, but **you are not eligible for Child Benefit for Alex**. \n\nHere's why:\n\n1. **Age limit**: Child Benefit is normally available for children under 16. While it can continue beyond age 16, it only extends up to age 20 if the child remains in approved education or training.\n\n2. **Alex's circumstances**: Since Alex is 21 years old and is not in any approved education or training, he falls outside the age eligibility window for Child Benefit.\n\n3. **Living arrangements**: Additionally, Alex doesn't live with you. While there are provisions for continued payments if a child moves to live with someone else (for up to 8 weeks, or longer if you contribute to their upkeep), these would only apply if you had previously been eligible - which you wouldn't be due to Alex's age.\n\nIf you have any other children you'd like me to assess, I'd be happy to help with those inquiries."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-17T13:50:53.286177",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit/eligibility"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:50:53.286182",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-child-lives-with-someone-else"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:50:58.154008",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 21 years old and is not in approved education or training. According to the Child Benefit eligibility rules, you normally qualify for Child Benefit if you're responsible for a child under 16 and you live in the UK. For children aged 16 or over, you'll normally still qualify only if your child is under 20 and they stay in approved education or training. Since Alex is 21 and not in education or training, he falls outside the age limit for Child Benefit eligibility. Additionally, Alex does not live with you, which means you would need to be making contributions to his upkeep at least equal to the Child Benefit payment to potentially continue eligibility. However, this only applies when the child was previously in your care and later moved - not for establishing a new claim for a child aged 21 who is outside the standard eligibility age range."
+                ],
+                "overall_reasoning": "You are not eligible for Child Benefit for Alex. At 21 years old and not in approved education or training, Alex exceeds the maximum age for Child Benefit eligibility. Additionally, Alex does not live with you, which further makes him ineligible under the standard rules.\">\n"
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_JfpxuXuO0sbulfU6YgPULp",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 21 years old and is not in approved education or training. According to the Child Benefit eligibility rules, you normally qualify for Child Benefit if you're responsible for a child under 16 and you live in the UK. For children aged 16 or over, you'll normally still qualify only if your child is under 20 and they stay in approved education or training. Since Alex is 21 and not in education or training, he falls outside the age limit for Child Benefit eligibility. Additionally, Alex does not live with you, which means you would need to be making contributions to his upkeep at least equal to the Child Benefit payment to potentially continue eligibility. However, this only applies when the child was previously in your care and later moved - not for establishing a new claim for a child aged 21 who is outside the standard eligibility age range."
+                    }
+                ],
+                "overall_reasoning": "You are not eligible for Child Benefit for Alex. At 21 years old and not in approved education or training, Alex exceeds the maximum age for Child Benefit eligibility. Additionally, Alex does not live with you, which further makes him ineligible under the standard rules.\">\n"
+            }
+        }
+    }
+}

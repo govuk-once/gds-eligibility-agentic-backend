@@ -1,0 +1,807 @@
+{
+    "case_id": "CARE_FAIL_OVER_8_WEEKS_NOT_HOME",
+    "meta": {
+        "permutation": 28,
+        "test_case": {
+            "case_id": "CARE_FAIL_OVER_8_WEEKS_NOT_HOME",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 8
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 12
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 8 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 8 (under 16)\n  - Child lives with claimant\n  - Child in local authority care for 12 weeks (>8) and does not spend 24+ hours/week at home\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child in local authority care for 12 weeks (>8) and does not spend 24+ hours/week at home",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 8 (under 16)",
+                        "Child lives with claimant",
+                        "Child in local authority care for 12 weeks (>8) and does not spend 24+ hours/week at home",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-17T15:23:11.098454",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "9734cca",
+            "hypothesis_name": "structured_specification_haiku",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true,
+            "max_concurrent_cases": 22
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 145111,
+        "total_completion_tokens": 2648,
+        "total_overall_tokens": 147759,
+        "breakdown_by_agent": {
+            "child_benefit_eligibility_agent": {
+                "prompt_tokens": 105174,
+                "completion_tokens": 2455,
+                "total": 107629
+            },
+            "actor": {
+                "prompt_tokens": 39937,
+                "completion_tokens": 193,
+                "total": 40130
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 53.97
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-17T15:23:50.818543",
+            "author": "child_benefit_eligibility_agent",
+            "text": "I'll help you determine if you're eligible for Child Benefit. Let me start by beginning the assessment."
+        },
+        {
+            "timestamp": "2026-03-17T15:23:52.633526",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Great! Let me start by asking about your child or children.\n\n**How old is the child (or children) you're claiming for?**\n\nTo determine your eligibility, I need to know:\n- How many children do you have that you're claiming for?\n- What is their age or age range?\n\nThe age of the child is crucial because:\n- **Under 16**: Generally automatic qualification\n- **16-19**: Need to check if they're in education or training\n- **20 or over**: Not eligible\n\nPlease tell me about your child/children's ages."
+        },
+        {
+            "timestamp": "2026-03-17T15:23:54.795163",
+            "author": "actor",
+            "text": "Hi, thanks for helping me with this. I'm asking about my son Alex - he's 8 years old."
+        },
+        {
+            "timestamp": "2026-03-17T15:23:56.710706",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Perfect! Thank you for that information. Since Alex is 8 years old, he falls into the \"under 16\" category, which means he automatically qualifies as a qualifying child for Child Benefit purposes.\n\nLet me continue through the assessment to check the other eligibility requirements."
+        },
+        {
+            "timestamp": "2026-03-17T15:23:58.146301",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**Is Alex working less than 24 hours per week, or is he not in paid work at all?**\n\n(This is just a standard check - at 8 years old, he's unlikely to be working, but I need to confirm this.)"
+        },
+        {
+            "timestamp": "2026-03-17T15:23:59.986326",
+            "author": "actor",
+            "text": "No, he doesn't work at all - he's only 8, so he's just at school."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:01.498302",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Great! That's exactly what I expected. Let me continue with the next check."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:02.457311",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**Is Alex NOT receiving any benefits in his own right** (such as Employment and Support Allowance or Universal Credit)?"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:03.963554",
+            "author": "actor",
+            "text": "No, he doesn't receive any benefits in his own name."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:05.720951",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Excellent. Let me continue to the next check."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:07.001428",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**Is Alex in an apprenticeship?**\n\nAt 8 years old, this is very unlikely, but I need to check this for completeness. If he's not in any apprenticeship at all, just let me know!"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:08.411668",
+            "author": "actor",
+            "text": "No, he's not in an apprenticeship - he's only 8, so he's just in primary school."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:09.579605",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Perfect! That makes sense. Let me move on to the next stage of the assessment."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:12.102423",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Now I need to check your residency situation. This is an important part of the eligibility assessment.\n\n**Can you tell me about your residency status?**\n\nThere are several paths that could make you eligible:\n\n1. **Do you normally live in the UK?** (This is the most common path)\n\n2. Or, if you're from the EU/EEA or Switzerland, do you have:\n   - Settled status under the EU Settlement Scheme?\n   - Pre-settled status? (If so, I'd need to check your specific circumstances - whether you're working, studying, jobseeking, or have sufficient resources)\n\n3. Are you a Crown servant living abroad in a qualifying country?\n\nWhich of these best describes your situation?"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:13.562419",
+            "author": "actor",
+            "text": "Yes, I normally live in the UK - we live in Manchester."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:15.083325",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Excellent! That satisfies the residency requirements. Let me continue with the next check."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:16.818826",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**Are you responsible for Alex?**\n\nResponsibility means you either:\n\n1. **Live with the child** - which is the most common situation, OR\n\n2. **Contribute to the child's upkeep** - such as paying for food, clothes, housing, pocket money, or other care needs (at least equivalent to the Child Benefit amount), OR\n\n3. **Pay maintenance** under a court order or agreement that covers the child's upkeep\n\nWhich of these applies to you?"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:18.309048",
+            "author": "actor",
+            "text": "Yes, Alex lives with me at home."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:19.430171",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Perfect! That clearly establishes your responsibility for Alex. Let me continue."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:21.337339",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**Is anyone else claiming Child Benefit for Alex, or trying to claim for him?**\n\nFor example:\n- Is Alex's other parent claiming for him?\n- Is anyone else (like a grandparent or other guardian) claiming or planning to claim?\n\nIf multiple people are claiming or want to claim, have you all agreed who should be the main claimant?"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:22.698296",
+            "author": "actor",
+            "text": "No, nobody else is claiming Child Benefit for him."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:23.719792",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Great! That's straightforward. Let me continue to the next check."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:25.232428",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**Is Alex in any of these situations?**\n\n- In hospital\n- In care (local authority care)\n- Fostered (living with foster parents)\n- Or living with you at home normally?"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:26.923986",
+            "author": "actor",
+            "text": "He's been in care - with the local authority - for a few months now."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:28.284815",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Thank you for letting me know. This is an important detail. Let me check the specific circumstances around his time in care."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:31.019545",
+            "author": "child_benefit_eligibility_agent",
+            "text": "**I need to check the details about Alex's time in care:**\n\nYou mentioned he's been in care for a few months. Here are the key questions:\n\n1. **Has he been in care for 8 weeks or less?** (If so, you can still claim)\n\n2. **OR, does Alex spend at least 24 hours a week at home with you?** (If he does, you can continue to claim regardless of how long he's been in care)\n\nCan you clarify:\n- How many weeks/months exactly has he been in care?\n- How much time does he spend at home with you each week (including overnight visits)?"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:32.800218",
+            "author": "actor",
+            "text": "He's been in care for about 12 weeks now. He doesn't come home - he stays at the care home full-time."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:35.141931",
+            "author": "child_benefit_eligibility_agent",
+            "text": "I understand. Unfortunately, based on the eligibility rules, this means you would not qualify for Child Benefit for Alex.\n\nHere's why:\n\n**Child Benefit eligibility when a child is in local authority care:**\n- Child Benefit can continue for up to **8 weeks** while the child is in care\n- After 8 weeks, you're no longer eligible **unless** the child spends at least 24 hours per week at home with you\n\nSince Alex has been in care for 12 weeks (which is more than the 8-week limit) and he's not spending any time at home with you, the eligibility ends.\n\nLet me navigate to confirm this outcome formally."
+        },
+        {
+            "timestamp": "2026-03-17T15:24:39.646297",
+            "author": "child_benefit_eligibility_agent",
+            "text": "Now let me record this outcome formally:"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:43.768834",
+            "author": "child_benefit_eligibility_agent",
+            "text": "## Summary - Child Benefit Eligibility Decision\n\n**Result: NOT ELIGIBLE**\n\n**For: Alex (age 8)**\n\n---\n\n### Why You're Not Eligible\n\nWhile Alex meets most of the eligibility criteria (he's the right age, you live in the UK, you're responsible for him, and no one else is claiming), you're not eligible because:\n\n- Alex has been in local authority care for **12 weeks** (more than the 8-week limit)\n- He is **not spending at least 24 hours per week at home** with you\n\n### How the Rules Work\n\nChild Benefit can continue when a child is in care **only if:**\n- The child has been in care for **8 weeks or less**, OR\n- The child spends **at least 24 hours per week at home** (including overnight visits)\n\nSince Alex doesn't meet either of these conditions, you're not currently eligible.\n\n### What Happens Next?\n\n**Important:** If Alex's care situation changes, you may become eligible again:\n- If he spends **2 consecutive nights per week** at home with you, OR\n- If he spends **7+ consecutive days at home** in a row\n\nYou can then **claim again**.\n\n### Contact HMRC\n\nI'd recommend contacting HMRC directly to:\n- Confirm this decision for your specific circumstances\n- Discuss what would need to change for you to claim again\n- Ask about any other support available to you\n\n**HMRC Contact:** 0300 200 3100 (Child Benefit helpline)\n\nIs there anything else I can help clarify about this decision?"
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-17T15:23:50.818534",
+            "tool_name": "start_assessment",
+            "arguments": {},
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:23:56.710697",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "under_16"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:01.498289",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "yes"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:05.720947",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "yes"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:09.579598",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "not_in_apprenticeship"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:15.083318",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "eligible_via_any_path"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:19.430165",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "eligible_via_any_path"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:23.719785",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "no_other_claimant"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:28.284809",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "in_care"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:35.141927",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "no"
+            },
+            "author": "child_benefit_eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T15:24:39.646283",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 8 years old, which qualifies him as a qualifying child. You normally live in the UK (Manchester), you're responsible for Alex, and no one else is claiming for him. However, Alex has been in local authority care for 12 weeks, which exceeds the 8-week limit for continuing Child Benefit. Additionally, Alex does not spend at least 24 hours per week at home with you. Under the rules, Child Benefit continues only for the first 8 weeks of care, or indefinitely if the child spends 24+ hours per week at home. Since neither condition is met, you are not eligible for Child Benefit for Alex."
+                ],
+                "overall_reasoning": "While Alex meets the basic qualifying criteria (age, residency, responsibility, no other claimants), he has been in local authority care for 12 weeks without spending the required 24+ hours per week at home. This places him outside the eligibility window for Child Benefit payments for children in care.\""
+            },
+            "author": "child_benefit_eligibility_agent"
+        }
+    ],
+    "tool_response": [
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_qlctgDf7xB7SkBGZGG2vyI",
+                "name": "start_assessment",
+                "response": {
+                    "node_id": "has_qualifying_child",
+                    "node_type": "routing",
+                    "question": null,
+                    "description": "Determine child's age category for eligibility",
+                    "help_text": null,
+                    "criteria": null,
+                    "outcomes": {
+                        "under_16": "check_child_not_working_full_time",
+                        "16_to_19": "check_education_or_extension",
+                        "20_or_over": "INELIGIBLE_no_qualifying_child"
+                    },
+                    "paths": null,
+                    "routing_logic": "Under 16: automatic qualification. 16-19: check education/training. 20+: not eligible",
+                    "evaluation_logic": null,
+                    "reference": null,
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_rMihN3dBhZeGbkrZ985hTp",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_child_not_working_full_time",
+                    "node_type": "boolean_question",
+                    "question": "Is the child working less than 24 hours per week (or not in paid work)?",
+                    "description": null,
+                    "help_text": "Children aged 16+ working 24+ hours per week and not in approved education/training are not eligible",
+                    "criteria": null,
+                    "outcomes": {
+                        "yes": "check_child_not_receiving_benefits",
+                        "no": "INELIGIBLE_child_working_full_time"
+                    },
+                    "paths": null,
+                    "routing_logic": null,
+                    "evaluation_logic": null,
+                    "reference": "https://www.gov.uk/child-benefit/eligibility",
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_ZzJcmUv54wsGKj4thsbqOv",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_child_not_receiving_benefits",
+                    "node_type": "boolean_question",
+                    "question": "Is the child NOT receiving certain benefits in their own right (e.g., ESA, Universal Credit)?",
+                    "description": null,
+                    "help_text": "Children receiving Employment and Support Allowance or Universal Credit in their own right are not eligible",
+                    "criteria": null,
+                    "outcomes": {
+                        "yes": "check_child_not_apprentice",
+                        "no": "INELIGIBLE_child_receiving_benefits"
+                    },
+                    "paths": null,
+                    "routing_logic": null,
+                    "evaluation_logic": null,
+                    "reference": "https://www.gov.uk/child-benefit/eligibility",
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_lzLsYfgaZTb8zNB0AFociz",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_child_not_apprentice",
+                    "node_type": "complex_criteria",
+                    "question": "Is the child NOT in a disqualifying apprenticeship?",
+                    "description": null,
+                    "help_text": "Regional rules apply: English apprenticeships (all types) disqualify. Scottish Modern Apprenticeships disqualify. Welsh Foundation Apprenticeships are APPROVED. Other Welsh apprenticeships disqualify.",
+                    "criteria": {
+                        "england_all_apprenticeships_excluded": true,
+                        "scotland_modern_apprenticeships_excluded": true,
+                        "wales_foundation_apprenticeships_approved": true,
+                        "wales_other_apprenticeships_excluded": true,
+                        "disqualifying_types": [
+                            "Intermediate Apprenticeships in England",
+                            "Advanced Apprenticeships in England",
+                            "Higher Apprenticeships in England",
+                            "Degree Apprenticeships in England",
+                            "Modern Apprenticeships in Scotland",
+                            "Apprenticeships in Wales (except Foundation level)"
+                        ],
+                        "approved_types": [
+                            "Foundation Apprenticeships in Wales"
+                        ]
+                    },
+                    "outcomes": {
+                        "not_in_apprenticeship": "check_claimant_residency",
+                        "approved_apprenticeship": "check_claimant_residency",
+                        "disqualifying_apprenticeship": "INELIGIBLE_child_apprentice"
+                    },
+                    "paths": null,
+                    "routing_logic": null,
+                    "evaluation_logic": null,
+                    "reference": "https://www.gov.uk/child-benefit/eligibility",
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_sb6cRXcKkHNNj0zHPe4xHL",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_claimant_residency",
+                    "node_type": "multi_path_check",
+                    "question": "Does the claimant meet UK residency requirements?",
+                    "description": null,
+                    "help_text": "Must normally live in the UK or meet special circumstances",
+                    "criteria": null,
+                    "outcomes": {
+                        "eligible_via_any_path": "check_responsibility_for_child",
+                        "not_eligible": "INELIGIBLE_residency_requirements"
+                    },
+                    "paths": [
+                        {
+                            "id": "normally_resident_uk",
+                            "description": "Normally lives in the UK",
+                            "requirement": "Claimant normally lives in the UK"
+                        },
+                        {
+                            "id": "settled_status",
+                            "description": "Has settled status under EU Settlement Scheme",
+                            "requirement": "Has settled status under EU Settlement Scheme"
+                        },
+                        {
+                            "id": "presettled_working",
+                            "description": "Pre-settled status and working",
+                            "criteria": [
+                                "Has pre-settled status under EU Settlement Scheme",
+                                "Working and earning/expect to earn above primary National Insurance threshold for 3 continuous months"
+                            ]
+                        },
+                        {
+                            "id": "presettled_jobseeker",
+                            "description": "Pre-settled status and actively seeking work",
+                            "criteria": [
+                                "Has pre-settled status under EU Settlement Scheme",
+                                "Looking for work (can claim as jobseeker for up to 91 days)"
+                            ]
+                        },
+                        {
+                            "id": "presettled_sufficient_resources",
+                            "description": "Pre-settled status with sufficient resources",
+                            "criteria": [
+                                "Has pre-settled status under EU Settlement Scheme",
+                                "Has sufficient resources to support self and family financially",
+                                "NOT claiming Income Support, income-based JSA, Pension Credit, or Universal Credit"
+                            ]
+                        },
+                        {
+                            "id": "presettled_student",
+                            "description": "Pre-settled status and studying",
+                            "criteria": [
+                                "Has pre-settled status under EU Settlement Scheme",
+                                "Studying and has sufficient resources to support self financially"
+                            ]
+                        },
+                        {
+                            "id": "presettled_family_member",
+                            "description": "Pre-settled status as family member of EEA/Swiss national",
+                            "criteria": [
+                                "Has pre-settled status under EU Settlement Scheme",
+                                "Is family member of EEA or Swiss national with right to reside",
+                                "One of: spouse/civil partner, dependent child/grandchild under 21, dependent parent/grandparent"
+                            ]
+                        },
+                        {
+                            "id": "crown_servant_abroad",
+                            "description": "Crown servant living abroad",
+                            "requirement": "Living abroad as Crown servant or in certain qualifying countries"
+                        }
+                    ],
+                    "routing_logic": null,
+                    "evaluation_logic": "If ANY path is satisfied, proceed to responsibility check",
+                    "reference": "https://www.gov.uk/child-benefit/eligibility",
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_M2EMdPZVeRpFOfUZruU2U4",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_responsibility_for_child",
+                    "node_type": "multi_path_check",
+                    "question": "Are you responsible for the child?",
+                    "description": null,
+                    "help_text": "Responsibility means living with child OR contributing to their upkeep",
+                    "criteria": null,
+                    "outcomes": {
+                        "eligible_via_any_path": "check_no_other_claimant",
+                        "not_eligible": "INELIGIBLE_not_responsible"
+                    },
+                    "paths": [
+                        {
+                            "id": "living_with_child",
+                            "description": "Living with the child",
+                            "requirement": "You live with the child"
+                        },
+                        {
+                            "id": "contributing_to_upkeep",
+                            "description": "Contributing to child's upkeep",
+                            "criteria": [
+                                "You pay at least the same amount as Child Benefit (or equivalent in kind) towards their care",
+                                "Contributions include: food, clothes, pocket money, housing, presents",
+                                "Can be weekly, monthly, or lump sum payments"
+                            ]
+                        },
+                        {
+                            "id": "maintenance_payments",
+                            "description": "Paying maintenance under court order or agreement",
+                            "criteria": [
+                                "Payments made towards child's maintenance under court order or agreement",
+                                "Payments cover the child's upkeep",
+                                "Amount equals or exceeds Child Benefit payment"
+                            ]
+                        }
+                    ],
+                    "routing_logic": null,
+                    "evaluation_logic": "If ANY path is satisfied, proceed to child location checks",
+                    "reference": "https://www.gov.uk/child-benefit/eligibility",
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_8WuYdt3736zqs9bfDZ1PKi",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_no_other_claimant",
+                    "node_type": "routing",
+                    "question": null,
+                    "description": "Check if another person is claiming Child Benefit for this child",
+                    "help_text": null,
+                    "criteria": null,
+                    "outcomes": {
+                        "no_other_claimant": "check_child_location",
+                        "other_claimant_agreed_transfer": "check_child_location",
+                        "disputed_multiple_claimants": "DEFERRED_TO_HMRC"
+                    },
+                    "paths": null,
+                    "routing_logic": "If no other claimant, proceed. If other claimant exists and parties agree who should claim, route accordingly. If dispute exists, defer to HMRC for arbitration.",
+                    "evaluation_logic": null,
+                    "reference": null,
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_1Sydnu2U1bLO7ukc0N2GIY",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_child_location",
+                    "node_type": "routing",
+                    "question": null,
+                    "description": "Determine if special rules apply based on child's location",
+                    "help_text": null,
+                    "criteria": null,
+                    "outcomes": {
+                        "in_hospital": "check_hospital_duration",
+                        "in_care": "check_care_duration",
+                        "fostered": "check_fostering_arrangement",
+                        "normal_living": "check_council_not_paying"
+                    },
+                    "paths": null,
+                    "routing_logic": "Check if child is in hospital, care, fostered, or living normally",
+                    "evaluation_logic": null,
+                    "reference": null,
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_DtjBqxr7y0UsoIyAG1G0KB",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "check_care_duration",
+                    "node_type": "conditional_check",
+                    "question": "Has the child been in care for 8 weeks or less, OR do they spend at least 24 hours a week at home?",
+                    "description": null,
+                    "help_text": "Child Benefit continues for up to 8 weeks in care. Exception if child spends 24+ hours/week at home. Can claim again if child spends 2 consecutive nights/week or 7+ days in a row at home.",
+                    "criteria": null,
+                    "outcomes": {
+                        "yes": "check_council_not_paying",
+                        "no": "INELIGIBLE_care_over_8_weeks"
+                    },
+                    "paths": null,
+                    "routing_logic": null,
+                    "evaluation_logic": null,
+                    "reference": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care",
+                    "result": null,
+                    "reason": null,
+                    "guidance": null,
+                    "next_steps": null
+                }
+            }
+        },
+        {
+            "response": {
+                "will_continue": null,
+                "scheduling": null,
+                "parts": null,
+                "id": "tooluse_oyHWENuaS9IwdkgtiSmUkS",
+                "name": "navigate_to_outcome",
+                "response": {
+                    "node_id": "INELIGIBLE_care_over_8_weeks",
+                    "node_type": "outcome",
+                    "question": null,
+                    "description": null,
+                    "help_text": null,
+                    "criteria": null,
+                    "outcomes": null,
+                    "paths": null,
+                    "routing_logic": null,
+                    "evaluation_logic": null,
+                    "reference": null,
+                    "result": "INELIGIBLE",
+                    "reason": "Child has been in local authority care for more than 8 weeks and does not spend at least 24 hours a week at home",
+                    "guidance": "Child Benefit stops after 8 weeks in care, unless child spends at least 24 hours a week at home. You can claim again if child spends 2 consecutive nights each week or 7+ days in a row at home. Contact HMRC about your specific situation.",
+                    "next_steps": null
+                }
+            }
+        }
+    ],
+    "child_benefit_eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_PgtiR8l8ojm0ZhGBH0xHse",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 8 years old, which qualifies him as a qualifying child. You normally live in the UK (Manchester), you're responsible for Alex, and no one else is claiming for him. However, Alex has been in local authority care for 12 weeks, which exceeds the 8-week limit for continuing Child Benefit. Additionally, Alex does not spend at least 24 hours per week at home with you. Under the rules, Child Benefit continues only for the first 8 weeks of care, or indefinitely if the child spends 24+ hours per week at home. Since neither condition is met, you are not eligible for Child Benefit for Alex."
+                    }
+                ],
+                "overall_reasoning": "While Alex meets the basic qualifying criteria (age, residency, responsibility, no other claimants), he has been in local authority care for 12 weeks without spending the required 24+ hours per week at home. This places him outside the eligibility window for Child Benefit payments for children in care.\""
+            }
+        }
+    }
+}

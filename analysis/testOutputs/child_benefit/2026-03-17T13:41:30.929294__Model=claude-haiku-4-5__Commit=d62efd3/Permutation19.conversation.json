@@ -1,0 +1,257 @@
+{
+    "case_id": "RESPONSIBILITY_FAIL_PRIORITY_CONFLICT",
+    "meta": {
+        "permutation": 19,
+        "test_case": {
+            "case_id": "RESPONSIBILITY_FAIL_PRIORITY_CONFLICT",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 8
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": true
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 8 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 8 (under 16)\n  - Another claimant who lives with the child has priority\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Another claimant who lives with the child has priority",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 8 (under 16)",
+                        "Another claimant who lives with the child has priority",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-17T13:41:30.929294",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "d62efd3",
+            "hypothesis_name": "rules_in_prompt_opus",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true,
+            "max_concurrent_cases": 25
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 27931,
+        "total_completion_tokens": 1214,
+        "total_overall_tokens": 29145,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 18859,
+                "completion_tokens": 1119,
+                "total": 19978
+            },
+            "actor": {
+                "prompt_tokens": 9072,
+                "completion_tokens": 95,
+                "total": 9167
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 21.31
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-17T13:41:32.706278",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine your eligibility for Child Benefit.\n\nTo get started, I'll need to gather some information about you and your children. Let me begin with a basic question:\n\n**How many children do you have that you'd like me to assess for Child Benefit?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:34.909656",
+            "author": "actor",
+            "text": "Hi! I have one child \u2013 his name is Alex. He's 8 years old and lives with me here in the UK. I wanted to see if I can claim Child Benefit for him."
+        },
+        {
+            "timestamp": "2026-03-17T13:41:36.589637",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information! It's helpful to know you have one child, Alex, who is 8 years old and lives with you in the UK.\n\nBefore I can make a final determination, I need to gather a bit more information to ensure Alex meets all the eligibility criteria.\n\n**Are you a British citizen, European Economic Area (EEA) citizen, or do you have settled or pre-settled status in the UK?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:38.326166",
+            "author": "actor",
+            "text": "Yes, I'm a British citizen and I live here in the UK."
+        },
+        {
+            "timestamp": "2026-03-17T13:41:40.335318",
+            "author": "eligibility_agent",
+            "text": "Great, thank you for confirming that. Let me check the eligibility rules to ensure I have all the details I need."
+        },
+        {
+            "timestamp": "2026-03-17T13:41:42.795459",
+            "author": "eligibility_agent",
+            "text": "Perfect, I've reviewed the eligibility criteria. Based on what you've told me so far, Alex appears to meet the basic requirements:\n- He's 8 years old (under 16)\n- He lives with you in the UK\n- You're a British citizen\n\nHowever, I have one more important question to complete my assessment:\n\n**Is Alex currently in hospital, residential care paid for by your local council, or general care arrangements with someone else?**"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:44.702710",
+            "author": "actor",
+            "text": "Well, actually... his dad and I are separated, and Alex does live with me, but his dad already claims Child Benefit for him."
+        },
+        {
+            "timestamp": "2026-03-17T13:41:49.778189",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that important detail. That's a significant factor in the eligibility assessment.\n\nBased on the information you've provided and the eligibility rules I've reviewed, I now have enough information to make my determination.\n\nAccording to the Child Benefit rules, **only one person can get Child Benefit for a child**. Since Alex's dad is already claiming Child Benefit for him, you would not be eligible to claim Child Benefit for Alex at the same time.\n\nThe rules state that if two people are responsible for the same child, only one can receive the benefit. If you and his dad both want to claim, you would need to agree between yourselves who should get it, or HMRC would decide. However, you cannot both claim for the same child.\n\nLet me now provide you with my formal eligibility outcome:"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:52.319496",
+            "author": "eligibility_agent",
+            "text": "**Summary:**\n\nUnfortunately, you are **not eligible** to claim Child Benefit for Alex at the moment because his father is already claiming it. \n\n**However, you do have options:**\n- You and Alex's dad could agree between yourselves to change who claims Child Benefit for Alex\n- If you cannot agree, HMRC can make the decision for you\n- If your circumstances change significantly (for example, if Alex moves to live with his dad instead), the claim could be transferred\n\nIf you'd like to explore changing who claims, you would need to contact the Child Benefit Office to discuss your options."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-17T13:41:40.335307",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit/eligibility"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:40.335311",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-child-lives-with-someone-else"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:40.335314",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-03-17T13:41:49.778183",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 8 years old and lives with the claimant in the UK, which would normally qualify for Child Benefit. However, the claimant's ex-partner (Alex's father) is already claiming Child Benefit for Alex. According to the Child Benefit eligibility rules, only one person can receive Child Benefit for a child. Where two people are responsible for the same child, they must agree between themselves who will get Child Benefit, or HMRC will decide. Since Alex's father is already claiming, the claimant is not eligible unless they change who claims the benefit."
+                ],
+                "overall_reasoning": "The claimant is a British citizen living in the UK with her 8-year-old son Alex. While she meets the basic residency and citizenship requirements for Child Benefit, she is not eligible because Alex's father is already claiming Child Benefit for him. Only one person can claim per child, and as the other parent is already receiving the benefit, the claimant cannot also claim unless arrangements change and they agree for her to claim instead."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_gGcNSGgrKRDpPXlEBnpdBf",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 8 years old and lives with the claimant in the UK, which would normally qualify for Child Benefit. However, the claimant's ex-partner (Alex's father) is already claiming Child Benefit for Alex. According to the Child Benefit eligibility rules, only one person can receive Child Benefit for a child. Where two people are responsible for the same child, they must agree between themselves who will get Child Benefit, or HMRC will decide. Since Alex's father is already claiming, the claimant is not eligible unless they change who claims the benefit."
+                    }
+                ],
+                "overall_reasoning": "The claimant is a British citizen living in the UK with her 8-year-old son Alex. While she meets the basic residency and citizenship requirements for Child Benefit, she is not eligible because Alex's father is already claiming Child Benefit for him. Only one person can claim per child, and as the other parent is already receiving the benefit, the claimant cannot also claim unless arrangements change and they agree for her to claim instead."
+            }
+        }
+    }
+}

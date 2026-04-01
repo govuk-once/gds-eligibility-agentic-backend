@@ -1,0 +1,226 @@
+{
+    "case_id": "COMBO_FAIL_AGED_OUT_AND_WORKING",
+    "meta": {
+        "permutation": 47,
+        "test_case": {
+            "case_id": "COMBO_FAIL_AGED_OUT_AND_WORKING",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": [
+                        {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 18
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": true
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 18 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 18 and not in approved education or extension period\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child works 24+ hours/week and is not in approved education\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": [
+                {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child is 18 and not in approved education or extension period; Child works 24+ hours/week and is not in approved education",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 18 and not in approved education or extension period",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child works 24+ hours/week and is not in approved education",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            ]
+        },
+        "execution_datetime": "2026-03-06T16:14:17.738276",
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "de4cbdf",
+            "hypothesis_name": "sonnet_rules_in_prompt",
+            "eligibility_model_string": "bedrock/converse/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.1.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": false
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 27234,
+        "total_completion_tokens": 806,
+        "total_overall_tokens": 28040,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 19225,
+                "completion_tokens": 733,
+                "total": 19958
+            },
+            "actor": {
+                "prompt_tokens": 8009,
+                "completion_tokens": 73,
+                "total": 8082
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 15.88
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-03-06T16:30:55.637462",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine if you're eligible for Child Benefit. To assess this properly, I'll need to ask you some questions about your circumstances and your children.\n\nLet me start with the first question:\n\n**Do you have any children under the age of 16, or any children aged 16-19 who are in approved education or training?**"
+        },
+        {
+            "timestamp": "2026-03-06T16:30:57.791938",
+            "author": "actor",
+            "text": "Hi! Yes, I have one child - Alex, who is 18 years old and lives with me at home."
+        },
+        {
+            "timestamp": "2026-03-06T16:30:58.914640",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information! Since Alex is 18 years old, I need to understand their current situation to determine if you can claim Child Benefit for them.\n\n**Is Alex currently in approved education or training (for example, at university, college, or an apprenticeship)?**"
+        },
+        {
+            "timestamp": "2026-03-06T16:31:01.375487",
+            "author": "actor",
+            "text": "No, Alex isn't in any education or training at the moment. They finished school and now work full-time at a local shop."
+        },
+        {
+            "timestamp": "2026-03-06T16:31:02.600830",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that. I need to ask one more question to be thorough:\n\n**How many hours per week does Alex work in their full-time job at the local shop?**"
+        },
+        {
+            "timestamp": "2026-03-06T16:31:04.369896",
+            "author": "actor",
+            "text": "They work about 30 hours a week there."
+        },
+        {
+            "timestamp": "2026-03-06T16:31:08.099399",
+            "author": "eligibility_agent",
+            "text": "Thank you for providing that information. I now have enough details to assess your eligibility for Child Benefit.\n\nBased on the information you've provided, let me explain the outcome:"
+        },
+        {
+            "timestamp": "2026-03-06T16:31:10.089391",
+            "author": "eligibility_agent",
+            "text": "**Summary:**\n\nUnfortunately, you are **not eligible** to claim Child Benefit for Alex at this time.\n\n**Why:** Child Benefit can normally only be claimed for young people aged 16-19 if they are in approved education or training. Since Alex has finished school and is now only working (without being in any approved education or training programme), they don't meet the eligibility requirement.\n\nHowever, it's worth noting that if Alex were to enter an approved education or training scheme in the future, you may become eligible again. If you have any questions or if Alex's circumstances change, feel free to reach out or contact HMRC directly for further guidance."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-03-06T16:31:08.099389",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    false
+                ],
+                "reasonings": [
+                    "Alex is 18 years old and no longer in approved education or training. According to the Child Benefit rules, you can normally only claim Child Benefit for a child aged 16 or over if they remain in approved education or training. Since Alex has left education and is now working full-time (30 hours per week) without being in any approved education or training scheme, they do not qualify for Child Benefit eligibility. The fact that Alex works 30 hours per week (which is less than 24 hours) would not disqualify them on its own, but the key issue is that they are not in approved education or training, which is the requirement for claiming Child Benefit for a young person over 16."
+                ],
+                "overall_reasoning": "You are not eligible to claim Child Benefit for Alex. While Alex lives with you, they are 18 years old and are no longer in approved education or training. Child Benefit for young people aged 16-19 requires them to be in approved education or training to qualify. Since Alex has finished school and is only working, without being enrolled in any approved education or training programme, you do not meet the eligibility criteria.\""
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "eligibility_agent_payload": {
+        "response": {
+            "will_continue": null,
+            "scheduling": null,
+            "parts": null,
+            "id": "tooluse_TQvGgWaaeFWIb7VR54xP6n",
+            "name": "eligibility_judgement_outcome",
+            "response": {
+                "child_evaluations": [
+                    {
+                        "child_name": "Alex",
+                        "is_eligible": false,
+                        "reasoning": "Alex is 18 years old and no longer in approved education or training. According to the Child Benefit rules, you can normally only claim Child Benefit for a child aged 16 or over if they remain in approved education or training. Since Alex has left education and is now working full-time (30 hours per week) without being in any approved education or training scheme, they do not qualify for Child Benefit eligibility. The fact that Alex works 30 hours per week (which is less than 24 hours) would not disqualify them on its own, but the key issue is that they are not in approved education or training, which is the requirement for claiming Child Benefit for a young person over 16."
+                    }
+                ],
+                "overall_reasoning": "You are not eligible to claim Child Benefit for Alex. While Alex lives with you, they are 18 years old and are no longer in approved education or training. Child Benefit for young people aged 16-19 requires them to be in approved education or training to qualify. Since Alex has finished school and is only working, without being enrolled in any approved education or training programme, you do not meet the eligibility criteria.\""
+            }
+        }
+    }
+}
