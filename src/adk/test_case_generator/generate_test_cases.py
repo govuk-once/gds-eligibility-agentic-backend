@@ -269,7 +269,7 @@ def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
     res_ok, res_reason = check_residency(facts)
 
     results = []
-    for child in facts["children"]:
+    for child in facts["children"].values():
         failed_reasons = []
         # Bit of a hack to append the residency to child but it's easiest approach
         # rather than special-casing this one reason
@@ -328,14 +328,16 @@ def _generate_case_id(rule: str, variant: str, expected: list[bool]) -> str:
     return case_id
 
 
-def _build_child_facts(raw_children: list[dict]) -> list[dict]:
+def _build_child_facts(
+    raw_children: list[dict[str,str|int|float|bool]]
+) -> dict[str,dict[str,str|int|float|bool]]:
     """Takes raw JSON child data and returns a list of dicts.
     Assigns consecutive child_ids.
     If unspecified, specifies defaults as below (basically a simple case)
     """
     DEFAULT_NAMES = RANDOM_GENERATION_CONFIG["names"]
 
-    children = []
+    children = {}
     for i, child_data in enumerate(raw_children):
         # 1. Define the complete baseline for a "standard, uncomplicated" child
         c = {
@@ -361,7 +363,7 @@ def _build_child_facts(raw_children: list[dict]) -> list[dict]:
 
         # 2. Overwrite the baseline with whatever was explicitly stated in the JSON
         c.update(child_data)
-        children.append(c)
+        children[c["name"]] = c
     return children
 
 
@@ -378,6 +380,8 @@ def _enrich_facts(data: Any) -> Any:
                 "description": DATA_DICTIONARY[k],
                 "value": _enrich_facts(v),
             }
+            if k in DATA_DICTIONARY
+            else {k: _enrich_facts(v)}
             for k, v in data.items()
         }
     elif isinstance(data, list):
@@ -402,7 +406,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
     lines.append(f"You are inquiring about your {len(facts['children'])} {child_word}:")
 
     # Child details
-    for child in facts["children"]:
+    for child in facts["children"].values():
         lives_with = (
             "lives with you"
             if child["lives_with_claimant"]
