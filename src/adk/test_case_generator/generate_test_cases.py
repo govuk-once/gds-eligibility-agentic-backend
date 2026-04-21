@@ -381,7 +381,7 @@ def _enrich_facts(data: Any) -> Any:
                 "value": _enrich_facts(v),
             }
             if k in DATA_DICTIONARY
-            else {k: _enrich_facts(v)}
+            else _enrich_facts(v)
             for k, v in data.items()
         }
     elif isinstance(data, list):
