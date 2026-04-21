@@ -38,13 +38,13 @@ def eligibility_judgement_outcome(
     tool_context.actions.escalate = True
     
 
-    child_evaluations = []
+    child_evaluations = {}
     for name, is_eligible, reasoning in zip(child_names, is_eligible_list, reasonings):
-        child_evaluations.append({
+        child_evaluations[name] = {
             "child_name": name,
-            "is_eligible": is_eligible,
+            "eligible": is_eligible,
             "reasoning": reasoning
-        })
+        }
     
     return {
         "child_evaluations": child_evaluations,
