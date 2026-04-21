@@ -448,7 +448,10 @@ async def execute_test_case(
                                     == "eligibility_judgement_outcome"
                                 ):
                                     payload[f"{event.author}_payload"] = part.function_response.dict()["response"]
-                                    payload["correctness"] = derive_correctness_from_payload(payload)
+                                    payload["correctness"] = derive_correctness_from_payload(
+                                        expected_results=payload["meta"]["test_case"]["expected_eligibility"],
+                                        actual_results=payload["eligibility_agent_payload"]["child_evaluations"]
+                                    )
                                 elif part.function_response.name in [
                                     "start_assessment",
                                     "get_node_info",
@@ -499,10 +502,10 @@ def load_and_parse_test_cases(test_cohort: str):
     return test_cases
 
 
-def derive_correctness_from_payload(payload):
+def derive_correctness_from_payload(expected_results, actual_results):
     matches_by_child = {
-        child: child_payload["eligible"] == payload["eligibility_agent_payload"]["child_evaluations"][child]["eligible"]
-        for child, child_payload in payload["meta"]["test_case"]["expected_eligibility"].items()
+        child: child_payload["eligible"] == actual_results[child]["eligible"]
+        for child, child_payload in expected_results.items()
     }
     return {
         "eligibility_outcome": {
