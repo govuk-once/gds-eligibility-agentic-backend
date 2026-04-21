@@ -268,7 +268,7 @@ def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
 
     res_ok, res_reason = check_residency(facts)
 
-    results = []
+    results = {}
     for child in facts["children"].values():
         failed_reasons = []
         # Bit of a hack to append the residency to child but it's easiest approach
@@ -287,19 +287,17 @@ def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
 
         is_eligible = len(failed_reasons) == 0
 
-        results.append(
-            {
-                "child_id": child["id"],
-                "name" : child["name"],
-                "eligible": is_eligible,
-                # This is either a list of semicolon-separated failures, or all passes
-                "reason": "; ".join(failed_reasons)
-                if not is_eligible
-                else "; ".join(all_circumstances),
-                # The complete list of every reason regardless of pass/fail (for LLM script)
-                "circumstances": all_circumstances,
-            }
-        )
+        results[child["name"]] = {
+            "child_id": child["id"],
+            "name" : child["name"],
+            "eligible": is_eligible,
+            # This is either a list of semicolon-separated failures, or all passes
+            "reason": "; ".join(failed_reasons)
+            if not is_eligible
+            else "; ".join(all_circumstances),
+            # The complete list of every reason regardless of pass/fail (for LLM script)
+            "circumstances": all_circumstances,
+        }
 
     return results
 
@@ -437,7 +435,7 @@ def _build_agent_script(facts: dict[str, Any], eligibility_results: list[dict]) 
     - Child does not receive qualifying benefits in their own right
     """
     parts = [_build_preamble(facts)]
-    for result in eligibility_results:
+    for result in eligibility_results.values():
         #print(result)
         facts_list = "\n".join(f"  - {c}" for c in result["circumstances"])
         parts.append(f"Regarding {result['name']}:\n{facts_list}")
@@ -480,7 +478,7 @@ def generate_systematic_cases(
         eligibility_results = evaluate_eligibility(facts)
 
         # Assert the engine behaved correctly
-        actual_outcomes = [res["eligible"] for res in eligibility_results]
+        actual_outcomes = [res["eligible"] for res in eligibility_results.values()]
         _assert_correctness(case_id, actual_outcomes, expected)
 
         # Build and store the final payload
@@ -626,7 +624,7 @@ def main() -> None:
     # Summary
     total_children = sum(len(c["expected_eligibility"]) for c in all_cases)
     eligible = sum(
-        1 for c in all_cases for r in c["expected_eligibility"] if r["eligible"]
+        1 for c in all_cases for r in c["expected_eligibility"].values() if r["eligible"]
     )
     print(
         f"Generated {len(all_cases)} cases "
