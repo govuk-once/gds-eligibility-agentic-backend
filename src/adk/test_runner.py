@@ -42,6 +42,7 @@ config = {
     # check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
     "max_retries": 3,
     "base_delay": 5,  # seconds (if request fails)
+    "output_structure_version": 2, # Version of transcript structure
 }
 
 
@@ -205,6 +206,7 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
                 "permutation": test_id,
                 "test_case": test_case,
                 "execution_datetime": execution_datetime,
+                "versions": { "output_structure": config["output_structure_version"]},
                 "run_config": {
                     "actor_model_string": config["actor_model_string"],
                     "test_cohort": config["test_cohort"],
