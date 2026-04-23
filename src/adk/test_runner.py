@@ -197,9 +197,9 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
     async def run_case_concurrently(test_id, test_case):
         async with semaphore:
             # For --resume case. Can't just check if it exists, need to make sure it's written fully (with judgment playload).
-            expected_filename = f"Permutation{test_id}.conversation.json"
+            case_name = test_case.get("case_id", f"{test_id}")
+            expected_filename = f"Permutation_{case_name}.conversation.json"
             output_file_path = output_dir / expected_filename
-            case_name = test_case.get("case_id", f"Permutation {test_id}")
             if check_and_clean_existing_output(output_file_path, case_name):
                 return
 
@@ -397,7 +397,8 @@ async def execute_test_case(
     # Start the stopwatch
     start_time = time.perf_counter()
 
-    with output_dir.joinpath(f"Permutation{test_id}.conversation.json").open(
+    case_name = test_case.get("case_id", f"{test_id}")
+    with output_dir.joinpath(f"Permutation_{case_name}.conversation.json").open(
         "w"
     ) as output_file:
         print(f"Outputting dialogue to {output_file.name}")
