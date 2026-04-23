@@ -22,9 +22,10 @@ from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "opus_no_links",
+    "hypothesis_name": "ternary_dev",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
+    "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
@@ -32,7 +33,7 @@ config = {
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
     "url_tool_call_allowed": False, # if rules via URLs then should be True
-     "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
+    "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
     "max_concurrent_cases": 15,
     # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
     # 30 is too many.
@@ -77,8 +78,8 @@ def get_or_create_output_directory(
     1. Don't pass --resume. Default behaviour is to create a new directory and start from first case.
     2. Pass --resume with no args. Default behaviour is to resume from most recent directory.
     3. Pass --resume with args e.g. '--resume "2026-03-04T17:22:27.476356__Model=claude-sonnet-4-5__Commit=cce7a2c"'
-       This will resume from the last case in that directory.
-       Note: if doing this make sure to set the config params to whatever they were that time.
+    This will resume from the last case in that directory.
+    Note: if doing this make sure to set the config params to whatever they were that time.
     """
     base_path = (
         Path("../../").joinpath(config["output_path"]).joinpath(config["test_cohort"])
@@ -129,8 +130,8 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     which causes problems later.
 
     Returns:
-        bool: True if the file is fully complete (meaning the case should be skipped).
-              False if the file doesn't exist or was deleted (meaning the case needs to run).
+    bool: True if the file is fully complete (meaning the case should be skipped).
+    False if the file doesn't exist or was deleted (meaning the case needs to run).
     """
     if not output_file_path.exists():
         return False

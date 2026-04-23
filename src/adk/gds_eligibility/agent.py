@@ -1,5 +1,6 @@
 import os
 import json
+from enum import Enum
 from pathlib import Path
 from typing import List, TypedDict
 
@@ -18,25 +19,32 @@ def get_prompt(rel_path: str) -> str:
     return "\n".join(prompt_lines)
 
 
+class Eligibilty(Enum):
+    ELIGIBLE = 1
+    INELIGIBLE = 2
+    INDETERMINATE = 3
+
+
 def eligibility_judgement_outcome(
-        child_names: List[str], 
-        is_eligible_list: List[bool], 
-        reasonings: List[str], 
-        overall_reasoning: str, 
+        child_names: List[str],
+        is_eligible_list: List[Eligibilty],
+        reasonings: List[str],
+        overall_reasoning: str,
         tool_context: ToolContext
     ):
     """
     Call this function ONLY when you have an outcome to report as to eligibility.
-    
+
     Args:
         child_names: A list of the exact names of every child discussed.
-        is_eligible_list: A list of booleans (True/False) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
+        is_eligible_list: A list of type Eligbility (An enumeration with values ELIGIBLE, INELIGIBLE and INDETERMINATE) indicating if the claimant is eligible for each child.
+        MUST be in the exact same order as child_names.
         reasonings: A list of step-by-step reasoning explaining the rules for each child. MUST be in the exact same order as child_names.
         overall_reasoning: A brief summary of the family's total situation.
     """
     print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
-    
+
 
     child_evaluations = {}
     for name, is_eligible, reasoning in zip(child_names, is_eligible_list, reasonings):
@@ -45,7 +53,7 @@ def eligibility_judgement_outcome(
             "eligible": is_eligible,
             "reasoning": reasoning
         }
-    
+
     return {
         "child_evaluations": child_evaluations,
         "overall_reasoning": overall_reasoning
