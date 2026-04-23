@@ -290,7 +290,7 @@ def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
         results[child["name"]] = {
             "child_id": child["id"],
             "name" : child["name"],
-            "eligible": is_eligible,
+            "eligible": "ELIGIBLE" if is_eligible else "INELIGIBLE",
             # This is either a list of semicolon-separated failures, or all passes
             "reason": "; ".join(failed_reasons)
             if not is_eligible
@@ -446,8 +446,9 @@ def _assert_correctness(case_id: str, actual: list[bool], expected: list[bool]) 
     """Verifies the rule engine's output matches the expectations specified in the json.
     For example Case 0 should return [True] (list of 1 child who is eligible).
     """
-    assert actual == expected, (
-        f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual}"
+    actual_bool = [actual_elem == "ELIGIBLE" for actual_elem in actual]
+    assert actual_bool == expected, (
+        f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual_bool}"
     )
 
 
@@ -626,7 +627,7 @@ def main() -> None:
     # Summary
     total_children = sum(len(c["expected_eligibility"]) for c in all_cases)
     eligible = sum(
-        1 for c in all_cases for r in c["expected_eligibility"].values() if r["eligible"]
+        1 for c in all_cases for r in c["expected_eligibility"].values() if r["eligible"] == "ELIGIBLE"
     )
     print(
         f"Generated {len(all_cases)} cases "
