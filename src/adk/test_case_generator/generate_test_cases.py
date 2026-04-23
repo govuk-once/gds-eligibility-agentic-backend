@@ -617,7 +617,9 @@ def save_cases(all_cases):
 def main() -> None:
     systematic = generate_systematic_cases()
     random_cases = generate_random_cases(50)
-    all_cases = systematic + random_cases
+    with Path("./verbatim_cases.json").open() as f:
+        verbatim_cases = json.load(f)
+    all_cases = systematic + random_cases + verbatim_cases
 
     save_cases(all_cases)
 
