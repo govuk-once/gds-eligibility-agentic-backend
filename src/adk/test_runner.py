@@ -173,7 +173,7 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     return False
 
 
-async def main(resume_val: str | None = None, n_cases: int | None = None):
+async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int | None = None):
 
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -187,7 +187,22 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
         resume_val, execution_datetime, git_commit
     )
     test_cases = load_and_parse_test_cases(config["test_cohort"])
-    if n_cases:
+    if case_keys:
+        found_cases = {}
+        for test_case in test_cases:
+            for case_key in case_keys:
+                if test_case["case_id"] == case_key:
+                    found_cases[case_key] = test_case
+        if len(found_cases) == len(case_keys):
+            test_cases = list(found_cases.values())
+        elif len(found_cases) < len(case_keys):
+            missing = set(case_keys).difference(found_cases.keys())
+            print(f"I looked everywhere, but I couldn't find {','.join(missing)}, I beg your forgiveness")
+            exit(1)
+        else:
+            print("Something deeply weird has happened")
+            exit(1)
+    elif n_cases:
         test_cases = test_cases[:n_cases]
         print(f"Limiting execution to the first {n_cases} test cases.")
 
@@ -535,5 +550,15 @@ if __name__ == "__main__":
         default=None,
         help="Limit the number of test cases to run (e.g., 1 for debugging).",
     )
+    parser.add_argument(
+        "--case-keys",
+        type=str,
+        default="",
+        help="Used when running specific cases is desirable. Specify multiples by splitting with ,",
+    )
     args = parser.parse_args()
-    asyncio.run(main(args.resume, args.n_cases))
+    if args.case_keys:
+        case_keys = args.case_keys.split(",")
+    else:
+        case_keys = []
+    asyncio.run(main(case_keys, args.resume, args.n_cases))
