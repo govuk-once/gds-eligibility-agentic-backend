@@ -250,7 +250,7 @@ def check_child_benefits(child: dict[str, Any]) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 
-def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
+def evaluate_eligibility(facts: dict[str, Any]) -> dict[str, Any]:
     """
     Evaluate eligibility for each child. Returns a list of per-child results.
     """
@@ -420,7 +420,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _build_agent_script(facts: dict[str, Any], eligibility_results: list[dict]) -> str:
+def _build_agent_script(facts: dict[str, Any], eligibility_results: dict[str,Any]) -> str:
     """Formats the evaluated circumstances into a readable script for the LLM.
     For example, for the first test case it produces this:
     Regarding Alex:
@@ -442,7 +442,7 @@ def _build_agent_script(facts: dict[str, Any], eligibility_results: list[dict]) 
     return "\n\n".join(parts)
 
 
-def _assert_correctness(case_id: str, actual: list[bool], expected: list[bool]) -> None:
+def _assert_correctness(case_id: str, actual: list[str], expected: list[bool]) -> None:
     """Verifies the rule engine's output matches the expectations specified in the json.
     For example Case 0 should return [True] (list of 1 child who is eligible).
     """
