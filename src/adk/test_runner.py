@@ -24,7 +24,7 @@ from evaluation_judge.agent import get_conversation_pipeline
 config = {
     "hypothesis_name": "ternary_dev",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "actor_kwargs": { "temperature": 1.0 },
+    "actor_kwargs": { "temperature": 0.4 },
     "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
