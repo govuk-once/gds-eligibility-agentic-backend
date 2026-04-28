@@ -42,6 +42,7 @@ config = {
     # check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
     "max_retries": 3,
     "base_delay": 5,  # seconds (if request fails)
+    "output_structure_version": 2, # Version of transcript structure
 }
 
 
@@ -205,6 +206,7 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
                 "permutation": test_id,
                 "test_case": test_case,
                 "execution_datetime": execution_datetime,
+                "versions": { "output_structure": config["output_structure_version"]},
                 "run_config": {
                     "actor_model_string": config["actor_model_string"],
                     "test_cohort": config["test_cohort"],
@@ -445,9 +447,11 @@ async def execute_test_case(
                                     part.function_response.name
                                     == "eligibility_judgement_outcome"
                                 ):
-                                    payload[f"{event.author}_payload"] = {
-                                        "response": part.function_response.dict()
-                                    }
+                                    payload[f"{event.author}_payload"] = part.function_response.dict()["response"]
+                                    payload["correctness"] = derive_correctness_from_payload(
+                                        expected_results=payload["meta"]["test_case"]["expected_eligibility"],
+                                        actual_results=payload["eligibility_agent_payload"]["child_evaluations"]
+                                    )
                                 elif part.function_response.name in [
                                     "start_assessment",
                                     "get_node_info",
@@ -456,9 +460,7 @@ async def execute_test_case(
                                     "get_validation_rules",
                                     "get_specification_metadata",
                                 ]:
-                                    payload["tool_response"].append(
-                                        {"response": part.function_response.dict()}
-                                    )
+                                    payload["tool_response"].append(part.function_response.dict()["response"])
 
                         # Log the standard text conversation
                         if text := "".join(p.text or "" for p in event.content.parts):
@@ -499,6 +501,18 @@ def load_and_parse_test_cases(test_cohort: str):
 
     return test_cases
 
+
+def derive_correctness_from_payload(expected_results, actual_results):
+    matches_by_child = {
+        child: child_payload["eligible"] == actual_results[child]["eligible"]
+        for child, child_payload in expected_results.items()
+    }
+    return {
+        "eligibility_outcome": {
+            "overall": all(matches_by_child.values()),
+            "granular": matches_by_child
+        }
+    }
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
