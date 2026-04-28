@@ -250,7 +250,7 @@ def check_child_benefits(child: dict[str, Any]) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 
-def evaluate_eligibility(facts: dict[str, Any]) -> dict[str, Any]:
+def evaluate_eligibility(facts: dict[str, Any]) -> dict[str,dict[str, Any]]:
     """
     Evaluate eligibility for each child. Returns a list of per-child results.
     """

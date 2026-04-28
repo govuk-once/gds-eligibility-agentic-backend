@@ -24,6 +24,7 @@ from evaluation_judge.agent import get_conversation_pipeline
 config = {
     "hypothesis_name": "ternary_dev",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "actor_kwargs": { "temperature": 1.0 },
     "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
@@ -225,6 +226,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
                 "versions": { "output_structure": config["output_structure_version"]},
                 "run_config": {
                     "actor_model_string": config["actor_model_string"],
+                    "actor_kwargs": config["actor_kwargs"],
                     "test_cohort": config["test_cohort"],
                     "commit": git_commit,
                     "hypothesis_name": config["hypothesis_name"],
@@ -376,6 +378,7 @@ async def execute_test_case(
         root_agent=get_conversation_pipeline(
             test_case["agent_script"],
             config["actor_model_string"],
+            config["actor_kwargs"],
             config["eligibility_model_string"],
             config["actor_prompt"],
             config["eligibility_prompt"],

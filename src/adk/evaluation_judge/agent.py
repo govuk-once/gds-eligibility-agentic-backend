@@ -1,6 +1,7 @@
 from copy import deepcopy
 import os
 from pathlib import Path
+from typing import Any
 
 from google.adk.agents import LoopAgent, SequentialAgent
 from google.adk.agents.llm_agent import Agent
@@ -88,8 +89,9 @@ def get_original_conversation_pipeline(test_case: str):
 
 
 def get_conversation_pipeline(
-    situation_profile: str, 
-    actor_model: str, 
+    situation_profile: str,
+    actor_model: str,
+    actor_kwargs: dict[str, Any],
     eligibility_model: str,
     actor_prompt_path: str,
     eligibility_prompt: str,
@@ -98,7 +100,10 @@ def get_conversation_pipeline(
 ):
     # Instantiate the actor (the one that pretends to be the user)
     actor = Agent(
-        model=LiteLlm(model=actor_model),
+        model=LiteLlm(
+            model=actor_model,
+            **actor_kwargs,
+        ),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
         instruction=get_prompt(actor_prompt_path) + "\n" + situation_profile,
