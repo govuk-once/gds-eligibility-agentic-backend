@@ -88,6 +88,29 @@ def get_original_conversation_pipeline(test_case: str):
     return conversation_pipeline
 
 
+def get_facts_bundle_pipeline(
+    situation_profile: str,
+    eligibility_model: str,
+    eligibility_prompt: str,
+    eligibility_agent: str,
+    *args,
+    **kwargs
+):
+    # Instantiate the actor (the one that pretends to be the user)
+    # Copy the production agent to create a system under test
+    agent_under_test = deepcopy(globals()[eligibility_agent])
+    # Change the model and prompt as specified in the config
+    agent_under_test.model = LiteLlm(model=eligibility_model)
+    agent_under_test.instruction = get_prompt(eligibility_prompt) + "\n" + situation_profile
+
+    # Spin up the conversational loop
+    conversation_pipeline = LoopAgent(
+        name="Converse",
+        sub_agents=[agent_under_test],
+    )
+    return conversation_pipeline
+
+
 def get_conversation_pipeline(
     situation_profile: str,
     actor_model: str,
