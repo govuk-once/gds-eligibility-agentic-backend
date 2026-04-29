@@ -1,0 +1,260 @@
+{
+    "case_id": "CHILD_BENEFITS_FAIL_RECEIVES_BENEFITS",
+    "meta": {
+        "permutation": 41,
+        "test_case": {
+            "case_id": "CHILD_BENEFITS_FAIL_RECEIVES_BENEFITS",
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 18
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": true
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": true
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are inquiring about your 1 child:\n  - Alex is 18 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 18 and in approved education\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child receives qualifying benefits (e.g. UC, ESA) in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": false,
+                    "reason": "Child receives qualifying benefits (e.g. UC, ESA) in their own right",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 18 and in approved education",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child receives qualifying benefits (e.g. UC, ESA) in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-04-22T10:22:47.107449",
+        "versions": {
+            "output_structure": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "test_cohort": "child_benefit",
+            "commit": "fa67354",
+            "hypothesis_name": "opus_no_links",
+            "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 25479,
+        "total_completion_tokens": 1004,
+        "total_overall_tokens": 26483,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 12224,
+                "completion_tokens": 915,
+                "total": 13139
+            },
+            "actor": {
+                "prompt_tokens": 13255,
+                "completion_tokens": 89,
+                "total": 13344
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 40.13
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-04-22T10:24:13.200712",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you find out if you're eligible for Child Benefit.\n\nTo get started, could you please tell me how many children you're looking to claim Child Benefit for, and what are their names and ages?"
+        },
+        {
+            "timestamp": "2026-04-22T10:24:14.903883",
+            "author": "actor",
+            "text": "Hello! I'm looking to claim for my one child, Alex, who is 18 years old."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:18.911958",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information about Alex.\n\nSince Alex is 18 years old, eligibility for Child Benefit depends on their current situation. Child Benefit can continue for children aged 16-19 if they are in approved education or training.\n\nCould you tell me, is Alex currently in full-time non-advanced education (such as A-levels, NVQs up to level 3, or similar qualifications) or on an approved training course?"
+        },
+        {
+            "timestamp": "2026-04-22T10:24:20.857321",
+            "author": "actor",
+            "text": "Yes, Alex is in sixth form studying for A-levels."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:24.239005",
+            "author": "eligibility_agent",
+            "text": "That's great, thank you. Since Alex is 18 and studying A-levels at sixth form, that counts as approved full-time non-advanced education, which is good for eligibility purposes.\n\nJust a couple more questions:\n\nDid Alex start this A-level course before they turned 18?"
+        },
+        {
+            "timestamp": "2026-04-22T10:24:26.010655",
+            "author": "actor",
+            "text": "Yes, Alex started the A-levels before turning 18."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:29.711978",
+            "author": "eligibility_agent",
+            "text": "Excellent, thank you. That's helpful to know.\n\nOne more important question: Are you responsible for Alex? This typically means that Alex lives with you, or you contribute at least the same amount as Child Benefit towards their upkeep (such as paying for food, clothing, or accommodation)."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:31.505802",
+            "author": "actor",
+            "text": "Yes, Alex lives at home with me."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:34.168862",
+            "author": "eligibility_agent",
+            "text": "Thank you for confirming that.\n\nJust one final question: Do you live in the UK, and are you either a British or Irish citizen, or do you have the right to live in the UK (for example, through settled status or another valid immigration status)?"
+        },
+        {
+            "timestamp": "2026-04-22T10:24:36.113093",
+            "author": "actor",
+            "text": "Yes, I live in the UK."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:38.367823",
+            "author": "eligibility_agent",
+            "text": "Thank you for that. And could you just confirm your citizenship or immigration status? For example, are you a British or Irish citizen, or do you have settled status or another right to live in the UK?"
+        },
+        {
+            "timestamp": "2026-04-22T10:24:40.453941",
+            "author": "actor",
+            "text": "I'm a British citizen."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:46.523441",
+            "author": "eligibility_agent",
+            "text": "Thank you for providing all that information. I now have everything I need to assess your eligibility for Child Benefit for Alex."
+        },
+        {
+            "timestamp": "2026-04-22T10:24:51.067405",
+            "author": "eligibility_agent",
+            "text": "Great news! Based on the information you've provided, **you are eligible for Child Benefit for Alex**.\n\nHere's a summary of why:\n\n- \u2705 **Your status**: You're a British citizen living in the UK\n- \u2705 **Responsibility**: Alex lives with you, so you're responsible for them\n- \u2705 **Alex's age and education**: Although Alex is 18, they are in approved full-time non-advanced education (A-levels at sixth form)\n- \u2705 **Course timing**: Alex started their A-levels before turning 18\n\nChild Benefit can continue until Alex finishes their A-levels, or until the 31st August after they turn 19, whichever comes first.\n\nIf you haven't already, you can apply for Child Benefit through the official government channels. Is there anything else you'd like to know?"
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-04-22T10:24:46.523432",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    true
+                ],
+                "reasonings": [
+                    "Alex is 18 years old and is currently enrolled in full-time non-advanced education (A-levels at sixth form). Alex started this course before turning 18, which meets the requirement for continuing Child Benefit for children aged 16-19. The claimant is responsible for Alex as Alex lives at home with them. The claimant is a British citizen living in the UK, which satisfies the residency and immigration status requirements. All eligibility criteria are met."
+                ],
+                "overall_reasoning": "The claimant is a British citizen living in the UK and is responsible for their 18-year-old child, Alex, who lives with them. Alex is studying A-levels at sixth form (approved full-time non-advanced education) and started this course before turning 18. This meets all the criteria for Child Benefit eligibility for a child aged 16-19 in approved education."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": true,
+                "reasoning": "Alex is 18 years old and is currently enrolled in full-time non-advanced education (A-levels at sixth form). Alex started this course before turning 18, which meets the requirement for continuing Child Benefit for children aged 16-19. The claimant is responsible for Alex as Alex lives at home with them. The claimant is a British citizen living in the UK, which satisfies the residency and immigration status requirements. All eligibility criteria are met."
+            }
+        },
+        "overall_reasoning": "The claimant is a British citizen living in the UK and is responsible for their 18-year-old child, Alex, who lives with them. Alex is studying A-levels at sixth form (approved full-time non-advanced education) and started this course before turning 18. This meets all the criteria for Child Benefit eligibility for a child aged 16-19 in approved education."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": false,
+            "granular": {
+                "Alex": false
+            }
+        }
+    }
+}
