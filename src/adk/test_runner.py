@@ -45,6 +45,7 @@ config = {
     "max_retries": 3,
     "base_delay": 5,  # seconds (if request fails)
     "output_structure_version": 2, # Version of transcript structure
+    "pipeline_name": "conversation_pipeline",
 }
 
 
@@ -236,6 +237,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
                     "test_set_size": len(test_cases),
                     "url_tool_call_allowed": config.get("url_tool_call_allowed", True),
                     "max_concurrent_cases": config["max_concurrent_cases"],
+                    "pipeline_name": config["pipeline_name"],
                 },
             }
 
@@ -372,18 +374,18 @@ async def execute_test_case(
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
     https://github.com/google/adk-python/blob/32f2ec3a78c4ef8475b7d8a630705e4cf5ccbe50/src/google/adk/cli/cli.py#L88
     """
-
+    pipeline = globals()["get_" + config["pipeline_name"]]
     app = App(
         name=config["app_name"],
-        root_agent=get_conversation_pipeline(
-            test_case["agent_script"],
-            config["actor_model_string"],
-            config["actor_kwargs"],
-            config["eligibility_model_string"],
-            config["actor_prompt"],
-            config["eligibility_prompt"],
-            config["eligibility_agent"],
-            config.get("url_tool_call_allowed", True),
+        root_agent=pipeline(
+            situation_profile=test_case["agent_script"],
+            actor_model=config["actor_model_string"],
+            actor_kwargs=config["actor_kwargs"],
+            eligibility_model=config["eligibility_model_string"],
+            actor_prompt_path=config["actor_prompt"],
+            eligibility_prompt=config["eligibility_prompt"],
+            eligibility_agent=config["eligibility_agent"],
+            url_tool_call_allowed=config.get("url_tool_call_allowed", True),
         ),
     )
 
