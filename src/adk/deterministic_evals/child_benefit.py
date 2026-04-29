@@ -235,7 +235,7 @@ def run_evaluation(input_folder_path: str = None):
     print(f"Passed      : {passed_cases}")
     print(f"Failed      : {total_cases - passed_cases}")
     if total_cases > 0:
-        print(f"Accuracy    : {accuracy:.4f}%")
+        print(f"Accuracy    : {accuracy * 100:.4f}%")
         print(f"Avg Duration   : {mean_duration:.2f}s")
         print(f"Avg URLs Read  : {mean_urls:.2f}")
 
