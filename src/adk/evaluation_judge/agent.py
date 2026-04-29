@@ -93,6 +93,7 @@ def get_facts_bundle_pipeline(
     eligibility_model: str,
     eligibility_prompt: str,
     eligibility_agent: str,
+    url_tool_call_allowed: bool = True,
     *args,
     **kwargs
 ):
@@ -102,6 +103,11 @@ def get_facts_bundle_pipeline(
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
     agent_under_test.instruction = get_prompt(eligibility_prompt) + "\n" + situation_profile
+    if not url_tool_call_allowed:
+        agent_under_test.tools = [
+            t for t in agent_under_test.tools
+            if t.__name__ != "read_webpage"
+        ]
 
     # Spin up the conversational loop
     conversation_pipeline = LoopAgent(
