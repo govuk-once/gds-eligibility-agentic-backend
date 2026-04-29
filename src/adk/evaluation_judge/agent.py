@@ -29,12 +29,12 @@ def get_prompt(rel_path: str, **kwargs) -> str:
 
 
 def conversation_judgement_outcome(
-    outcome_agrees_with_expected_outcome: bool, 
-    outcome_disagrees_with_expected_outcome: bool, 
-    outcome_partly_agrees_with_expected_outcome: bool, 
-    erroneous_info_given_by_eligibility_agent_without_realising: bool, 
-    erroneous_info_given_by_eligibility_agent_but_later_realised: bool, 
-    reasoning_for_conversation_judgement: str, 
+    outcome_agrees_with_expected_outcome: bool,
+    outcome_disagrees_with_expected_outcome: bool,
+    outcome_partly_agrees_with_expected_outcome: bool,
+    erroneous_info_given_by_eligibility_agent_without_realising: bool,
+    erroneous_info_given_by_eligibility_agent_but_later_realised: bool,
+    reasoning_for_conversation_judgement: str,
     tool_context: ToolContext
 ):
     """Call this function ONLY when you have an outcome to report as to eligibility."""
@@ -44,9 +44,9 @@ def conversation_judgement_outcome(
         "outcome_agrees_with_expected_outcome": outcome_agrees_with_expected_outcome,
         "outcome_disagrees_with_expected_outcome": outcome_disagrees_with_expected_outcome,
         "outcome_partly_agrees_with_expected_outcome": outcome_partly_agrees_with_expected_outcome,
-        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising, 
+        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising,
         "erroneous_info_given_by_eligibility_agent_but_later_realised": erroneous_info_given_by_eligibility_agent_but_later_realised,
-        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement, 
+        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement,
     }
 
 
@@ -82,7 +82,7 @@ def get_original_conversation_pipeline(test_case: str):
     eligibility_agent = structured_specification
     conversation_pipeline = LoopAgent(
         # Any agent instantiated outside the scope of this function should be deep-copied, as said
-        # agent instance remembers its parent from previous invocations 
+        # agent instance remembers its parent from previous invocations
         name="Converse", sub_agents=[deepcopy(eligibility_agent), actor]
     )
     return conversation_pipeline
@@ -117,7 +117,7 @@ def get_conversation_pipeline(
     agent_under_test.instruction = get_prompt(eligibility_prompt)
     if not url_tool_call_allowed:
         agent_under_test.tools = [
-            t for t in agent_under_test.tools 
+            t for t in agent_under_test.tools
             if t.__name__ != "read_webpage"
         ]
 
