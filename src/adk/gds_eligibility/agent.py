@@ -62,10 +62,10 @@ root_agent = Agent(
     model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
     name="eligibility_agent",
     description="A helpful assistant for determining eligibility for benefits.",
-    instruction=get_prompt(
-        #  "agents/TechnicalHypotheses/adhoc-skilledWorkerVisa.md"
-        #"agents/TechnicalHypotheses/Accuracy-ChildBenefit-v3.md"
-        "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v1.md"
-    ),
+    #  instruction=get_prompt( # This is now defined in the pipeline
+    #      #  "agents/TechnicalHypotheses/adhoc-skilledWorkerVisa.md"
+    #      #"agents/TechnicalHypotheses/Accuracy-ChildBenefit-v3.md"
+    #      "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v1.md"
+    #  ),
     tools=[eligibility_judgement_outcome, read_webpage]
 )
