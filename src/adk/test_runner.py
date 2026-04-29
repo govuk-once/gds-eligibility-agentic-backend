@@ -390,8 +390,13 @@ async def execute_test_case(
         ),
     )
 
+    case_name = test_case.get("case_id", f"{test_id}")
     session = await session_service.create_session(
-        app_name=config["app_name"], user_id=config["app_user_id"]
+        app_name=config["app_name"],
+        user_id=config["app_user_id"],
+        state={
+            "case_name": case_name
+        },
     )
     runner = Runner(
         app=app,
@@ -418,7 +423,6 @@ async def execute_test_case(
     # Start the stopwatch
     start_time = time.perf_counter()
 
-    case_name = test_case.get("case_id", f"{test_id}")
     with output_dir.joinpath(f"Permutation_{case_name}.conversation.json").open(
         "w"
     ) as output_file:
