@@ -9,14 +9,9 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
     leaving room for future LLM-based reasoning evaluation.
     """
     case_id = test_case_data["case_id"]
-    id_to_name = {
-        child["id"]["value"]: child["name"]["value"] 
-        for child in test_case_data["facts"]["children"]["value"]
-    }
     expected_data = {}
-    for result in test_case_data["expected_eligibility"]:
-        name = id_to_name[result["child_id"]]
-        expected_data[name] = {"eligible": result["eligible"]}
+    for name, result in test_case_data["expected_eligibility"].items():
+        expected_data[name.lower()] = {"eligible": result["eligible"]}
 
     # Rebuild the expected object structure gracefully
     # because a change in the tool calling has changed the structure
@@ -27,7 +22,7 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
     if "child_evaluations" in eligibility_agent_tool_call:
         actual_data = {
             eval_obj["child_name"].lower(): eval_obj
-            for eval_obj in eligibility_agent_tool_call["child_evaluations"]
+            for eval_obj in eligibility_agent_tool_call["child_evaluations"].values()
         }
         
     # CASE 2: The payload is from a new run (Function Call Arguments) and needs zipping
@@ -38,7 +33,7 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
             eligibility_agent_tool_call.get("reasonings", [])
         ):
             actual_data[name.lower()] = {
-                "child_name": name,
+                "child_name": name.lower(),
                 "is_eligible": is_eligible,
                 "reasoning": reasoning
             }
@@ -240,7 +235,7 @@ def run_evaluation(input_folder_path: str = None):
     print(f"Passed      : {passed_cases}")
     print(f"Failed      : {total_cases - passed_cases}")
     if total_cases > 0:
-        print(f"Accuracy    : {accuracy:.4f}%")
+        print(f"Accuracy    : {accuracy * 100:.4f}%")
         print(f"Avg Duration   : {mean_duration:.2f}s")
         print(f"Avg URLs Read  : {mean_urls:.2f}")
 
