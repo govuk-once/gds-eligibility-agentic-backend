@@ -12,7 +12,9 @@ PROMPT_MAPPING = {
     "Accuracy-ChildBenefit-structuredOutput-v2.md": "Rules via URLs",
     "Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md": "Training data only",
     "Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md": "Free text rules",
-    "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec"
+    "StructuredSpecification-ChildBenefit-v1.md": "Structured spec",
+    "Accuracy-ChildBenefit-structuredOutput-v3.md": "Include INDETERMINATE eligibility",
+    "Accuracy-ChildBenefit-factsBundle-v1.md": "Facts Bundle",
 }
 
 
