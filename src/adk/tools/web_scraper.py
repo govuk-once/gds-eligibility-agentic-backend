@@ -52,8 +52,8 @@ def read_webpage(url: str, tool_context: ToolContext, max_chars: int = 15_000) -
             "error": f"Security restriction: URL domain '{hostname}' is not allowed. Only gov.uk domains are permitted."
         }
 
-    test_name = tool_context.state.get("case_name")
-    print(f"<{test_name}>  [Tool Call] read_webpage triggered for URL: {url}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}>  [Tool Call] read_webpage triggered for URL: {url}")
 
     try:
         response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})

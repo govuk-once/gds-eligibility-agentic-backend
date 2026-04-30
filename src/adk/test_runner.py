@@ -167,7 +167,7 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
         pass  # File is half-written and corrupted
 
     if is_complete:
-        print(f"Skipping {case_name} (Already complete)")
+        print(f"Skipping {case_name} <{data['case_id']}> (Already complete)")
         return True
 
     # If we get here, the file exists but crashed/timed out before finishing the task
@@ -249,7 +249,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
                     artifact_service = InMemoryArtifactService()
                     credential_service = InMemoryCredentialService()
 
-                    print(f"▶️ Starting {case_name}...")
+                    print(f"▶️ Starting {case_name} <{test_id}>...")
                     await execute_test_case(
                         test_id,
                         test_case,
@@ -288,17 +288,17 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
                                 config["base_delay"] * (2**attempt)
                             ) + random.uniform(0, 1)
                             print(
-                                f"⚠️ Rate limited on {case_name}. Retrying in {sleep_time:.1f}s..."
+                                f"⚠️ Rate limited on {case_name} <{test_id}>. Retrying in {sleep_time:.1f}s..."
                             )
                             await asyncio.sleep(sleep_time)
                         else:
                             print(
-                                f"❌ Failed {case_name} after {config['max_retries']} attempts due to rate limits."
+                                f"❌ Failed {case_name} <{test_id}> after {config['max_retries']} attempts due to rate limits."
                             )
                             raise e
                     else:
                         # If it's a normal code bug or framework error, crash so we can fix it
-                        print(f"❌ Fatal Error in {case_name}: {e}")
+                        print(f"❌ Fatal Error in {case_name} <{test_id}>: {e}")
                         raise e
 
     # This prepares all cases, and the semaphore above ensures only config["max_concurrent_cases"] run at once
@@ -390,12 +390,11 @@ async def execute_test_case(
         ),
     )
 
-    case_name = test_case.get("case_id", f"{test_id}")
     session = await session_service.create_session(
         app_name=config["app_name"],
         user_id=config["app_user_id"],
         state={
-            "case_name": case_name
+            "case_id": test_id
         },
     )
     runner = Runner(
@@ -423,6 +422,7 @@ async def execute_test_case(
     # Start the stopwatch
     start_time = time.perf_counter()
 
+    case_name = test_case.get("case_id", f"{test_id}")
     with output_dir.joinpath(f"Permutation_{case_name}.conversation.json").open(
         "w"
     ) as output_file:
