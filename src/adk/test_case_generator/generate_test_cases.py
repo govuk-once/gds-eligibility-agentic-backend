@@ -250,7 +250,7 @@ def check_child_benefits(child: dict[str, Any]) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 
-def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
+def evaluate_eligibility(facts: dict[str, Any]) -> dict[str,dict[str, Any]]:
     """
     Evaluate eligibility for each child. Returns a list of per-child results.
     """
@@ -290,7 +290,7 @@ def evaluate_eligibility(facts: dict[str, Any]) -> list[dict[str, Any]]:
         results[child["name"]] = {
             "child_id": child["id"],
             "name" : child["name"],
-            "eligible": is_eligible,
+            "eligible": "ELIGIBLE" if is_eligible else "INELIGIBLE",
             # This is either a list of semicolon-separated failures, or all passes
             "reason": "; ".join(failed_reasons)
             if not is_eligible
@@ -420,7 +420,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _build_agent_script(facts: dict[str, Any], eligibility_results: list[dict]) -> str:
+def _build_agent_script(facts: dict[str, Any], eligibility_results: dict[str,Any]) -> str:
     """Formats the evaluated circumstances into a readable script for the LLM.
     For example, for the first test case it produces this:
     Regarding Alex:
@@ -442,12 +442,13 @@ def _build_agent_script(facts: dict[str, Any], eligibility_results: list[dict]) 
     return "\n\n".join(parts)
 
 
-def _assert_correctness(case_id: str, actual: list[bool], expected: list[bool]) -> None:
+def _assert_correctness(case_id: str, actual: list[str], expected: list[bool]) -> None:
     """Verifies the rule engine's output matches the expectations specified in the json.
     For example Case 0 should return [True] (list of 1 child who is eligible).
     """
-    assert actual == expected, (
-        f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual}"
+    actual_bool = [actual_elem == "ELIGIBLE" for actual_elem in actual]
+    assert actual_bool == expected, (
+        f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual_bool}"
     )
 
 
@@ -617,14 +618,16 @@ def save_cases(all_cases):
 def main() -> None:
     systematic = generate_systematic_cases()
     random_cases = generate_random_cases(50)
-    all_cases = systematic + random_cases
+    with Path("./verbatim_cases.json").open() as f:
+        verbatim_cases = json.load(f)
+    all_cases = systematic + random_cases + verbatim_cases
 
     save_cases(all_cases)
 
     # Summary
     total_children = sum(len(c["expected_eligibility"]) for c in all_cases)
     eligible = sum(
-        1 for c in all_cases for r in c["expected_eligibility"].values() if r["eligible"]
+        1 for c in all_cases for r in c["expected_eligibility"].values() if r["eligible"] == "ELIGIBLE"
     )
     print(
         f"Generated {len(all_cases)} cases "

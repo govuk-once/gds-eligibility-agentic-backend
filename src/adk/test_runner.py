@@ -22,17 +22,19 @@ from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "opus_no_links",
+    "hypothesis_name": "ternary_dev",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
+    "actor_kwargs": { "temperature": 1.0 },
+    "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
+    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v3.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
     "url_tool_call_allowed": False, # if rules via URLs then should be True
-     "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
+    "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
     "max_concurrent_cases": 15,
     # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
     # 30 is too many.
@@ -77,8 +79,8 @@ def get_or_create_output_directory(
     1. Don't pass --resume. Default behaviour is to create a new directory and start from first case.
     2. Pass --resume with no args. Default behaviour is to resume from most recent directory.
     3. Pass --resume with args e.g. '--resume "2026-03-04T17:22:27.476356__Model=claude-sonnet-4-5__Commit=cce7a2c"'
-       This will resume from the last case in that directory.
-       Note: if doing this make sure to set the config params to whatever they were that time.
+    This will resume from the last case in that directory.
+    Note: if doing this make sure to set the config params to whatever they were that time.
     """
     base_path = (
         Path("../../").joinpath(config["output_path"]).joinpath(config["test_cohort"])
@@ -129,8 +131,8 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     which causes problems later.
 
     Returns:
-        bool: True if the file is fully complete (meaning the case should be skipped).
-              False if the file doesn't exist or was deleted (meaning the case needs to run).
+    bool: True if the file is fully complete (meaning the case should be skipped).
+    False if the file doesn't exist or was deleted (meaning the case needs to run).
     """
     if not output_file_path.exists():
         return False
@@ -172,7 +174,7 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     return False
 
 
-async def main(resume_val: str | None = None, n_cases: int | None = None):
+async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int | None = None):
 
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -186,7 +188,22 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
         resume_val, execution_datetime, git_commit
     )
     test_cases = load_and_parse_test_cases(config["test_cohort"])
-    if n_cases:
+    if case_keys:
+        found_cases = {}
+        for test_case in test_cases:
+            for case_key in case_keys:
+                if test_case["case_id"] == case_key:
+                    found_cases[case_key] = test_case
+        if len(found_cases) == len(case_keys):
+            test_cases = list(found_cases.values())
+        elif len(found_cases) < len(case_keys):
+            missing = set(case_keys).difference(found_cases.keys())
+            print(f"I looked everywhere, but I couldn't find {','.join(missing)}, I beg your forgiveness")
+            exit(1)
+        else:
+            print("Something deeply weird has happened")
+            exit(1)
+    elif n_cases:
         test_cases = test_cases[:n_cases]
         print(f"Limiting execution to the first {n_cases} test cases.")
 
@@ -196,9 +213,9 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
     async def run_case_concurrently(test_id, test_case):
         async with semaphore:
             # For --resume case. Can't just check if it exists, need to make sure it's written fully (with judgment playload).
-            expected_filename = f"Permutation{test_id}.conversation.json"
+            case_name = test_case.get("case_id", f"{test_id}")
+            expected_filename = f"Permutation_{case_name}.conversation.json"
             output_file_path = output_dir / expected_filename
-            case_name = test_case.get("case_id", f"Permutation {test_id}")
             if check_and_clean_existing_output(output_file_path, case_name):
                 return
 
@@ -209,6 +226,7 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
                 "versions": { "output_structure": config["output_structure_version"]},
                 "run_config": {
                     "actor_model_string": config["actor_model_string"],
+                    "actor_kwargs": config["actor_kwargs"],
                     "test_cohort": config["test_cohort"],
                     "commit": git_commit,
                     "hypothesis_name": config["hypothesis_name"],
@@ -360,6 +378,7 @@ async def execute_test_case(
         root_agent=get_conversation_pipeline(
             test_case["agent_script"],
             config["actor_model_string"],
+            config["actor_kwargs"],
             config["eligibility_model_string"],
             config["actor_prompt"],
             config["eligibility_prompt"],
@@ -396,7 +415,8 @@ async def execute_test_case(
     # Start the stopwatch
     start_time = time.perf_counter()
 
-    with output_dir.joinpath(f"Permutation{test_id}.conversation.json").open(
+    case_name = test_case.get("case_id", f"{test_id}")
+    with output_dir.joinpath(f"Permutation_{case_name}.conversation.json").open(
         "w"
     ) as output_file:
         print(f"Outputting dialogue to {output_file.name}")
@@ -533,5 +553,15 @@ if __name__ == "__main__":
         default=None,
         help="Limit the number of test cases to run (e.g., 1 for debugging).",
     )
+    parser.add_argument(
+        "--case-keys",
+        type=str,
+        default="",
+        help="Used when running specific cases is desirable. Specify multiples by splitting with ,",
+    )
     args = parser.parse_args()
-    asyncio.run(main(args.resume, args.n_cases))
+    if args.case_keys:
+        case_keys = args.case_keys.split(",")
+    else:
+        case_keys = []
+    asyncio.run(main(case_keys, args.resume, args.n_cases))
