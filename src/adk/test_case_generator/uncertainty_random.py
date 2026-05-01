@@ -202,6 +202,8 @@ def _generate_random_child(rng: random.Random) -> dict[str, Any]:
 
         if rng.random() < cfg["prob_apprenticeship"]:
             child["started_apprenticeship_in_england"] = True
+            child["in_approved_education"] = False
+            child["in_extension_period"] = False
 
         if rng.random() < cfg["prob_qualifying_benefits"]:
             child["receives_qualifying_benefits"] = True
@@ -264,7 +266,7 @@ def _randomise_age_safely(child: dict[str, Any], rng: random.Random) -> None:
 
     if _has_unknown(child, "started_apprenticeship_in_england"):
         child["age"] = rng.choice([16, 17, 18, 19])
-        child["in_approved_education"] = True
+        child["in_approved_education"] = False
         child["in_extension_period"] = False
         child["works_24_plus_hours"] = False
         child["receives_qualifying_benefits"] = False
@@ -282,7 +284,7 @@ def _randomise_age_safely(child: dict[str, Any], rng: random.Random) -> None:
 
     if child.get("apprenticeship_location"):
         child["age"] = rng.choice([16, 17, 18, 19])
-        child["in_approved_education"] = True
+        child["in_approved_education"] = False
         child["in_extension_period"] = False
         child["works_24_plus_hours"] = False
         child["started_apprenticeship_in_england"] = False

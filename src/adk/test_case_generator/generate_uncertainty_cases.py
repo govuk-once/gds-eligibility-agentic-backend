@@ -69,7 +69,19 @@ def _tri_state(failures: list[str], indeterminates: list[str]) -> bool | str:
         return STATUS_INDETERMINATE
     return True
 
+def _has_apprenticeship_issue(child: dict[str, Any]) -> bool:
+    """
+    This is a robustness check to make sure that someone isn't
+    in approved education and also with an "unknown" apprenticeship
+    as that doesn't really make sense.
 
+    True when the case is about an actual or uncertain apprenticeship.
+    """
+    return (
+        _field_is_unknown(child, "started_apprenticeship_in_england")
+        or child.get("started_apprenticeship_in_england") is True
+        or bool(child.get("apprenticeship_location"))
+    )
 # ---------------------------------------------------------------------------
 # Case-level checks
 # Each check has at most one path to STATUS_INDETERMINATE.
@@ -113,6 +125,11 @@ def check_child_age_education(child: dict[str, Any]) -> tuple[bool | str, str]:
     Child must be under 16, OR under 20 and in approved education/training,
     OR 16-17 and in the 20-week extension period (registered with a
     government careers service or armed forces).
+
+    Apprenticeship uncertainty cases are treated separately. They should not
+    also say the child is in approved education, but the age/education rule
+    should not turn them into determinate failures before the apprenticeship
+    rule is evaluated.
     """
     if _field_is_unknown(child, "age"):
         return (
@@ -125,6 +142,11 @@ def check_child_age_education(child: dict[str, Any]) -> tuple[bool | str, str]:
         return True, f"Child is {age} (under 16)"
     if age >= 20:
         return False, f"Child is {age}, which is 20 or over"
+
+    # 16-19 apprenticeship cases are handled by the apprenticeship checks.
+    # They must not also be described as being in approved education.
+    if _has_apprenticeship_issue(child):
+        return True, f"Child is {age} and not in approved education; apprenticeship status is relevant"
 
     # 16-19
     if _field_is_unknown(child, "in_approved_education"):
@@ -147,7 +169,6 @@ def check_child_age_education(child: dict[str, Any]) -> tuple[bool | str, str]:
             return True, f"Child is {age} and in the 20-week extension period"
 
     return False, f"Child is {age} and not in approved education or extension period"
-
 
 def check_lives_with_claimant(child: dict[str, Any]) -> tuple[bool | str, str | None]:
     if _field_is_unknown(child, "lives_with_claimant"):
@@ -474,6 +495,30 @@ def evaluate_eligibility(facts: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def _unknown_fields(obj: dict[str, Any]) -> set[str]:
     return {k for k, v in obj.items() if v is None}
 
+def _validate_child_consistency(case_id: str, child: dict[str, Any]) -> None:
+    """
+    Catch logically inconsistent combinations in both reviewed and random cases.
+    """
+    name = child.get("name", "unknown child")
+
+    def fail(message: str) -> None:
+        raise ValueError(f"{case_id}: {name}: {message}")
+
+    age = child.get("age")
+
+    if _has_apprenticeship_issue(child):
+        if not (isinstance(age, int) and age >= 16):
+            fail("apprenticeship cases should only be used for a child aged 16 or over")
+
+        if child.get("in_approved_education") is not False:
+            fail(
+                "apprenticeship cases must not also say the child is in approved education"
+            )
+
+        if child.get("in_extension_period") is True:
+            fail(
+                "apprenticeship cases must not also say the child is in the 20-week extension period"
+            )
 
 def _validate_unspecified_child(case_id: str, child: dict[str, Any]) -> None:
     """Catch cases where an unknown field is only relevant under another branch."""
@@ -523,8 +568,8 @@ def _validate_unspecified_child(case_id: str, child: dict[str, Any]) -> None:
 
 def _validate_unspecified_case(case_id: str, facts: dict[str, Any]) -> None:
     for child in facts["children"].values():
+        _validate_child_consistency(case_id, child)
         _validate_unspecified_child(case_id, child)
-
 
 # ---------------------------------------------------------------------------
 # Case generation
@@ -690,8 +735,7 @@ def _generate_cases_from_json(json_filepath: str, *, validate_unspecified: bool)
             expected,
         )
 
-        if validate_unspecified:
-            _validate_unspecified_case(case_id, facts)
+        _validate_unspecified_case(case_id, facts)
 
         eligibility_results = evaluate_eligibility(facts)
         actual_outcomes = [result["eligible"] for result in eligibility_results.values()]
