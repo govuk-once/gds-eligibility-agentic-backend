@@ -9,6 +9,8 @@ STATUS_INELIGIBLE = "INELIGIBLE"
 STATUS_ELIGIBLE = "ELIGIBLE"
 OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/uncertainty_cases.jsonl"
 
+CONTENT_VERSION = 2
+
 with (BASE_DIR / "data_dictionary.json").open("r", encoding="utf-8") as f:
     DATA_DICTIONARY = json.load(f)
 
@@ -751,6 +753,7 @@ def _generate_cases_from_json(json_filepath: str, *, validate_unspecified: bool)
         cases.append(
             {
                 "case_id": case_id,
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,

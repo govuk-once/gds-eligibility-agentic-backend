@@ -23,6 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent
 
 OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/test_cases.jsonl"
 
+CONTENT_VERSION = 2
+
 RANDOM_GENERATION_CONFIG = {
     # Case-Level Probabilities
     "prob_claimant_uk": 0.80,  # 80% chance claimant lives in UK
@@ -488,6 +490,7 @@ def generate_systematic_cases(
         cases.append(
             {
                 "case_id": case_id,
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,
@@ -599,6 +602,7 @@ def generate_random_cases(count: int = 50, seed: int = 146) -> list[dict[str, An
         cases.append(
             {
                 "case_id": f"RND_{i + 1:03d}",
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,
