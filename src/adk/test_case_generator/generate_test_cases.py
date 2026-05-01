@@ -19,7 +19,9 @@ CB_WEEKLY_RATE = 26.05
 with open("data_dictionary.json", "r") as f:
     DATA_DICTIONARY = json.load(f)
 
-OUTFILE_NAME = "../../../prompts/structured_generation/child_benefit/test_cases.jsonl"
+BASE_DIR = Path(__file__).resolve().parent
+
+OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/test_cases.jsonl"
 
 RANDOM_GENERATION_CONFIG = {
     # Case-Level Probabilities
