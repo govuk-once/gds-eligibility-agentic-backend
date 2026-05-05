@@ -170,11 +170,11 @@ def check_child_age_education(child: dict[str, Any]) -> tuple[bool | str, str]:
         if _field_is_unknown(child, "in_extension_period"):
             return (
                 STATUS_INDETERMINATE,
-                "It is unknown whether child has left education or training and registered with a government-sponsored careers service or the armed services for the 20-week Child Benefit extension",
+                "It is unknown whether child has left education or training and has been registered with a government-sponsored careers service or the armed services for less than 20 weeks",
             )
 
         if child["in_extension_period"]:
-            return True, f"Child is {age} and in the 20-week extension period"
+            return True, f"Child is {age}, has left education or training and been registered with a government-sponsored careers service or the armed services for less than 20 weeks"
 
     return False, f"Child is {age} and not in approved education or extension period"
 
