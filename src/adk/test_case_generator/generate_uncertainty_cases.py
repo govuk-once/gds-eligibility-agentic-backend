@@ -5,6 +5,8 @@ from typing import Any
 BASE_DIR = Path(__file__).resolve().parent
 CB_WEEKLY_RATE = 26.05
 STATUS_INDETERMINATE = "INDETERMINATE"
+STATUS_INELIGIBLE = "INELIGIBLE"
+STATUS_ELIGIBLE = "ELIGIBLE"
 OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/uncertainty_cases.jsonl"
 
 with (BASE_DIR / "data_dictionary.json").open("r", encoding="utf-8") as f:
@@ -62,12 +64,16 @@ def _money(amount: float | int) -> str:
     return f"£{amount:.2f}"
 
 
-def _tri_state(failures: list[str], indeterminates: list[str]) -> bool | str:
+def _tri_state(failures: list[str], indeterminates: list[str]) -> str:
+    """
+    Takes the list of failures and returns a string indicating
+    whether the child is eligible, ineligible or if this is indeterminate.
+    """
     if failures:
-        return False
+        return STATUS_INELIGIBLE
     if indeterminates:
         return STATUS_INDETERMINATE
-    return True
+    return STATUS_ELIGIBLE
 
 def _has_apprenticeship_issue(child: dict[str, Any]) -> bool:
     """
@@ -474,7 +480,7 @@ def evaluate_eligibility(facts: dict[str, Any]) -> dict[str, dict[str, Any]]:
                 indeterminates.append(reason)
 
         eligibility_status = _tri_state(failures, indeterminates)
-        reason = "; ".join(failures if eligibility_status is False else circumstances)
+        reason = "; ".join(failures if eligibility_status == STATUS_INELIGIBLE else circumstances)
 
         results[child["name"]] = {
             "child_id": child["id"],
@@ -576,15 +582,16 @@ def _validate_unspecified_case(case_id: str, facts: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _generate_case_id(rule: str, variant: str, expected: list[bool | str]) -> str:
-    if all(x is True for x in expected):
+def _generate_case_id(rule: str, variant: str, expected: list[str]) -> str:
+    if all(x == STATUS_ELIGIBLE for x in expected):
         outcome = "PASS"
-    elif all(x is False for x in expected):
+    elif all(x == STATUS_INELIGIBLE for x in expected):
         outcome = "FAIL"
     elif all(x == STATUS_INDETERMINATE for x in expected):
         outcome = "INDET"
     else:
         outcome = "MIXED"
+
     return f"{rule}_{outcome}" + (f"_{variant}" if variant else "")
 
 
@@ -715,7 +722,7 @@ def _build_case_facts(raw_case: dict[str, Any], children: dict[str, dict[str, An
     return facts
 
 
-def _assert_correctness(case_id: str, actual: list[bool | str], expected: list[bool | str]) -> None:
+def _assert_correctness(case_id: str, actual: list[str], expected: list[str]) -> None:
     assert actual == expected, f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual}"
 
 
@@ -781,7 +788,7 @@ def main() -> None:
     save_cases(cases)
 
     total_children = sum(len(case["expected_eligibility"]) for case in cases)
-    status_counts = {True: 0, False: 0, STATUS_INDETERMINATE: 0}
+    status_counts = {STATUS_ELIGIBLE: 0, STATUS_INELIGIBLE: 0, STATUS_INDETERMINATE: 0}
     for case in cases:
         for result in case["expected_eligibility"].values():
             status_counts[result["eligible"]] += 1
@@ -794,8 +801,8 @@ def main() -> None:
     )
     print(f"Total evaluation points (children): {total_children}")
     print(
-        f"Eligible: {status_counts[True]}, "
-        f"Ineligible: {status_counts[False]}, "
+        f"Eligible: {status_counts[STATUS_ELIGIBLE]}, "
+        f"Ineligible: {status_counts[STATUS_INELIGIBLE]}, "
         f"Indeterminate: {status_counts[STATUS_INDETERMINATE]}"
     )
 

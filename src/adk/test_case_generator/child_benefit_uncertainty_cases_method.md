@@ -60,16 +60,16 @@ For example, if the canonical case is about an apprenticeship outside England, t
 The uncertainty rule engine uses a tri-state outcome:
 
 ```python
-True | False | "INDETERMINATE"
+"ELIGIBLE" | "INELIGIBLE" | "INDETERMINATE"
 ```
 
 The rule is:
 
-1. If any check gives a definite failure, the child is `False`.
+1. If any check gives a definite failure, the child is `"INELIGIBLE"`.
 2. Otherwise, if any check is indeterminate, the child is `"INDETERMINATE"`.
-3. Otherwise, the child is `True`.
+3. Otherwise, the child is `"ELIGIBLE"`.
 
-This is important. It means an indeterminate case should not also contain a separate deterministic reason for ineligibility. Otherwise the final expected output would be `False`, not `"INDETERMINATE"`.
+This is important. It means an indeterminate case should not also contain a separate deterministic reason for ineligibility. Otherwise the final expected output would be `"INELIGIBLE"`, not `"INDETERMINATE"`.
 
 ## Uncertainty areas tested
 

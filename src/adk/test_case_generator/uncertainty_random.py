@@ -55,7 +55,7 @@ APPRENTICESHIP_LOCATION_VARIANTS = [
     "Newry, Northern Ireland",
 ]
 
-def _assert_contains_indeterminate(case_id: str, outcomes: list[bool | str]) -> None:
+def _assert_contains_indeterminate(case_id: str, outcomes: list[str]) -> None:
     """
     We need this because we're adding some True/False outcomes for additional children
     in with the indeterminate cases.
@@ -430,7 +430,7 @@ def _add_random_extra_children(
 def _set_expected_outcomes_after_extra_children(
     raw_case: dict[str, Any],
     *,
-    original_expected: list[bool | str],
+    original_expected: list[str],
 ) -> None:
     """
     Set expected outcomes after adding random extra children.
