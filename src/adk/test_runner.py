@@ -22,14 +22,15 @@ from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "ternary_dev",
+    "hypothesis_name": "indeterminate_cases",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "actor_kwargs": { "temperature": 1.0 },
     "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v3.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
+    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
+    "test_case_file" : "../../prompts/structured_generation/child_benefit/uncertainty_cases.jsonl",
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
@@ -187,7 +188,10 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
     output_dir = get_or_create_output_directory(
         resume_val, execution_datetime, git_commit
     )
-    test_cases = load_and_parse_test_cases(config["test_cohort"])
+    test_cases = load_and_parse_test_cases(
+        config["test_cohort"],
+        config["test_case_file"]
+    )
     if case_keys:
         found_cases = {}
         for test_case in test_cases:
@@ -505,11 +509,14 @@ async def execute_test_case(
                 json.dump(payload, output_file, indent=4)
 
 
-def load_and_parse_test_cases(test_cohort: str):
+def load_and_parse_test_cases(test_cohort: str, test_case_file_str: str | None):
 
-    test_case_file = Path(
-        f"../../prompts/structured_generation/{test_cohort}/test_cases.jsonl"
-    )
+    if test_case_file_str is None:
+        test_case_file = Path(
+            f"../../prompts/structured_generation/{test_cohort}/test_cases.jsonl"
+        )
+    else:
+        test_case_file = Path(test_case_file_str)
 
     test_cases = []
     with test_case_file.open("r") as f:
