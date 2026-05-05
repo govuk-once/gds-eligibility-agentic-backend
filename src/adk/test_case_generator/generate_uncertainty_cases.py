@@ -282,9 +282,9 @@ def check_hospital_duration(child: dict[str, Any]) -> tuple[bool | str, str | No
 
     hospital_weeks = child["hospital_weeks"]
     if hospital_weeks > 12:
-        return True, f"Child is in hospital/residential accommodation for {hospital_weeks} weeks (>12)"
+        return True, f"Child is in hospital/residential accommodation for {hospital_weeks} weeks"
     if hospital_weeks > 0:
-        return True, f"Child in hospital for {hospital_weeks} weeks (within 12-week limit)"
+        return True, f"Child in hospital for {hospital_weeks} weeks"
     return True, "Child is not in hospital or residential accommodation"
 
 
@@ -307,7 +307,7 @@ def check_hospital_spending_exception(child: dict[str, Any]) -> tuple[bool | str
 
     return (
         False,
-        f"Child in hospital/residential accommodation for {hospital_weeks} weeks (>12) and claimant is not regularly spending money on child",
+        f"Child in hospital/residential accommodation for {hospital_weeks} weeks and claimant is not regularly spending money on child",
     )
 
 

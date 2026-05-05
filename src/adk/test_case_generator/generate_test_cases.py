@@ -186,13 +186,13 @@ def check_hospital_absence(child: dict[str, Any]) -> tuple[bool, str]:
             )
         return False, (
             f"Child in hospital/residential accommodation for "
-            f"{hospital_weeks} weeks (>12) and claimant is not "
+            f"{hospital_weeks} weeks and claimant is not "
             f"regularly spending money on child"
         )
     if hospital_weeks > 0:
         return (
             True,
-            f"Child in hospital for {hospital_weeks} weeks (within 12-week limit)",
+            f"Child in hospital for {hospital_weeks} weeks",
         )
     return True, "Child is not in hospital or residential accommodation"
 
