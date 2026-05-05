@@ -216,7 +216,7 @@ def check_upkeep_when_not_living_with_claimant(child: dict[str, Any]) -> tuple[b
     if upkeep < CB_WEEKLY_RATE:
         return (
             False,
-            f"Child does not live with claimant and weekly upkeep ({_money(upkeep)}) is below the Child Benefit rate ({_money(CB_WEEKLY_RATE)})",
+            f"Child does not live with claimant and weekly upkeep is ({_money(upkeep)})",
         )
 
     return True, f"Claimant contributes {_money(upkeep)}/week towards child's upkeep (>= {_money(CB_WEEKLY_RATE)})"

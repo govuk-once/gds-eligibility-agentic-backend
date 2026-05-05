@@ -138,14 +138,14 @@ def check_responsibility(child: dict[str, Any]) -> tuple[bool, str]:
     upkeep = child["upkeep_per_week"]
     if upkeep < CB_WEEKLY_RATE:
         return False, (
-            f"Child does not live with claimant and weekly upkeep "
-            f"(£{upkeep:.2f}) is below the Child Benefit rate (£{CB_WEEKLY_RATE})"
+            f"Child does not live with claimant and weekly upkeep is"
+            f"(£{upkeep:.2f})"
         )
     if child["another_claimant_lives_with_child"]:
         return False, "Someone who lives with the child is already claiming"
     return (
         True,
-        f"Claimant contributes £{upkeep:.2f}/week towards child's upkeep (>= £{CB_WEEKLY_RATE}) and no other claimaint has priority",
+        f"Claimant contributes £{upkeep:.2f}/week towards child's upkeep and no other claimaint has priority",
     )
 
 
