@@ -528,6 +528,16 @@ def _validate_child_consistency(case_id: str, child: dict[str, Any]) -> None:
                 "apprenticeship cases must not also say the child is in the 20-week extension period"
             )
 
+    if child.get("is_adopting") is True:
+        if "child_has_moved_in" not in child:
+            fail("adoption cases should specify whether the child has moved in")
+
+        if child.get("child_has_moved_in") is False and child.get("lives_with_claimant") is not False:
+            fail("adoption-before-move-in cases must not say the child lives with claimant")
+
+        if child.get("child_has_moved_in") is True and child.get("lives_with_claimant") is not True:
+            fail("adoption-after-move-in cases should say the child lives with claimant")
+
 def _validate_unspecified_child(case_id: str, child: dict[str, Any]) -> None:
     """Catch cases where an unknown field is only relevant under another branch."""
     unknown = _unknown_fields(child)
@@ -666,7 +676,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
         lines.append("You live in the UK." if facts["claimant_lives_in_uk"] else "You do not live in the UK.")
 
     child_word = "child" if len(facts["children"]) == 1 else "children"
-    lines.append(f"You are inquiring about your {len(facts['children'])} {child_word}:")
+    lines.append(f"You are asking about Child Benefit for {len(facts['children'])} {child_word}:")
 
     for child in facts["children"].values():
         if _field_is_unknown(child, "age"):
@@ -680,7 +690,9 @@ def _build_preamble(facts: dict[str, Any]) -> str:
         else:
             age_text = f"{child['age']} years old"
 
-        if _field_is_unknown(child, "lives_with_claimant"):
+        if child.get("is_adopting") is True and child.get("child_has_moved_in") is False:
+            lives_with = "has not yet come to live with you"
+        elif _field_is_unknown(child, "lives_with_claimant"):
             lives_with = "has an unknown living arrangement"
         else:
             lives_with = "lives with you" if child["lives_with_claimant"] else "does not live with you"

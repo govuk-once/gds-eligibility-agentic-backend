@@ -405,7 +405,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
 
     # Number of children
     child_word = "child" if len(facts["children"]) == 1 else "children"
-    lines.append(f"You are inquiring about your {len(facts['children'])} {child_word}:")
+    lines.append(f"You are asking about Child Benefit for {len(facts['children'])} {child_word}:")
 
     # Child details
     for child in facts["children"].values():
