@@ -164,10 +164,10 @@ def check_care_absence(child: dict[str, Any]) -> tuple[bool, str]:
             )
         return False, (
             f"Child in local authority care for {care_weeks} weeks "
-            f"(>8) and does not spend 24+ hours/week at home"
+            f"and does not spend 24+ hours/week at home"
         )
     if care_weeks > 0:
-        return True, f"Child in care for {care_weeks} weeks (within 8-week limit)"
+        return True, f"Child in care for {care_weeks} weeks"
     return True, "Child is not in local authority care"
 
 
