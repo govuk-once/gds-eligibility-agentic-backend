@@ -24,6 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent
 OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/test_cases.jsonl"
 
 CONTENT_VERSION = 2
+RANDOM_CASE_SET_ID = f"RND_SET_{CONTENT_VERSION}" # so we don't reuse the same random IDs
 
 RANDOM_GENERATION_CONFIG = {
     # Case-Level Probabilities
@@ -601,7 +602,7 @@ def generate_random_cases(count: int = 50, seed: int = 146) -> list[dict[str, An
         # 3. Build and store the final payload
         cases.append(
             {
-                "case_id": f"RND_{i + 1:03d}",
+                "case_id": f"{RANDOM_CASE_SET_ID}_{i + 1:03d}",
                 "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
