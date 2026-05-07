@@ -317,7 +317,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
             f"\nTest execution complete! Triggering deterministic evaluator for {output_dir.name}..."
         )
         try:
-            run_evaluation(output_dir.name)
+            run_evaluation(output_dir.parent.name)
             print("Evaluation complete. Summary report generated.")
         except Exception as e:
             print(f"Run finished, but evaluator failed to execute: {e}")
