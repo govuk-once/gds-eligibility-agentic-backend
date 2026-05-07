@@ -92,6 +92,8 @@ def get_or_create_output_directory(
         model_short_name = get_short_model_name(config["eligibility_model_string"])
         output_dir = base_path.joinpath(
             f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}"
+        ).joinpath(
+            config.get("test_case_file", "test_cases")
         )
         output_dir.mkdir(parents=True, exist_ok=True)
         print(f"STARTING NEW RUN: {output_dir.name}")
