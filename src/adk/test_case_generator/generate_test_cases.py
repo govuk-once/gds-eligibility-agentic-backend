@@ -19,7 +19,12 @@ CB_WEEKLY_RATE = 26.05
 with open("data_dictionary.json", "r") as f:
     DATA_DICTIONARY = json.load(f)
 
-OUTFILE_NAME = "../../../prompts/structured_generation/child_benefit/test_cases.jsonl"
+BASE_DIR = Path(__file__).resolve().parent
+
+OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/test_cases.jsonl"
+
+CONTENT_VERSION = 2
+RANDOM_CASE_SET_ID = f"RND_SET_{CONTENT_VERSION}" # so we don't reuse the same random IDs
 
 RANDOM_GENERATION_CONFIG = {
     # Case-Level Probabilities
@@ -38,10 +43,10 @@ RANDOM_GENERATION_CONFIG = {
     "prob_another_claimant_priority": 0.10,
     # Care & Hospital
     "prob_care": 0.12,
-    "care_weeks": [4, 7, 8, 9, 12, 16],
+    "care_weeks": [4, 7, 8, 9, 10, 16],
     "prob_care_home_24h": 0.50,
     "prob_hospital": 0.12,
-    "hospital_weeks": [4, 8, 11, 12, 13, 18],
+    "hospital_weeks": [4, 8, 11, 10, 13, 18],
     "prob_hospital_spending": 0.50,
     # Fostering
     "prob_foster": 0.08,
@@ -106,12 +111,12 @@ def check_child_age_education(child: dict[str, Any]) -> tuple[bool, str]:
     if age < 16:
         return True, f"Child is {age} (under 16)"
     if age >= 20:
-        return False, f"Child is {age}, which is 20 or over"
+        return False, f"Child is {age}"
     # 16-19
     if child["in_approved_education"]:
         return True, f"Child is {age} and in approved education"
     if age <= 17 and child["in_extension_period"]:
-        return True, f"Child is {age} and in the 20-week extension period"
+        return True, f"Child is {age}, has left education or training and been registered with a government-sponsored careers service or the armed services for less than 20 weeks"
     return False, f"Child is {age} and not in approved education or extension period"
 
 
@@ -134,14 +139,14 @@ def check_responsibility(child: dict[str, Any]) -> tuple[bool, str]:
     upkeep = child["upkeep_per_week"]
     if upkeep < CB_WEEKLY_RATE:
         return False, (
-            f"Child does not live with claimant and weekly upkeep "
-            f"(£{upkeep:.2f}) is below the Child Benefit rate (£{CB_WEEKLY_RATE})"
+            f"Child does not live with claimant and weekly upkeep is"
+            f"(£{upkeep:.2f})"
         )
     if child["another_claimant_lives_with_child"]:
         return False, "Someone who lives with the child is already claiming"
     return (
         True,
-        f"Claimant contributes £{upkeep:.2f}/week towards child's upkeep (>= £{CB_WEEKLY_RATE}) and no other claimaint has priority",
+        f"Claimant contributes £{upkeep:.2f}/week towards child's upkeep and no other claimaint has priority",
     )
 
 
@@ -160,10 +165,10 @@ def check_care_absence(child: dict[str, Any]) -> tuple[bool, str]:
             )
         return False, (
             f"Child in local authority care for {care_weeks} weeks "
-            f"(>8) and does not spend 24+ hours/week at home"
+            f"and does not spend 24+ hours/week at home"
         )
     if care_weeks > 0:
-        return True, f"Child in care for {care_weeks} weeks (within 8-week limit)"
+        return True, f"Child in care for {care_weeks} weeks"
     return True, "Child is not in local authority care"
 
 
@@ -182,13 +187,13 @@ def check_hospital_absence(child: dict[str, Any]) -> tuple[bool, str]:
             )
         return False, (
             f"Child in hospital/residential accommodation for "
-            f"{hospital_weeks} weeks (>12) and claimant is not "
+            f"{hospital_weeks} weeks and claimant is not "
             f"regularly spending money on child"
         )
     if hospital_weeks > 0:
         return (
             True,
-            f"Child in hospital for {hospital_weeks} weeks (within 12-week limit)",
+            f"Child in hospital for {hospital_weeks} weeks",
         )
     return True, "Child is not in hospital or residential accommodation"
 
@@ -401,7 +406,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
 
     # Number of children
     child_word = "child" if len(facts["children"]) == 1 else "children"
-    lines.append(f"You are inquiring about your {len(facts['children'])} {child_word}:")
+    lines.append(f"You are asking about Child Benefit for {len(facts['children'])} {child_word}:")
 
     # Child details
     for child in facts["children"].values():
@@ -486,6 +491,7 @@ def generate_systematic_cases(
         cases.append(
             {
                 "case_id": case_id,
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,
@@ -596,7 +602,8 @@ def generate_random_cases(count: int = 50, seed: int = 146) -> list[dict[str, An
         # 3. Build and store the final payload
         cases.append(
             {
-                "case_id": f"RND_{i + 1:03d}",
+                "case_id": f"{RANDOM_CASE_SET_ID}_{i + 1:03d}",
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,
@@ -618,9 +625,8 @@ def save_cases(all_cases):
 def main() -> None:
     systematic = generate_systematic_cases()
     random_cases = generate_random_cases(50)
-    with Path("./verbatim_cases.json").open() as f:
-        verbatim_cases = json.load(f)
-    all_cases = systematic + random_cases + verbatim_cases
+
+    all_cases = systematic + random_cases
 
     save_cases(all_cases)
 

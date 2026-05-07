@@ -9,6 +9,8 @@ STATUS_INELIGIBLE = "INELIGIBLE"
 STATUS_ELIGIBLE = "ELIGIBLE"
 OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/uncertainty_cases.jsonl"
 
+CONTENT_VERSION = 2
+
 with (BASE_DIR / "data_dictionary.json").open("r", encoding="utf-8") as f:
     DATA_DICTIONARY = json.load(f)
 
@@ -29,10 +31,10 @@ RANDOM_GENERATION_CONFIG = {
     "prob_another_claimant_lives_with_child": 0.33,
     "prob_another_claimant_priority": 0.10,
     "prob_care": 0.12,
-    "care_weeks": [4, 7, 8, 9, 12, 16],
+    "care_weeks": [4, 7, 8, 9, 10, 16],
     "prob_care_home_24h": 0.50,
     "prob_hospital": 0.12,
-    "hospital_weeks": [4, 8, 11, 12, 13, 18],
+    "hospital_weeks": [4, 8, 11, 10, 13, 18],
     "prob_hospital_spending": 0.50,
     "prob_foster": 0.08,
     "prob_council_pays": 0.50,
@@ -168,11 +170,11 @@ def check_child_age_education(child: dict[str, Any]) -> tuple[bool | str, str]:
         if _field_is_unknown(child, "in_extension_period"):
             return (
                 STATUS_INDETERMINATE,
-                "It is unknown whether child has left education or training and registered with a government-sponsored careers service or the armed services for the 20-week Child Benefit extension",
+                "It is unknown whether child has left education or training and has been registered with a government-sponsored careers service or the armed services for less than 20 weeks",
             )
 
         if child["in_extension_period"]:
-            return True, f"Child is {age} and in the 20-week extension period"
+            return True, f"Child is {age}, has left education or training and been registered with a government-sponsored careers service or the armed services for less than 20 weeks"
 
     return False, f"Child is {age} and not in approved education or extension period"
 
@@ -214,7 +216,7 @@ def check_upkeep_when_not_living_with_claimant(child: dict[str, Any]) -> tuple[b
     if upkeep < CB_WEEKLY_RATE:
         return (
             False,
-            f"Child does not live with claimant and weekly upkeep ({_money(upkeep)}) is below the Child Benefit rate ({_money(CB_WEEKLY_RATE)})",
+            f"Child does not live with claimant and weekly upkeep is ({_money(upkeep)})",
         )
 
     return True, f"Claimant contributes {_money(upkeep)}/week towards child's upkeep (>= {_money(CB_WEEKLY_RATE)})"
@@ -245,9 +247,9 @@ def check_care_duration(child: dict[str, Any]) -> tuple[bool | str, str | None]:
 
     care_weeks = child["care_weeks"]
     if care_weeks > 8:
-        return True, f"Child is in local authority care for {care_weeks} weeks (>8)"
+        return True, f"Child is in local authority care for {care_weeks} weeks"
     if care_weeks > 0:
-        return True, f"Child in care for {care_weeks} weeks (within 8-week limit)"
+        return True, f"Child in care for {care_weeks} weeks"
     return True, "Child is not in local authority care"
 
 
@@ -267,7 +269,7 @@ def check_care_home_exception(child: dict[str, Any]) -> tuple[bool | str, str | 
 
     return (
         False,
-        f"Child in local authority care for {care_weeks} weeks (>8) and does not spend 24+ hours/week at home",
+        f"Child in local authority care for {care_weeks} weeks and does not spend 24+ hours/week at home",
     )
 
 
@@ -280,9 +282,9 @@ def check_hospital_duration(child: dict[str, Any]) -> tuple[bool | str, str | No
 
     hospital_weeks = child["hospital_weeks"]
     if hospital_weeks > 12:
-        return True, f"Child is in hospital/residential accommodation for {hospital_weeks} weeks (>12)"
+        return True, f"Child is in hospital/residential accommodation for {hospital_weeks} weeks"
     if hospital_weeks > 0:
-        return True, f"Child in hospital for {hospital_weeks} weeks (within 12-week limit)"
+        return True, f"Child in hospital for {hospital_weeks} weeks"
     return True, "Child is not in hospital or residential accommodation"
 
 
@@ -305,7 +307,7 @@ def check_hospital_spending_exception(child: dict[str, Any]) -> tuple[bool | str
 
     return (
         False,
-        f"Child in hospital/residential accommodation for {hospital_weeks} weeks (>12) and claimant is not regularly spending money on child",
+        f"Child in hospital/residential accommodation for {hospital_weeks} weeks and claimant is not regularly spending money on child",
     )
 
 
@@ -526,6 +528,16 @@ def _validate_child_consistency(case_id: str, child: dict[str, Any]) -> None:
                 "apprenticeship cases must not also say the child is in the 20-week extension period"
             )
 
+    if child.get("is_adopting") is True:
+        if "child_has_moved_in" not in child:
+            fail("adoption cases should specify whether the child has moved in")
+
+        if child.get("child_has_moved_in") is False and child.get("lives_with_claimant") is not False:
+            fail("adoption-before-move-in cases must not say the child lives with claimant")
+
+        if child.get("child_has_moved_in") is True and child.get("lives_with_claimant") is not True:
+            fail("adoption-after-move-in cases should say the child lives with claimant")
+
 def _validate_unspecified_child(case_id: str, child: dict[str, Any]) -> None:
     """Catch cases where an unknown field is only relevant under another branch."""
     unknown = _unknown_fields(child)
@@ -664,7 +676,7 @@ def _build_preamble(facts: dict[str, Any]) -> str:
         lines.append("You live in the UK." if facts["claimant_lives_in_uk"] else "You do not live in the UK.")
 
     child_word = "child" if len(facts["children"]) == 1 else "children"
-    lines.append(f"You are inquiring about your {len(facts['children'])} {child_word}:")
+    lines.append(f"You are asking about Child Benefit for {len(facts['children'])} {child_word}:")
 
     for child in facts["children"].values():
         if _field_is_unknown(child, "age"):
@@ -678,7 +690,9 @@ def _build_preamble(facts: dict[str, Any]) -> str:
         else:
             age_text = f"{child['age']} years old"
 
-        if _field_is_unknown(child, "lives_with_claimant"):
+        if child.get("is_adopting") is True and child.get("child_has_moved_in") is False:
+            lives_with = "has not yet come to live with you"
+        elif _field_is_unknown(child, "lives_with_claimant"):
             lives_with = "has an unknown living arrangement"
         else:
             lives_with = "lives with you" if child["lives_with_claimant"] else "does not live with you"
@@ -751,6 +765,7 @@ def _generate_cases_from_json(json_filepath: str, *, validate_unspecified: bool)
         cases.append(
             {
                 "case_id": case_id,
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,

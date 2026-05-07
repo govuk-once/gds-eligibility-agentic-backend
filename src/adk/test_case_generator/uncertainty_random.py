@@ -8,6 +8,7 @@ from generate_uncertainty_cases import (
     CB_WEEKLY_RATE,
     RANDOM_GENERATION_CONFIG,
     STATUS_INDETERMINATE,
+    CONTENT_VERSION,
     _assert_correctness,
     _build_agent_script,
     _build_child_facts,
@@ -133,6 +134,7 @@ def _case_payload_from_raw_case(raw_case: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "case_id": case_id,
+        "content_version": CONTENT_VERSION,
         "facts": _enrich_facts(facts),
         "agent_script": _build_agent_script(facts, eligibility_results),
         "expected_eligibility": eligibility_results,
