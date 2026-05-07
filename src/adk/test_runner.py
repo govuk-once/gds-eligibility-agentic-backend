@@ -27,8 +27,8 @@ config = {
     "actor_kwargs": { "temperature": 1.0 },
     "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
-    "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
+    "actor_prompt": "agents/Ancillary/Actor-Indeterminacy-v1.md",
+    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-indeterminacy-v2.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
     "test_case_file" : "uncertainty_cases",
     "output_path": "analysis/testOutputs",
