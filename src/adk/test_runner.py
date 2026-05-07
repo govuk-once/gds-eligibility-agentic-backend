@@ -30,7 +30,7 @@ config = {
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
-    "test_case_file" : "../../prompts/structured_generation/child_benefit/uncertainty_cases.jsonl",
+    "test_case_file" : "uncertainty_cases",
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
