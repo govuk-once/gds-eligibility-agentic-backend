@@ -512,11 +512,10 @@ async def execute_test_case(
 def load_and_parse_test_cases(test_cohort: str, test_case_file_str: str | None):
 
     if test_case_file_str is None:
-        test_case_file = Path(
-            f"../../prompts/structured_generation/{test_cohort}/test_cases.jsonl"
-        )
-    else:
-        test_case_file = Path(test_case_file_str)
+        test_case_file_str = "test_cases"
+    test_case_file = Path(
+        f"../../prompts/structured_generation/{test_cohort}/{test_case_file_str}.jsonl"
+    )
 
     test_cases = []
     with test_case_file.open("r") as f:
