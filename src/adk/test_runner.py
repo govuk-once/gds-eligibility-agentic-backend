@@ -227,7 +227,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
                 "permutation": test_id,
                 "test_case": test_case,
                 "execution_datetime": execution_datetime,
-                "versions": { "output_structure": config["output_structure_version"]},
+                "versions": { "output_structure": config["output_structure_version"], "test_case_content": test_case.get("content_version", 1) },
                 "run_config": {
                     "actor_model_string": config["actor_model_string"],
                     "actor_kwargs": config["actor_kwargs"],
