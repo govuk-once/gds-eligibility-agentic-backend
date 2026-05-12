@@ -96,7 +96,7 @@ def get_or_create_output_directory(
             config.get("test_case_file", "test_cases")
         )
         output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"STARTING NEW RUN: {output_dir.name}")
+        print(f"STARTING NEW RUN: {output_dir.relative_to(output_dir.parent.parent)}")
         return output_dir
 
     # Default resume (--resume with no folder name passed)
@@ -112,8 +112,9 @@ def get_or_create_output_directory(
         if not directories:
             raise FileNotFoundError("Cannot resume. No previous runs found.")
 
-        latest_dir = max(directories, key=lambda d: d.name)
-        print(f"RESUMING LATEST RUN: {latest_dir.name}")
+        latest_dir = max(directories, key=lambda d: d.name).joinpath(config["test_case_file"])
+        assert latest_dir.exists(), "You've probably changed the test_case_file since the run you're resuming"
+        print(f"RESUMING LATEST RUN: {latest_dir.relative_to(latest_dir.parent.parent)}")
         return latest_dir
 
     # Explicit resume (--resume specific_folder_name)
@@ -317,7 +318,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
             f"\nTest execution complete! Triggering deterministic evaluator for {output_dir.name}..."
         )
         try:
-            run_evaluation(output_dir.name)
+            run_evaluation(output_dir.parent.name)
             print("Evaluation complete. Summary report generated.")
         except Exception as e:
             print(f"Run finished, but evaluator failed to execute: {e}")
