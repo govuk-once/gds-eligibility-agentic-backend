@@ -30,6 +30,7 @@ config = {
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
     "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-factsBundle-v1.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
+    "test_case_file" : "uncertainty_cases",
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
@@ -93,9 +94,11 @@ def get_or_create_output_directory(
         model_short_name = get_short_model_name(config["eligibility_model_string"])
         output_dir = base_path.joinpath(
             f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}"
+        ).joinpath(
+            config.get("test_case_file", "test_cases")
         )
         output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"STARTING NEW RUN: {output_dir.name}")
+        print(f"STARTING NEW RUN: {output_dir.relative_to(output_dir.parent.parent)}")
         return output_dir
 
     # Default resume (--resume with no folder name passed)
@@ -111,8 +114,9 @@ def get_or_create_output_directory(
         if not directories:
             raise FileNotFoundError("Cannot resume. No previous runs found.")
 
-        latest_dir = max(directories, key=lambda d: d.name)
-        print(f"RESUMING LATEST RUN: {latest_dir.name}")
+        latest_dir = max(directories, key=lambda d: d.name).joinpath(config["test_case_file"])
+        assert latest_dir.exists(), "You've probably changed the test_case_file since the run you're resuming"
+        print(f"RESUMING LATEST RUN: {latest_dir.relative_to(latest_dir.parent.parent)}")
         return latest_dir
 
     # Explicit resume (--resume specific_folder_name)
@@ -189,7 +193,10 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
     output_dir = get_or_create_output_directory(
         resume_val, execution_datetime, git_commit
     )
-    test_cases = load_and_parse_test_cases(config["test_cohort"])
+    test_cases = load_and_parse_test_cases(
+        config["test_cohort"],
+        config["test_case_file"]
+    )
     if case_keys:
         found_cases = {}
         for test_case in test_cases:
@@ -225,7 +232,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
                 "permutation": test_id,
                 "test_case": test_case,
                 "execution_datetime": execution_datetime,
-                "versions": { "output_structure": config["output_structure_version"]},
+                "versions": { "output_structure": config["output_structure_version"], "test_case_content": test_case.get("content_version", 1) },
                 "run_config": {
                     "actor_model_string": config["actor_model_string"],
                     "actor_kwargs": config["actor_kwargs"],
@@ -314,7 +321,7 @@ async def main(case_keys: list[str], resume_val: str | None = None, n_cases: int
             f"\nTest execution complete! Triggering deterministic evaluator for {output_dir.name}..."
         )
         try:
-            run_evaluation(output_dir.name)
+            run_evaluation(output_dir.parent.name)
             print("Evaluation complete. Summary report generated.")
         except Exception as e:
             print(f"Run finished, but evaluator failed to execute: {e}")
@@ -512,10 +519,12 @@ async def execute_test_case(
                 json.dump(payload, output_file, indent=4)
 
 
-def load_and_parse_test_cases(test_cohort: str):
+def load_and_parse_test_cases(test_cohort: str, test_case_file_str: str | None):
 
+    if test_case_file_str is None:
+        test_case_file_str = "test_cases"
     test_case_file = Path(
-        f"../../prompts/structured_generation/{test_cohort}/test_cases.jsonl"
+        f"../../prompts/structured_generation/{test_cohort}/{test_case_file_str}.jsonl"
     )
 
     test_cases = []

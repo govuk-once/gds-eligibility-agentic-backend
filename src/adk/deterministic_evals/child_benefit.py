@@ -123,7 +123,7 @@ def run_evaluation(input_folder_path: str = None):
     total_duration_seconds = 0.0
     total_urls_read = 0
 
-    for json_file in target_dir.glob("*.conversation.json"):
+    for json_file in target_dir.glob("**/*.conversation.json"):
         with json_file.open("r") as f:
             data = json.load(f)
 
