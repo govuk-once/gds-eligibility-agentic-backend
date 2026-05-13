@@ -28,7 +28,7 @@ config = {
     "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-factsBundle-v1.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
+    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-factsBundle-v2.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
     "test_cohort": "child_benefit",
     #"test_case_file" : "uncertainty_cases",
     "test_case_file" : "test_cases",
