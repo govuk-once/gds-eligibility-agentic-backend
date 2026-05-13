@@ -22,7 +22,7 @@ from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline
 
 config = {
-    "hypothesis_name": "indeterminate_cases",
+    "hypothesis_name": "indeterminate_cases_prompts_dev",
     "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "actor_kwargs": { "temperature": 1.0 },
     "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
@@ -34,7 +34,7 @@ config = {
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
-    "url_tool_call_allowed": False, # if rules via URLs then should be True
+    "url_tool_call_allowed": True, # if rules via URLs then should be True
     "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
     "max_concurrent_cases": 15,
     # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
