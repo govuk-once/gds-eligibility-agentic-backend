@@ -97,7 +97,6 @@ def get_facts_bundle_pipeline(
     *args,
     **kwargs
 ):
-    # Instantiate the actor (the one that pretends to be the user)
     # Copy the production agent to create a system under test
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
