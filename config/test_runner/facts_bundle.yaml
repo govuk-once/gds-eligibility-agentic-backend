@@ -1,0 +1,28 @@
+hypothesis_name: "facts_bundle"
+actor_model_string: "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+actor_kwargs:
+    temperature: 1.0
+eligibility_model_string: "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+#  eligibility_model_string: "eu.anthropic.claude-opus-4-5-20251101-v1:0",
+actor_prompt: "agents/Ancillary/Actor-Indeterminacy-v2.md"
+eligibility_prompt: "agents/TechnicalHypotheses/Accuracy-ChildBenefit-factsBundle-v2.md" # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
+test_cohort: "child_benefit"
+#test_case_file: "uncertainty_cases",
+test_case_file: "test_cases"
+output_path: "analysis/testOutputs"
+app_name: "evaluation_judge"
+app_user_id: "test_user"
+url_tool_call_allowed: False # if rules via URLs then should be True
+eligibility_agent: "gds_eligibility" # alternative is "structured_specification"
+max_concurrent_cases: 15
+# 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
+# 30 is too many.
+# For Opus the requests/min are 10k and tokens/min 2m
+# 20 is too many for Opus. 15 seems OK.
+# other models may vary.
+# check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
+max_retries: 3
+base_delay: 5  # seconds (if request fails)
+output_structure_version: 2 # Version of transcript structure
+# pipeline_name: "conversation_pipeline"
+pipeline_name: "facts_bundle_pipeline"

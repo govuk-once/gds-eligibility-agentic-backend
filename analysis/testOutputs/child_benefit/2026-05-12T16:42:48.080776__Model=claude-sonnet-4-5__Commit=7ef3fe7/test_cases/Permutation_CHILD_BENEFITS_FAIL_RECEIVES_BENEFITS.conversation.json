@@ -1,0 +1,230 @@
+{
+    "case_id": "CHILD_BENEFITS_FAIL_RECEIVES_BENEFITS",
+    "meta": {
+        "permutation": 41,
+        "test_case": {
+            "case_id": "CHILD_BENEFITS_FAIL_RECEIVES_BENEFITS",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 18
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": true
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": true
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 18 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 18 and in approved education\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child receives qualifying benefits (e.g. UC, ESA) in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Child receives qualifying benefits (e.g. UC, ESA) in their own right",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 18 and in approved education",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child receives qualifying benefits (e.g. UC, ESA) in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-05-12T16:42:48.080776",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "7ef3fe7",
+            "hypothesis_name": "facts_bundle",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-factsBundle-v1.md",
+            "test_set_size": 99,
+            "url_tool_call_allowed": true,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "facts_bundle_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 10394,
+        "total_completion_tokens": 806,
+        "total_overall_tokens": 11200,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 10394,
+                "completion_tokens": 806,
+                "total": 11200
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 18.89
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-05-12T16:44:03.124391",
+            "author": "eligibility_agent",
+            "text": "I'll help you determine if you're eligible for Child Benefit for Alex. Let me first review the official eligibility rules from the UK government website."
+        },
+        {
+            "timestamp": "2026-05-12T16:44:12.689238",
+            "author": "eligibility_agent",
+            "text": "Now I'll analyze your eligibility for Child Benefit for Alex based on the official rules."
+        },
+        {
+            "timestamp": "2026-05-12T16:44:18.593605",
+            "author": "eligibility_agent",
+            "text": "**I'm sorry, but you are not eligible for Child Benefit for Alex.**\n\nHere's why:\n\nWhile Alex is 18 years old and in approved education (which would normally allow you to continue receiving Child Benefit until they turn 20), there's a specific rule that disqualifies you:\n\n**The official gov.uk guidance states that you'll stop getting Child Benefit if your child \"starts getting certain benefits, such as Employment and Support Allowance or Universal Credit\" in their own right.**\n\nSince Alex receives qualifying benefits (Universal Credit or ESA) in their own right, this rule takes precedence over the age and education provisions. The fact that Alex receives these benefits means that Child Benefit payments cannot be made for them, even though they're still in education and living with you.\n\nIf Alex's circumstances change in the future (for example, if they stop receiving benefits in their own right), you may want to contact the Child Benefit Office to reassess your eligibility."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-05-12T16:44:03.124386",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit/eligibility"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-05-12T16:44:03.124388",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-child-lives-with-someone-else"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-05-12T16:44:03.124389",
+            "tool_name": "read_webpage",
+            "arguments": {
+                "url": "https://www.gov.uk/child-benefit-for-children-in-hospital-or-care"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-05-12T16:44:12.689230",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    "INELIGIBLE"
+                ],
+                "reasonings": [
+                    "According to the gov.uk eligibility rules, you'll stop getting Child Benefit if your child 'starts getting certain benefits, such as Employment and Support Allowance or Universal Credit' in their own right. Alex is 18 years old and is receiving qualifying benefits (such as Universal Credit or ESA) in their own right. Although Alex is in approved education and lives with you - which would normally allow Child Benefit to continue until age 20 - the fact that Alex receives benefits in their own right means Child Benefit ends. This rule takes precedence over the age and education provisions. Therefore, you are ineligible for Child Benefit for Alex."
+                ],
+                "overall_reasoning": "The claimant lives in the UK with their 18-year-old child Alex who is in approved education. While these circumstances would normally qualify for Child Benefit (as children under 20 in approved education are eligible), Alex receives qualifying benefits such as Universal Credit or ESA in their own right. According to the official Child Benefit rules, this disqualifies the claimant from receiving Child Benefit, as benefit payments stop when a child starts receiving certain benefits in their own right."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INELIGIBLE",
+                "reasoning": "According to the gov.uk eligibility rules, you'll stop getting Child Benefit if your child 'starts getting certain benefits, such as Employment and Support Allowance or Universal Credit' in their own right. Alex is 18 years old and is receiving qualifying benefits (such as Universal Credit or ESA) in their own right. Although Alex is in approved education and lives with you - which would normally allow Child Benefit to continue until age 20 - the fact that Alex receives benefits in their own right means Child Benefit ends. This rule takes precedence over the age and education provisions. Therefore, you are ineligible for Child Benefit for Alex."
+            }
+        },
+        "overall_reasoning": "The claimant lives in the UK with their 18-year-old child Alex who is in approved education. While these circumstances would normally qualify for Child Benefit (as children under 20 in approved education are eligible), Alex receives qualifying benefits such as Universal Credit or ESA in their own right. According to the official Child Benefit rules, this disqualifies the claimant from receiving Child Benefit, as benefit payments stop when a child starts receiving certain benefits in their own right."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": true,
+            "granular": {
+                "Alex": true
+            }
+        }
+    }
+}

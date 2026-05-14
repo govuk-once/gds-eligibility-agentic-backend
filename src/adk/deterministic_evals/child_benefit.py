@@ -159,14 +159,13 @@ def run_evaluation(input_folder_path: str = None):
         total_urls_read += len(urls_read)
 
         # Find the final judgement tool call in the activity log
-        judgement_call = next(
-            (
-                activity
-                for activity in tool_activity
-                if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
-            ),
-            None
-        )
+        judgement_calls = [
+            activity
+            for activity in tool_activity
+            if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
+        ]
+        assert len(judgement_calls) < 2, f"Multiple Judgement calls detected in {case_id}"
+        judgement_call = judgement_calls[0] if len(judgement_calls) == 1 else None
 
         # Guard against cases where the agent crashed or failed to call the tool
         if not judgement_call or "arguments" not in judgement_call:

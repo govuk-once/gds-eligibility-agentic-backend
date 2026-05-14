@@ -2,6 +2,8 @@ import requests
 from urllib.parse import urlparse
 from html.parser import HTMLParser
 
+from google.adk.tools.tool_context import ToolContext
+
 
 class SafeTextExtractor(HTMLParser):
     """
@@ -33,7 +35,7 @@ class SafeTextExtractor(HTMLParser):
         return " ".join(self.text_chunks)
 
 
-def read_webpage(url: str, max_chars: int = 15_000) -> dict:
+def read_webpage(url: str, tool_context: ToolContext, max_chars: int = 15_000) -> dict:
     """
     Fetches and extracts the readable text from a webpage.
     Call this tool ONLY when you need to read specific rules or guidance from a URL.
@@ -50,7 +52,8 @@ def read_webpage(url: str, max_chars: int = 15_000) -> dict:
             "error": f"Security restriction: URL domain '{hostname}' is not allowed. Only gov.uk domains are permitted."
         }
 
-    print(f"  [Tool Call] read_webpage triggered for URL: {url}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}>  [Tool Call] read_webpage triggered for URL: {url}")
 
     try:
         response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})

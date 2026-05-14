@@ -40,7 +40,8 @@ def eligibility_judgement_outcome(
         reasonings: A list of step-by-step reasoning explaining the rules for each child. MUST be in the exact same order as child_names.
         overall_reasoning: A brief summary of the family's total situation.
     """
-    print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}>  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
 
 

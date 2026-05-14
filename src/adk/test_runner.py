@@ -20,8 +20,7 @@ from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
 
 from deterministic_evals.child_benefit import run_evaluation
-from evaluation_judge.agent import get_conversation_pipeline
-
+from evaluation_judge.agent import get_conversation_pipeline, get_facts_bundle_pipeline
 
 @dataclass
 class Config(YAMLWizard):
@@ -42,6 +41,7 @@ class Config(YAMLWizard):
     max_retries: int
     base_delay: int # seconds (if request fails)
     output_structure_version: int # Version of transcript structure
+    pipeline_name: str
 
 
 def get_short_model_name(model_string: str) -> str:
@@ -164,7 +164,7 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
         pass  # File is half-written and corrupted
 
     if is_complete:
-        print(f"Skipping {case_name} (Already complete)")
+        print(f"Skipping {case_name} <{data['case_id']}> (Already complete)")
         return True
 
     # If we get here, the file exists but crashed/timed out before finishing the task
@@ -246,6 +246,7 @@ async def main(config_name: str, case_keys: list[str], resume_val: str | None = 
                     "test_set_size": len(test_cases),
                     "url_tool_call_allowed": config.url_tool_call_allowed,
                     "max_concurrent_cases": config.max_concurrent_cases,
+                    "pipeline_name": config.pipeline_name,
                 },
             }
 
@@ -256,7 +257,7 @@ async def main(config_name: str, case_keys: list[str], resume_val: str | None = 
                     artifact_service = InMemoryArtifactService()
                     credential_service = InMemoryCredentialService()
 
-                    print(f"▶️ Starting {case_name}...")
+                    print(f"▶️ Starting {case_name} <{test_id}>...")
                     await execute_test_case(
                         config,
                         test_id,
@@ -296,17 +297,17 @@ async def main(config_name: str, case_keys: list[str], resume_val: str | None = 
                                 config.base_delay * (2**attempt)
                             ) + random.uniform(0, 1)
                             print(
-                                f"⚠️ Rate limited on {case_name}. Retrying in {sleep_time:.1f}s..."
+                                f"⚠️ Rate limited on {case_name} <{test_id}>. Retrying in {sleep_time:.1f}s..."
                             )
                             await asyncio.sleep(sleep_time)
                         else:
                             print(
-                                f"❌ Failed {case_name} after {config.max_retries} attempts due to rate limits."
+                                f"❌ Failed {case_name} <{test_id}> after {config.max_retries} attempts due to rate limits."
                             )
                             raise e
                     else:
                         # If it's a normal code bug or framework error, crash so we can fix it
-                        print(f"❌ Fatal Error in {case_name}: {e}")
+                        print(f"❌ Fatal Error in {case_name} <{test_id}>: {e}")
                         raise e
 
     # This prepares all cases, and the semaphore above ensures only config.max_concurrent_cases run at once
@@ -384,23 +385,27 @@ async def execute_test_case(
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
     https://github.com/google/adk-python/blob/32f2ec3a78c4ef8475b7d8a630705e4cf5ccbe50/src/google/adk/cli/cli.py#L88
     """
-
+    pipeline = globals()["get_" + config.pipeline_name]
     app = App(
         name=config.app_name,
-        root_agent=get_conversation_pipeline(
-            test_case["agent_script"],
-            config.actor_model_string,
-            config.actor_kwargs,
-            config.eligibility_model_string,
-            config.actor_prompt,
-            config.eligibility_prompt,
-            config.eligibility_agent,
-            config.url_tool_call_allowed,
+        root_agent=pipeline(
+            situation_profile=test_case["agent_script"],
+            actor_model=config.actor_model_string,
+            actor_kwargs=config.actor_kwargs,
+            eligibility_model=config.eligibility_model_string,
+            actor_prompt_path=config.actor_prompt,
+            eligibility_prompt=config.eligibility_prompt,
+            eligibility_agent=config.eligibility_agent,
+            url_tool_call_allowed=config.url_tool_call_allowed,
         ),
     )
 
     session = await session_service.create_session(
-        app_name=config.app_name, user_id=config.app_user_id
+        app_name=config.app_name,
+        user_id=config.app_user_id,
+        state={
+            "case_id": test_id
+        },
     )
     runner = Runner(
         app=app,
