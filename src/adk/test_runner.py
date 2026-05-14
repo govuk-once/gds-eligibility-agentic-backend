@@ -35,7 +35,7 @@ config = {
     "output_path": "analysis/testOutputs",
     "app_name": "evaluation_judge",
     "app_user_id": "test_user",
-    "url_tool_call_allowed": True, # if rules via URLs then should be True
+    "url_tool_call_allowed": False, # if rules via URLs then should be True
     "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
     "max_concurrent_cases": 15,
     # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
