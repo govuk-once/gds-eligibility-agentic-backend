@@ -29,7 +29,6 @@ class Config(YAMLWizard):
     actor_model_string: str
     actor_kwargs: dict
     eligibility_model_string: str
-    #  "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
     actor_prompt: str
     eligibility_prompt: str
     test_cohort: str
@@ -38,14 +37,8 @@ class Config(YAMLWizard):
     app_name: str
     app_user_id: str
     url_tool_call_allowed: bool # if rules via URLs then should be True
-    eligibility_agent: str # alternative is "structured_specification
+    eligibility_agent: str
     max_concurrent_cases: int
-    # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
-    # 30 is too many.
-    # For Opus the requests/min are 10k and tokens/min 2m
-    # 20 is too many for Opus. 15 seems OK.
-    # other models may vary.
-    # check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
     max_retries: int
     base_delay: int # seconds (if request fails)
     output_structure_version: int # Version of transcript structure
@@ -95,7 +88,7 @@ def get_or_create_output_directory(
         output_dir = base_path.joinpath(
             f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}"
         ).joinpath(
-            getattr(config, "test_case_file", "test_cases")
+            config.test_case_file
         )
         output_dir.mkdir(parents=True, exist_ok=True)
         print(f"STARTING NEW RUN: {output_dir.relative_to(output_dir.parent.parent)}")
@@ -251,7 +244,7 @@ async def main(config_name: str, case_keys: list[str], resume_val: str | None = 
                     "actor_prompt": config.actor_prompt,
                     "eligibility_prompt": config.eligibility_prompt,
                     "test_set_size": len(test_cases),
-                    "url_tool_call_allowed": getattr(config, "url_tool_call_allowed", True),
+                    "url_tool_call_allowed": config.url_tool_call_allowed,
                     "max_concurrent_cases": config.max_concurrent_cases,
                 },
             }
@@ -402,7 +395,7 @@ async def execute_test_case(
             config.actor_prompt,
             config.eligibility_prompt,
             config.eligibility_agent,
-            getattr(config, "url_tool_call_allowed", True),
+            config.url_tool_call_allowed,
         ),
     )
 
