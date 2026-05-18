@@ -1,11 +1,13 @@
 import re
+import json
+from collections.abc import Mapping
+from typing import Any
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
 import pandas as pd
 from IPython.display import display
 from pathlib import Path
-import json
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
-from collections.abc import Mapping
 
 # This is where we'll want to add something like "Structured rules"
 PROMPT_MAPPING = {
@@ -37,11 +39,13 @@ def get_short_model_name(model_string: str) -> str:
     # Stitch it back together
     return "-".join(clean_parts)
 
+
 def extract_prompt_version(prompt_name: str) -> str:
     match = re.search(r"v\d+(?:\.\d+)?", str(prompt_name))
     return match.group(0) if match else "v?"
 
-def get_nice_prompt_name(prompt_string: str, prompt_mapping: dict) -> str:
+
+def get_nice_prompt_name(prompt_string: str, prompt_mapping: dict[str, Any]) -> tuple[str, Any]:
     if not isinstance(prompt_string, str):
         return "Unknown"
     file_name = prompt_string.split("/")[-1]
@@ -116,6 +120,7 @@ def create_df_runs(
     display(df_runs["config_key"].value_counts().to_frame("Count"))
 
     return df_runs
+
 
 def apply_presentation_theme(
     fig: plt.Figure,
@@ -222,7 +227,8 @@ def apply_presentation_theme(
 
     return fig
 
-def flatten_run_row_children(row) -> list[dict]:
+
+def flatten_run_row_children(row) -> list[dict[str, Any]]:
     """
     Extracts data at the child-level.
     A case with 3 children will return 3 dictionaries.
