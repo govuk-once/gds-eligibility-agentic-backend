@@ -14,7 +14,8 @@ PROMPT_MAPPING = {
     "Accuracy-ChildBenefit-structuredOutput-v2.md": "Rules via URLs",
     "Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md": "Training data only",
     "Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md": "Free text rules",
-    "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec"
+    "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec",
+    "Accuracy-ChildBenefit-indeterminacy-v3.md": "Combined indeterminacy cohort"
 }
 
 
@@ -53,6 +54,7 @@ def get_nice_prompt_name(prompt_string: str, prompt_mapping: dict[str, Any]) -> 
 
 
 def create_df_runs(
+    hypothesis_to_filter: str|None = None,
     test_cohort: str = "child_benefit", drop_unknown_prompt: bool = True
 ) -> pd.DataFrame:
     reports_dir = Path(f"testOutputs/{test_cohort}/eval_reports")
@@ -79,6 +81,7 @@ def create_df_runs(
                     "prompt": config.get("eligibility_prompt", "unknown"),
                     "url_allowed": config.get("url_tool_call_allowed", True),
                     "commit": config.get("commit", "unknown"),
+                    "hypothesis_name": config.get("hypothesis_name", "unknown"),
                     "results": cases.get(
                         "results", cases
                     ),  # Handles nested (old style) or flat cases dict
@@ -90,6 +93,8 @@ def create_df_runs(
     # From before we recorded the prompt in this way and have different shaped output
     if drop_unknown_prompt:
         df_runs = (df_runs[df_runs["prompt"] != "unknown"]).reset_index()
+    if hypothesis_to_filter:
+        df_runs = (df_runs[df_runs["hypothesis_name"] == hypothesis_to_filter]).reset_index()
 
     # Create some slightly shorter/nicer names for plotting/tables
     df_runs[["prompt_name", "prompt_type"]] = (
