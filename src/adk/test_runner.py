@@ -43,6 +43,7 @@ class Config(YAMLWizard):
     base_delay: int # seconds (if request fails)
     output_structure_version: int # Version of transcript structure
     pipeline_name: str
+    template_kwargs: dict
 
     def __getitem__(self, attrname: str, default: Any=None) -> Any:
         if hasattr(self, attrname):

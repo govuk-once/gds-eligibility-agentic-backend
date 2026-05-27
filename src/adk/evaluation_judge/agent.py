@@ -33,12 +33,11 @@ def get_structured_prompt(rel_path: str, **kwargs) -> str:
 
     for key, val in template["promptTemplate"]["kwargs"]["dynamic"].items():
         components = val.split(".")
-        assert len(components) <= 2, "we don't handle nesting yet..."
-        if len(components) > 1:
-            prompt_kwargs[key] = kwargs[components[0]][components[1]]
-        else:
-            prompt_kwargs[key] = kwargs[components[0]]
-    return template["promptTemplate"]["string"].format(**prompt_kwargs)
+        value = kwargs[components.pop(0)]
+        while len(components) > 0:
+            value = value[components.pop(0)]
+        prompt_kwargs[key] = value
+    return template["promptTemplate"]["topLevel"].format(**prompt_kwargs)
 
 
 def get_unstructured_prompt(rel_path: str, **kwargs) -> str:
@@ -46,6 +45,7 @@ def get_unstructured_prompt(rel_path: str, **kwargs) -> str:
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
     prompt_string = "\n".join(prompt_lines)
+    # TODO this clause will now be broken
     if kwargs:
         for format_key in kwargs.keys():
             # str.format() will fail silently if args/kwargs are not present in the string templating syntax
