@@ -175,9 +175,11 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
 
 def get_config(config_name: str) -> Config:
     # This can be Config|list[Config] wheret the latter breaks further checks
-    return Config.from_yaml_file( #  pyright:ignore[reportReturnType]
+    config: Config = Config.from_yaml_file( #  pyright:ignore[reportAssignmentType]
         f"../../config/test_runner/{config_name}.yaml"
     )
+    assert config.hypothesis_name == config_name, "Please keep config name and hypothesis name synonymous for now, pending later refactor"
+    return config
 
 
 async def main(config_name: str, case_keys: list[str], resume_val: str | None = None, n_cases: int | None = None):
@@ -560,7 +562,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "config_name",
-        help="Name of the config, looked up in the ./config/test_runner/ directory omit the the '.yaml' extension"
+        help="Name of the config, looked up in the ./config/test_runner/ directory omit the the '.yaml' extension",
+        choices=[path.stem for path in Path(__file__).absolute().parents[2].joinpath("config/test_runner").glob("*.yaml")],
     )
 
     parser.add_argument(
