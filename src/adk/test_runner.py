@@ -7,6 +7,7 @@ from pathlib import Path
 import argparse
 import random
 from dataclasses import dataclass
+from typing import Any
 
 from dataclass_wizard import YAMLWizard
 from google.genai import types
@@ -42,6 +43,15 @@ class Config(YAMLWizard):
     base_delay: int # seconds (if request fails)
     output_structure_version: int # Version of transcript structure
     pipeline_name: str
+
+    def __getitem__(self, attrname: str, default: Any=None) -> Any:
+        if hasattr(self, attrname):
+            return getattr(self, attrname)
+        elif default:
+            return default
+        else:
+            raise AttributeError(f"{self} has no attribute {attrname}, and no default was provided")
+
 
 
 def get_short_model_name(model_string: str) -> str:
@@ -399,6 +409,7 @@ async def execute_test_case(
             eligibility_prompt=config.eligibility_prompt,
             eligibility_agent=config.eligibility_agent,
             url_tool_call_allowed=config.url_tool_call_allowed,
+            config=config
         ),
     )
 

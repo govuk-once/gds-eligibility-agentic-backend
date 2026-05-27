@@ -2,6 +2,7 @@ from copy import deepcopy
 import os
 from pathlib import Path
 from typing import Any
+import yaml
 
 from google.adk.agents import LoopAgent, SequentialAgent
 from google.adk.agents.llm_agent import Agent
@@ -16,6 +17,31 @@ prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
 
 def get_prompt(rel_path: str, **kwargs) -> str:
+    if rel_path.endswith(".yaml"):
+        return get_structured_prompt(rel_path, **kwargs)
+    elif rel_path.endswith(".md"):
+        return get_unstructured_prompt(rel_path, **kwargs)
+    else:
+        raise RuntimeError(f"Prompt path {rel_path} has an invalid extension")
+
+
+def get_structured_prompt(rel_path: str, **kwargs) -> str:
+    prompt_path = Path(prompts_dir).joinpath(rel_path)
+    with prompt_path.open() as f:
+        template = yaml.load(f, Loader=yaml.SafeLoader)
+    prompt_kwargs = template["promptTemplate"]["kwargs"]["static"]
+
+    for key, val in template["promptTemplate"]["kwargs"]["dynamic"].items():
+        components = val.split(".")
+        assert len(components) <= 2, "we don't handle nesting yet..."
+        if len(components) > 1:
+            prompt_kwargs[key] = kwargs[components[0]][components[1]]
+        else:
+            prompt_kwargs[key] = kwargs[components[0]]
+    return template["promptTemplate"]["string"].format(**prompt_kwargs)
+
+
+def get_unstructured_prompt(rel_path: str, **kwargs) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
@@ -101,7 +127,7 @@ def get_facts_bundle_pipeline(
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
-    agent_under_test.instruction = get_prompt(eligibility_prompt) + "\n" + situation_profile
+    agent_under_test.instruction = get_prompt(eligibility_prompt, **kwargs) + "\n" + situation_profile
     if not url_tool_call_allowed:
         agent_under_test.tools = [
             t for t in agent_under_test.tools
@@ -124,7 +150,8 @@ def get_conversation_pipeline(
     actor_prompt_path: str,
     eligibility_prompt: str,
     eligibility_agent: str,
-    url_tool_call_allowed: bool = True
+    url_tool_call_allowed: bool = True,
+    **kwargs
 ):
     # Instantiate the actor (the one that pretends to be the user)
     actor = Agent(
@@ -142,7 +169,7 @@ def get_conversation_pipeline(
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
-    agent_under_test.instruction = get_prompt(eligibility_prompt)
+    agent_under_test.instruction = get_prompt(eligibility_prompt, **kwargs)
     if not url_tool_call_allowed:
         agent_under_test.tools = [
             t for t in agent_under_test.tools
