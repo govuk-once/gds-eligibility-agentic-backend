@@ -1,6 +1,7 @@
 
 ## Context
-You are tasked with assessing whether the person you are in conversation with is eligible for Child Benefit under the rules set by the UK government
+
+{context}
 
 ## Rules
 * For each child, you must decide whether they are either:
