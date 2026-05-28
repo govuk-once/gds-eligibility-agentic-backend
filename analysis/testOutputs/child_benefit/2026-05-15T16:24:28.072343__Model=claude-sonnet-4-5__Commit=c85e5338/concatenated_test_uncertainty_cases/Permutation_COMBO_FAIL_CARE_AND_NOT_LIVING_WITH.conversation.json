@@ -1,0 +1,306 @@
+{
+    "case_id": "COMBO_FAIL_CARE_AND_NOT_LIVING_WITH",
+    "meta": {
+        "permutation": 48,
+        "test_case": {
+            "case_id": "COMBO_FAIL_CARE_AND_NOT_LIVING_WITH",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 8
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": false
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 10.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 12
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 8 years old and does not live with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 8 (under 16)\n  - Child does not live with claimant and weekly upkeep is(\u00a310.00)\n  - Child in local authority care for 12 weeks and does not spend 24+ hours/week at home\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Child does not live with claimant and weekly upkeep is(\u00a310.00); Child in local authority care for 12 weeks and does not spend 24+ hours/week at home",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 8 (under 16)",
+                        "Child does not live with claimant and weekly upkeep is(\u00a310.00)",
+                        "Child in local authority care for 12 weeks and does not spend 24+ hours/week at home",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-05-15T16:24:28.072343",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "c85e5338",
+            "hypothesis_name": "indeterminacy_concat_cases_reruns",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "agents/Ancillary/Actor-Indeterminacy-v2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-indeterminacy-v3.md",
+            "test_set_size": 199,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "conversation_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 80754,
+        "total_completion_tokens": 2322,
+        "total_overall_tokens": 83076,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 54168,
+                "completion_tokens": 2000,
+                "total": 56168
+            },
+            "actor": {
+                "prompt_tokens": 26586,
+                "completion_tokens": 322,
+                "total": 26908
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 74.6
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-05-15T16:26:18.152254",
+            "author": "eligibility_agent",
+            "text": "I'd be happy to help you determine if you're eligible for Child Benefit. To assess your eligibility, I'll need to ask you some questions.\n\nLet's start with the basics:\n\n**Do you have any children, and if so, how many children are you inquiring about?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:26:19.819890",
+            "author": "actor",
+            "text": "Hi, yes, I'm asking about my son Alex. He's 8 years old."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:21.753325",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. So you're inquiring about your son Alex, who is 8 years old.\n\nLet me ask you a few questions to assess your eligibility:\n\n**Do you currently live in the UK?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:26:23.409866",
+            "author": "actor",
+            "text": "Yes, I live in the UK."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:25.901017",
+            "author": "eligibility_agent",
+            "text": "Great, thank you. Now I need to understand your relationship with Alex:\n\n**Do you live with Alex, or if not, do you contribute at least the same amount as Child Benefit would be (or equivalent support) towards his care - such as for food, clothes, or pocket money?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:26:28.043417",
+            "author": "actor",
+            "text": "No, Alex doesn't live with me. But I do help out - I give about \u00a310 a week towards his things."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:30.921851",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. To assess whether your contributions are sufficient, I need to know a bit more:\n\n**Is anyone else currently claiming Child Benefit for Alex (for example, the person he lives with)?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:26:32.941092",
+            "author": "actor",
+            "text": "I'm not sure if anyone else is claiming for him or not."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:36.462807",
+            "author": "eligibility_agent",
+            "text": "That's okay. Let me ask you this:\n\n**Who does Alex live with currently, and what is your relationship to Alex (are you his parent, legal guardian, or another relation)?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:26:38.186893",
+            "author": "actor",
+            "text": "Alex lives with his other parent - my ex-partner. I'm his parent."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:42.782001",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying. Now, to properly assess your eligibility, I need to understand more about your contribution. You mentioned you give about \u00a310 a week towards Alex's things.\n\n**Can you tell me what the current weekly Child Benefit rate is, or do you know if your \u00a310 per week contribution is at least equal to what Child Benefit would pay for one child?**\n\nFor context, to qualify for Child Benefit when you don't live with your child, you need to be contributing at least the same amount as Child Benefit pays (or equivalent support in kind) towards looking after them."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:45.295904",
+            "author": "actor",
+            "text": "I don't know what the Child Benefit rate is, to be honest. I just give the \u00a310 a week to help with his clothes and things like that."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:49.067040",
+            "author": "eligibility_agent",
+            "text": "Thank you for being honest about that. Let me help clarify the situation for you.\n\nBased on the rules, only one person can claim Child Benefit for a child. To be eligible when you don't live with your child, you need to be paying at least the same amount as Child Benefit (or the equivalent in kind) towards looking after them - for example, on food, clothes, or pocket money.\n\nSince you're not sure of the current Child Benefit rate, and you don't know if anyone else (like your ex-partner who Alex lives with) is already claiming Child Benefit for Alex, I have a couple more questions:\n\n**Are you making these \u00a310 weekly payments under a court order or formal maintenance agreement, or are these informal voluntary contributions?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:26:51.729493",
+            "author": "actor",
+            "text": "These are just informal contributions - there's no court order or formal agreement. I just help out when I can with what he needs."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:55.058562",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. Let me ask one more important question:\n\n**Would you be able to find out from your ex-partner whether they are currently claiming Child Benefit for Alex?**\n\nThis is important because only one person can claim Child Benefit for the same child, and typically the person the child lives with would be the one claiming. If your ex-partner is already claiming, you wouldn't be eligible to claim for Alex as well."
+        },
+        {
+            "timestamp": "2026-05-15T16:26:57.646654",
+            "author": "actor",
+            "text": "I can try to find out, but we don't really communicate that well. Is there any other way to check, or can you tell me what happens if they are claiming?"
+        },
+        {
+            "timestamp": "2026-05-15T16:27:02.790842",
+            "author": "eligibility_agent",
+            "text": "I understand that communication can be difficult. Unfortunately, I don't have a way to check for you whether your ex-partner is claiming - you would need to contact the Child Benefit Office directly to inquire about that.\n\nHowever, let me explain the situation based on what you've told me:\n\n**The key points are:**\n- Only one person can get Child Benefit for Alex\n- Alex lives with your ex-partner (his other parent)\n- You contribute \u00a310 per week informally towards his care\n- You don't know the current Child Benefit rate or if your contributions meet or exceed that amount\n- You're uncertain whether your ex-partner is already claiming\n\nGiven this situation, let me ask one final question to complete my assessment:\n\n**If you were to find out that your ex-partner is NOT claiming Child Benefit for Alex, would you be able and willing to increase your contributions to at least match the Child Benefit rate (if \u00a310 per week is less than that rate)?**"
+        },
+        {
+            "timestamp": "2026-05-15T16:27:05.810319",
+            "author": "actor",
+            "text": "I mean, I'm not sure I could afford more than what I'm giving now. The \u00a310 a week is what I can manage at the moment. But are you saying that if my ex isn't claiming, I might be able to get it? What exactly is the rate anyway?"
+        },
+        {
+            "timestamp": "2026-05-15T16:27:10.644695",
+            "author": "eligibility_agent",
+            "text": "I understand your financial constraints. Let me be clear about the situation:\n\nI don't have access to the specific current Child Benefit rates, as these can change. However, the rule is that to qualify for Child Benefit when you don't live with your child, you must be contributing **at least the same amount as the Child Benefit payment** (or equivalent in kind) towards their upkeep.\n\nBased on what you've told me:\n- You contribute \u00a310 per week informally\n- You're not certain if this meets the Child Benefit threshold\n- You don't know if your ex-partner is claiming\n- You may not be able to afford to contribute more\n\nLet me ask you this final clarifying question:\n\n**Are you interested in potentially claiming Child Benefit for Alex yourself, or are you asking whether you might already be considered eligible based on your current \u00a310 weekly contributions?**\n\nThis will help me provide you with the most accurate assessment of your situation."
+        },
+        {
+            "timestamp": "2026-05-15T16:27:13.092308",
+            "author": "actor",
+            "text": "I'm asking if I'm eligible based on what I'm doing now - the \u00a310 a week I'm already giving. I'd like to claim it if I can, but I want to know if I qualify as things stand."
+        },
+        {
+            "timestamp": "2026-05-15T16:27:25.521398",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying. Based on all the information you've provided, I now have enough to assess your eligibility for Child Benefit for Alex.\n\nLet me explain the situation:\n\n**The key issue is this:** You don't live with Alex, so to be eligible for Child Benefit, you would need to be contributing at least the same amount as Child Benefit pays (or equivalent support) towards his care. You're contributing \u00a310 per week, but you don't know what the current Child Benefit rate is, and therefore cannot confirm whether your \u00a310 per week meets or exceeds that threshold.\n\nAdditionally, only one person can claim Child Benefit for the same child. Since Alex lives with your ex-partner, they would typically be the person claiming. You've indicated you don't know whether your ex-partner is currently claiming Child Benefit for Alex.\n\n**Without knowing:**\n1. Whether your \u00a310 weekly contribution meets the Child Benefit rate threshold, and\n2. Whether someone else is already claiming for Alex\n\nI cannot definitively determine your eligibility. Your situation falls into a category where there is insufficient information to make a definite assessment of eligibility."
+        },
+        {
+            "timestamp": "2026-05-15T16:27:30.665402",
+            "author": "eligibility_agent",
+            "text": "**My Assessment: INDETERMINATE**\n\nI'm unable to definitively determine your eligibility for Child Benefit for Alex based on the information available. Here's why:\n\n**What would help clarify your eligibility:**\n1. **Find out the current Child Benefit rate** - You can check this on the gov.uk website or by contacting the Child Benefit Office\n2. **Confirm whether your ex-partner is already claiming** - Contact the Child Benefit Office directly, as they can help you with this\n\n**Next steps if you want to pursue this:**\n- Contact the Child Benefit Office directly to discuss your specific circumstances\n- They can tell you the current rates and check if anyone else is claiming for Alex\n- They can advise you on whether your \u00a310 weekly contribution would qualify you for Child Benefit\n\nThe Child Benefit Office will be able to give you definitive guidance based on your exact situation and the current benefit rates."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-05-15T16:27:25.521389",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    "INDETERMINATE"
+                ],
+                "reasonings": [
+                    "Alex is 8 years old and lives with his other parent (the claimant's ex-partner). The claimant contributes \u00a310 per week informally towards Alex's upkeep (clothes and other items). To be eligible for Child Benefit when not living with the child, the claimant must contribute at least the same amount as Child Benefit pays towards the child's care. However, the claimant does not know the current Child Benefit rate and cannot confirm whether the \u00a310 weekly contribution meets this threshold. Additionally, only one person can claim Child Benefit for a child, and it's unknown whether the ex-partner (with whom Alex lives) is already claiming. Without knowing (1) whether the contribution meets the Child Benefit threshold, and (2) whether another person is already claiming, it's not possible to make a definitive determination of eligibility."
+                ],
+                "overall_reasoning": "The claimant is a UK resident parent asking about Child Benefit for their 8-year-old son Alex, who lives with the claimant's ex-partner. The claimant contributes \u00a310 weekly towards Alex's care but doesn't live with him. Eligibility is indeterminate because: (1) it's unclear if the \u00a310 weekly contribution meets the minimum threshold (must equal Child Benefit rate), and (2) it's unknown if the ex-partner is already claiming, which would preclude the claimant from claiming since only one person can receive Child Benefit per child. The claimant lacks sufficient information to establish definitive eligibility."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INDETERMINATE",
+                "reasoning": "Alex is 8 years old and lives with his other parent (the claimant's ex-partner). The claimant contributes \u00a310 per week informally towards Alex's upkeep (clothes and other items). To be eligible for Child Benefit when not living with the child, the claimant must contribute at least the same amount as Child Benefit pays towards the child's care. However, the claimant does not know the current Child Benefit rate and cannot confirm whether the \u00a310 weekly contribution meets this threshold. Additionally, only one person can claim Child Benefit for a child, and it's unknown whether the ex-partner (with whom Alex lives) is already claiming. Without knowing (1) whether the contribution meets the Child Benefit threshold, and (2) whether another person is already claiming, it's not possible to make a definitive determination of eligibility."
+            }
+        },
+        "overall_reasoning": "The claimant is a UK resident parent asking about Child Benefit for their 8-year-old son Alex, who lives with the claimant's ex-partner. The claimant contributes \u00a310 weekly towards Alex's care but doesn't live with him. Eligibility is indeterminate because: (1) it's unclear if the \u00a310 weekly contribution meets the minimum threshold (must equal Child Benefit rate), and (2) it's unknown if the ex-partner is already claiming, which would preclude the claimant from claiming since only one person can receive Child Benefit per child. The claimant lacks sufficient information to establish definitive eligibility."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": false,
+            "granular": {
+                "Alex": false
+            }
+        }
+    }
+}

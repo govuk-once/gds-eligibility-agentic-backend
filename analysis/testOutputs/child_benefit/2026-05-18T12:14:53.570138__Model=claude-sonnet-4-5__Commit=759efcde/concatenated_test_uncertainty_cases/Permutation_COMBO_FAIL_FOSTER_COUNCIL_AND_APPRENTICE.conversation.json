@@ -1,0 +1,236 @@
+{
+    "case_id": "COMBO_FAIL_FOSTER_COUNCIL_AND_APPRENTICE",
+    "meta": {
+        "permutation": 49,
+        "test_case": {
+            "case_id": "COMBO_FAIL_FOSTER_COUNCIL_AND_APPRENTICE",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 17
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": true
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": true
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": true
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 17 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 17 and not in approved education or extension period\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is fostered and the council pays for their accommodation or maintenance\n  - Child does not work 24+ hours/week\n  - Child has started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Child is 17 and not in approved education or extension period; Child is fostered and the council pays for their accommodation or maintenance; Child has started an apprenticeship in England",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 17 and not in approved education or extension period",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is fostered and the council pays for their accommodation or maintenance",
+                        "Child does not work 24+ hours/week",
+                        "Child has started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-05-18T12:14:53.570138",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "759efcde",
+            "hypothesis_name": "indeterminacy_concat_cases_reruns",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "agents/Ancillary/Actor-Indeterminacy-v2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-indeterminacy-v3.md",
+            "test_set_size": 199,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "conversation_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 26796,
+        "total_completion_tokens": 715,
+        "total_overall_tokens": 27511,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 20234,
+                "completion_tokens": 654,
+                "total": 20888
+            },
+            "actor": {
+                "prompt_tokens": 6562,
+                "completion_tokens": 61,
+                "total": 6623
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 22.88
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-05-18T12:16:37.295016",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine if you're eligible for Child Benefit.\n\nTo assess your eligibility, I'll need to ask you some questions. Let me start with the basics:\n\n**Do you have any children you're responsible for, and if so, how many children are you asking about?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:16:38.876112",
+            "author": "actor",
+            "text": "Hello! Yes, I do. I'm asking about my foster son Alex. He's 17 and lives with me at home."
+        },
+        {
+            "timestamp": "2026-05-18T12:16:41.499250",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information. I'd like to ask you about Alex's situation to properly assess your eligibility.\n\n**Is your local council paying anything towards Alex's accommodation or maintenance?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:16:42.754778",
+            "author": "actor",
+            "text": "Yes, the council does pay for his maintenance."
+        },
+        {
+            "timestamp": "2026-05-18T12:16:46.303122",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that. This is an important factor in determining eligibility.\n\nBefore I make my final assessment, I need to ask one more question to ensure I have complete information:\n\n**How long has Alex been living with you as your foster child?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:16:47.967076",
+            "author": "actor",
+            "text": "He's been with me for about a year and a half now."
+        },
+        {
+            "timestamp": "2026-05-18T12:16:52.980751",
+            "author": "eligibility_agent",
+            "text": "Thank you for providing that information. I now have enough details to assess your eligibility for Child Benefit for Alex."
+        },
+        {
+            "timestamp": "2026-05-18T12:16:57.541885",
+            "author": "eligibility_agent",
+            "text": "Based on my assessment, **you are not eligible for Child Benefit for Alex**.\n\nHere's why: While foster carers can generally claim Child Benefit for children they foster, the eligibility rules state that you won't qualify if the local council is paying anything towards the child's accommodation or maintenance. Since you've confirmed that the council does pay for Alex's maintenance, this means you don't meet the eligibility criteria for Child Benefit for him.\n\nThe financial support from the local council for Alex's care takes the place of Child Benefit in this situation.\n\nIf you have any questions about this decision or if your circumstances change in the future, you can contact the Child Benefit Office for further guidance."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-05-18T12:16:52.980734",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    "INELIGIBLE"
+                ],
+                "reasonings": [
+                    "Alex is a 17-year-old foster child living with the claimant. According to the Child Benefit rules, foster carers can receive Child Benefit for a child they foster, BUT only if the local council is NOT paying anything towards the child's accommodation or maintenance. In this case, the claimant has confirmed that the local council DOES pay for Alex's maintenance. Therefore, the claimant does not qualify for Child Benefit for Alex due to the council's financial contribution towards his maintenance."
+                ],
+                "overall_reasoning": "The claimant is fostering a 17-year-old child (Alex) who lives with them. While foster carers can generally claim Child Benefit, the eligibility rules specifically exclude situations where the local council is paying towards the child's accommodation or maintenance. Since the council is paying for Alex's maintenance, the claimant is ineligible for Child Benefit for this child."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INELIGIBLE",
+                "reasoning": "Alex is a 17-year-old foster child living with the claimant. According to the Child Benefit rules, foster carers can receive Child Benefit for a child they foster, BUT only if the local council is NOT paying anything towards the child's accommodation or maintenance. In this case, the claimant has confirmed that the local council DOES pay for Alex's maintenance. Therefore, the claimant does not qualify for Child Benefit for Alex due to the council's financial contribution towards his maintenance."
+            }
+        },
+        "overall_reasoning": "The claimant is fostering a 17-year-old child (Alex) who lives with them. While foster carers can generally claim Child Benefit, the eligibility rules specifically exclude situations where the local council is paying towards the child's accommodation or maintenance. Since the council is paying for Alex's maintenance, the claimant is ineligible for Child Benefit for this child."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": true,
+            "granular": {
+                "Alex": true
+            }
+        }
+    }
+}
