@@ -2,7 +2,6 @@ from copy import deepcopy
 import os
 from pathlib import Path
 from typing import Any
-import yaml
 
 from google.adk.agents import LoopAgent, SequentialAgent
 from google.adk.agents.llm_agent import Agent

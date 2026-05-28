@@ -45,13 +45,14 @@ class Config(YAMLWizard):
     pipeline_name: str
     template_kwargs: dict
 
-    def __getitem__(self, attrname: str, default: Any=None) -> Any:
-        if hasattr(self, attrname):
-            return getattr(self, attrname)
-        elif default:
-            return default
-        else:
-            raise AttributeError(f"{self} has no attribute {attrname}, and no default was provided")
+    # Not needed now, but might be useful later
+    #  def __getitem__(self, attrname: str, default: Any=None) -> Any:
+    #      if hasattr(self, attrname):
+    #          return getattr(self, attrname)
+    #      elif default:
+    #          return default
+    #      else:
+    #          raise AttributeError(f"{self} has no attribute {attrname}, and no default was provided")
 
 
 
