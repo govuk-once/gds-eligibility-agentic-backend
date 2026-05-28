@@ -16,36 +16,12 @@ from structured_specification.agent import root_agent as structured_specificatio
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
 
-def get_prompt(rel_path: str, **kwargs) -> str:
-    if rel_path.endswith(".yaml"):
-        return get_structured_prompt(rel_path, **kwargs)
-    elif rel_path.endswith(".md"):
-        return get_unstructured_prompt(rel_path, **kwargs)
-    else:
-        raise RuntimeError(f"Prompt path {rel_path} has an invalid extension")
-
-
-def get_structured_prompt(rel_path: str, **kwargs) -> str:
-    prompt_path = Path(prompts_dir).joinpath(rel_path)
-    with prompt_path.open() as f:
-        template = yaml.load(f, Loader=yaml.SafeLoader)
-    prompt_kwargs = template["promptTemplate"]["kwargs"]["static"]
-
-    for key, val in template["promptTemplate"]["kwargs"]["dynamic"].items():
-        components = val.split(".")
-        value = kwargs[components.pop(0)]
-        while len(components) > 0:
-            value = value[components.pop(0)]
-        prompt_kwargs[key] = value
-    return template["promptTemplate"]["topLevel"].format(**prompt_kwargs)
-
-
-def get_unstructured_prompt(rel_path: str, **kwargs) -> str:
+def get_prompt(rel_path: str, template_kwargs: dict[str,str], **kwargs) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
     prompt_string = "\n".join(prompt_lines)
-    # TODO this clause will now be broken
+    kwargs.update(template_kwargs) # retain `kwargs` for back compatibility, used by judge agent
     if kwargs:
         for format_key in kwargs.keys():
             # str.format() will fail silently if args/kwargs are not present in the string templating syntax
@@ -120,6 +96,7 @@ def get_facts_bundle_pipeline(
     eligibility_prompt: str,
     eligibility_agent: str,
     url_tool_call_allowed: bool = True,
+    template_kwargs: dict[str,str]|None = None,
     *args,
     **kwargs
 ):
@@ -127,7 +104,7 @@ def get_facts_bundle_pipeline(
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
-    agent_under_test.instruction = get_prompt(eligibility_prompt, **kwargs) + "\n" + situation_profile
+    agent_under_test.instruction = get_prompt(eligibility_prompt, template_kwargs=template_kwargs) + "\n" + situation_profile
     if not url_tool_call_allowed:
         agent_under_test.tools = [
             t for t in agent_under_test.tools
@@ -151,6 +128,7 @@ def get_conversation_pipeline(
     eligibility_prompt: str,
     eligibility_agent: str,
     url_tool_call_allowed: bool = True,
+    template_kwargs: dict[str,str]|None = None,
     **kwargs
 ):
     # Instantiate the actor (the one that pretends to be the user)
@@ -169,7 +147,7 @@ def get_conversation_pipeline(
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
-    agent_under_test.instruction = get_prompt(eligibility_prompt, **kwargs)
+    agent_under_test.instruction = get_prompt(eligibility_prompt, template_kwargs=template_kwargs)
     if not url_tool_call_allowed:
         agent_under_test.tools = [
             t for t in agent_under_test.tools

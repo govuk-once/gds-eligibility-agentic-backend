@@ -260,6 +260,7 @@ async def main(config_name: str, case_keys: list[str], resume_val: str | None = 
                     "url_tool_call_allowed": config.url_tool_call_allowed,
                     "max_concurrent_cases": config.max_concurrent_cases,
                     "pipeline_name": config.pipeline_name,
+                    "template_kwargs": config.template_kwargs,
                 },
             }
 
@@ -410,7 +411,7 @@ async def execute_test_case(
             eligibility_prompt=config.eligibility_prompt,
             eligibility_agent=config.eligibility_agent,
             url_tool_call_allowed=config.url_tool_call_allowed,
-            config=config
+            template_kwargs=config.template_kwargs
         ),
     )
 
