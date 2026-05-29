@@ -1,0 +1,206 @@
+{
+    "case_id": "RND_SET_2_036",
+    "meta": {
+        "permutation": 85,
+        "test_case": {
+            "case_id": "RND_SET_2_036",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 19
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": true
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": true
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 11
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": true
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 19 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 19 and in approved education\n  - Another claimant who lives with the child has priority\n  - Child is not in local authority care\n  - Child in hospital for 11 weeks\n  - Child is not fostered\n  - Child works 24+ hours/week but is in approved education\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Another claimant who lives with the child has priority",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 19 and in approved education",
+                        "Another claimant who lives with the child has priority",
+                        "Child is not in local authority care",
+                        "Child in hospital for 11 weeks",
+                        "Child is not fostered",
+                        "Child works 24+ hours/week but is in approved education",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-05-29T12:08:48.692556",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "e180580a",
+            "hypothesis_name": "facts_bundle_indeterminacy_concat_cases",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-factsBundle-indeterminacy-v1.md",
+            "test_set_size": 199,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "facts_bundle_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 13289,
+        "total_completion_tokens": 1218,
+        "total_overall_tokens": 14507,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 13289,
+                "completion_tokens": 1218,
+                "total": 14507
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 23.74
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-05-29T12:10:45.725583",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine your eligibility for Child Benefit. \n\nI can see you're inquiring about Child Benefit for Alex, who is 19 years old. To properly assess your eligibility, I need to ask you a few questions based on the UK Child Benefit rules.\n\nLet me start with some key questions:\n\n1. **About Alex's living situation**: You mentioned Alex lives with you. Does anyone else also live with Alex who might be claiming or could claim Child Benefit for them?\n\n2. **About Alex's education**: You mentioned Alex is 19. Is Alex currently in approved education or training? If yes, what type of education/training is this?\n\n3. **About your responsibility for Alex**: Are you the person primarily responsible for Alex - meaning do you provide for their needs such as food, clothes, accommodation, etc.?\n\n4. **About any special circumstances**: Is Alex currently in hospital, in local authority care, or living in any other special arrangement?\n\nPlease provide these details so I can give you an accurate assessment of your eligibility for Child Benefit for Alex."
+        },
+        {
+            "timestamp": "2026-05-29T12:10:57.914164",
+            "author": "eligibility_agent",
+            "text": "Thank you for your inquiry. Based on the situation profile provided, I now have sufficient information to assess your eligibility for Child Benefit for Alex. Let me analyze this carefully:\n\n**Key Facts:**\n- Alex is 19 years old and lives with you in the UK\n- Alex is in approved education (which normally allows Child Benefit to continue until age 20)\n- However, another claimant who lives with the child has priority\n- Alex is currently in hospital for 11 weeks\n- Alex works 24+ hours/week but is still in approved education\n\n**Analysis:**\n\nThe critical issue here is that **another claimant who lives with Alex has priority**. Under UK Child Benefit rules, only one person can get Child Benefit for a child. When two people are responsible for the same child, they must agree between themselves who will claim, or HMRC will decide based on who has priority.\n\nAdditionally, Alex has been in hospital for 11 weeks. The rules state that Child Benefit may be affected if a child is in hospital for more than 12 weeks, but since Alex has been in hospital for 11 weeks (which is under the 12-week threshold), this would not normally stop Child Benefit payments yet.\n\nThe fact that Alex works 24+ hours per week would normally stop Child Benefit, but since Alex is still in approved education, this is an exception that allows benefit to continue.\n\nHowever, the deciding factor is that **another claimant has priority** for Alex."
+        },
+        {
+            "timestamp": "2026-05-29T12:11:03.937385",
+            "author": "eligibility_agent",
+            "text": "## Your Eligibility Assessment\n\nI'm sorry to inform you that you are **not eligible** for Child Benefit for Alex.\n\n### The Reason\n\nWhile Alex meets several requirements for Child Benefit (being 19 and still in approved education, which normally allows benefits to continue until age 20), the key issue is that **another claimant who lives with Alex has priority**.\n\nUnder UK Child Benefit rules, **only one person can receive Child Benefit for a child**. When two people are responsible for the same child living in the household, either:\n- You must agree between yourselves who will claim, OR\n- HMRC will decide who has priority\n\nIn your case, since another claimant has been determined to have priority for Alex, you cannot receive Child Benefit.\n\n### What You Could Do\n\nIf circumstances change and you believe you should be the one claiming Child Benefit for Alex instead, you would need to:\n1. Discuss with the other claimant about who should claim\n2. Contact HMRC to request a change in who receives the benefit\n3. The other person would need to stop their claim before you could make a new claim\n\nIf you have any questions or need clarification, please feel free to ask."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-05-29T12:10:57.914155",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    "INELIGIBLE"
+                ],
+                "reasonings": [
+                    "Alex is 19 years old and in approved education, which would normally allow Child Benefit to continue until age 20. Alex is not in local authority care, is not fostered, and has been in hospital for 11 weeks (under the 12-week threshold that would affect payments). Although Alex works 24+ hours per week, they remain in approved education which is an exception. However, the claimant is INELIGIBLE because another claimant who lives with Alex has priority. Under UK Child Benefit rules, only one person can get Child Benefit for a child. When multiple people are responsible for the same child, either they must agree who claims or HMRC will decide based on priority. Since another claimant has priority in this case, the applicant cannot receive Child Benefit for Alex."
+                ],
+                "overall_reasoning": "The claimant is ineligible for Child Benefit for Alex because another claimant who lives with the child has priority. While Alex meets the age and education requirements for continued Child Benefit (being 19 and in approved education), and no other disqualifying factors apply, the fundamental rule that only one person can claim Child Benefit for a child means the claimant cannot receive it when another person has priority."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INELIGIBLE",
+                "reasoning": "Alex is 19 years old and in approved education, which would normally allow Child Benefit to continue until age 20. Alex is not in local authority care, is not fostered, and has been in hospital for 11 weeks (under the 12-week threshold that would affect payments). Although Alex works 24+ hours per week, they remain in approved education which is an exception. However, the claimant is INELIGIBLE because another claimant who lives with Alex has priority. Under UK Child Benefit rules, only one person can get Child Benefit for a child. When multiple people are responsible for the same child, either they must agree who claims or HMRC will decide based on priority. Since another claimant has priority in this case, the applicant cannot receive Child Benefit for Alex."
+            }
+        },
+        "overall_reasoning": "The claimant is ineligible for Child Benefit for Alex because another claimant who lives with the child has priority. While Alex meets the age and education requirements for continued Child Benefit (being 19 and in approved education), and no other disqualifying factors apply, the fundamental rule that only one person can claim Child Benefit for a child means the claimant cannot receive it when another person has priority."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": true,
+            "granular": {
+                "Alex": true
+            }
+        }
+    }
+}
