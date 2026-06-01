@@ -205,13 +205,13 @@ def eligibility_judgement_outcome(
     tool_context.actions.escalate = True
 
 
-    child_evaluations = []
+    child_evaluations = {}
     for name, is_eligible, reasoning in zip(child_names, is_eligible_list, reasonings):
-        child_evaluations.append({
+        child_evaluations[name] = {
             "child_name": name,
-            "is_eligible": is_eligible,
+            "eligible": is_eligible,
             "reasoning": reasoning
-        })
+        }
 
     return {
         "child_evaluations": child_evaluations,
@@ -221,7 +221,7 @@ def eligibility_judgement_outcome(
 
 root_agent = Agent(
     model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
-    name="child_benefit_eligibility_agent",
+    name="eligibility_agent",
     description="A helpful assistant for UK Child Benefit eligibility questions using the official specification.",
     instruction=get_prompt("agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md").format(metadata=get_specification_metadata()),
     tools=[
