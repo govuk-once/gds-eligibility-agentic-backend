@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 import json
 from pathlib import Path
@@ -18,6 +19,13 @@ def load_specification() -> dict[str, Any]:
 
 CHILD_BENEFIT_SPEC = load_specification()
 prompts_dir = Path(os.environ.get("PROMPTS_DIR", PROMPTS_DIR))
+
+
+class Eligibility(Enum):
+    ELIGIBLE = 1
+    INELIGIBLE = 2
+    INDETERMINATE = 3
+
 
 def get_prompt(rel_path: str) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
@@ -178,10 +186,10 @@ def get_specification_metadata(tool_context: ToolContext|None = None) -> dict[st
 
 
 def eligibility_judgement_outcome(
-        child_names: list[str], 
-        is_eligible_list: list[bool], 
-        reasonings: list[str], 
-        overall_reasoning: str, 
+        child_names: list[str],
+        is_eligible_list: list[Eligibility],
+        reasonings: list[str],
+        overall_reasoning: str,
         tool_context: ToolContext
     ):
     """
@@ -189,7 +197,7 @@ def eligibility_judgement_outcome(
 
     Args:
         child_names: A list of the exact names of every child discussed.
-        is_eligible_list: A list of booleans (True/False) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
+        is_eligible_list: A list of Eligibility enumerations (each with a value of `ELIGIBILE`, `INELIGIBLE` or `INDETERMINATE`) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
         reasonings: A list of step-by-step reasoning explaining the rules for each child. MUST be in the exact same order as child_names.
         overall_reasoning: A brief summary of the family's total situation.
     """
