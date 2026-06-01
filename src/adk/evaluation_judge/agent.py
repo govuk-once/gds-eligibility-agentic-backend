@@ -18,16 +18,20 @@ from structured_specification.agent import (
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
 
 
+def ensure_format_applied(prompt_string: str, format_key: str, format_val: str) -> str:
+    new_string = prompt_string.format(**{format_key: format_val})
+    assert new_string != prompt_string
+    return new_string
+
+
 def get_prompt(rel_path: str, **kwargs) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
     with prompt_path.open() as f:
         prompt_lines = f.readlines()
     prompt_string = "\n".join(prompt_lines)
     if kwargs:
-        for format_key in kwargs.keys():
-            # str.format() will fail silently if args/kwargs are not present in the string templating syntax
-            assert ("{" + format_key + "}") in prompt_string
-        prompt_string = prompt_string.format(**kwargs)
+        for format_key, format_val in kwargs.items():
+            prompt_string = ensure_format_applied(prompt_string, format_key, format_val)
     return prompt_string
 
 
