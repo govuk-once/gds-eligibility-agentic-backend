@@ -20,7 +20,7 @@ from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
 
 from deterministic_evals.child_benefit import run_evaluation
-from evaluation_judge.agent import get_conversation_pipeline, get_facts_bundle_pipeline
+from evaluation_judge.agent import get_conversation_pipeline, get_facts_bundle_pipeline # pyright:ignore[reportUnusedImport]
 
 @dataclass
 class Config(YAMLWizard):
@@ -126,7 +126,7 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     """
     Checks if an output file exists and is completely written.
     If it is incomplete or corrupted, it deletes the file so it can be re-run.
-    This is for the --resume case. If it was interruped then we get a corrupted json
+    This is for the --resume case. If it was interrupted then we get a corrupted json
     which causes problems later.
 
     Returns:

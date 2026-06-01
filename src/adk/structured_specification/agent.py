@@ -1,17 +1,17 @@
 import os
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.tool_context import ToolContext
 
 # Load the child benefit eligibility specification
-PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts" 
+PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
 SPEC_PATH = PROMPTS_DIR / "manual" / "graph_creation" / "specifications" / "child_benefit" / "child_benefit_eligibility.json"
 
-def load_specification() -> Dict[str, Any]:
+def load_specification() -> dict[str, Any]:
     """Load the child benefit eligibility specification."""
     with open(SPEC_PATH, 'r') as f:
         return json.load(f)
@@ -26,7 +26,7 @@ def get_prompt(rel_path: str) -> str:
     return "\n".join(prompt_lines)
 
 
-def get_node_info(node_id: str, tool_context: ToolContext) -> Dict[str, Any]:
+def get_node_info(node_id: str, tool_context: ToolContext) -> dict[str, Any]:
     """
     Retrieve information about a specific node in the decision tree.
 
@@ -67,7 +67,7 @@ def get_node_info(node_id: str, tool_context: ToolContext) -> Dict[str, Any]:
     }
 
 
-def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str, Any]:
+def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> dict[str, Any]:
     """
     Navigate to an outcome node based on the current node's outcomes.
 
@@ -115,7 +115,7 @@ def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str
     return get_node_info(next_node_id, tool_context)
 
 
-def get_constants(tool_context: ToolContext) -> Dict[str, Any]:
+def get_constants(tool_context: ToolContext) -> dict[str, Any]:
     """
     Retrieve constant values from the specification (age limits, time limits, etc.).
 
@@ -126,7 +126,7 @@ def get_constants(tool_context: ToolContext) -> Dict[str, Any]:
     return CHILD_BENEFIT_SPEC.get("constants", {})
 
 
-def get_validation_rules(tool_context: ToolContext) -> Dict[str, Any]:
+def get_validation_rules(tool_context: ToolContext) -> dict[str, Any]:
     """
     Retrieve validation rules from the specification.
 
@@ -137,7 +137,7 @@ def get_validation_rules(tool_context: ToolContext) -> Dict[str, Any]:
     return CHILD_BENEFIT_SPEC.get("validation_rules", {})
 
 
-def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
+def start_assessment(tool_context: ToolContext) -> dict[str, Any]:
     """
     Start a new child benefit eligibility assessment. ALWAYS CALL THIS WHEN STARTING A CONVERSATION ON CHILD BENEFIT ELIGIBILITY
 
@@ -159,7 +159,7 @@ def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
     return get_node_info(first_node_id, tool_context)
 
 
-def get_specification_metadata(tool_context: ToolContext = None) -> Dict[str, Any]:
+def get_specification_metadata(tool_context: ToolContext|None = None) -> dict[str, Any]:
     """
     Get metadata about the child benefit specification.
 
@@ -186,7 +186,7 @@ def eligibility_judgement_outcome(
     ):
     """
     Call this function ONLY when you have an outcome to report as to eligibility.
-    
+
     Args:
         child_names: A list of the exact names of every child discussed.
         is_eligible_list: A list of booleans (True/False) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
@@ -195,7 +195,7 @@ def eligibility_judgement_outcome(
     """
     print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
-    
+
 
     child_evaluations = []
     for name, is_eligible, reasoning in zip(child_names, is_eligible_list, reasonings):
@@ -204,7 +204,7 @@ def eligibility_judgement_outcome(
             "is_eligible": is_eligible,
             "reasoning": reasoning
         })
-    
+
     return {
         "child_evaluations": child_evaluations,
         "overall_reasoning": overall_reasoning
