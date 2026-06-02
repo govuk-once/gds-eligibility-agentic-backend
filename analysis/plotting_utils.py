@@ -15,7 +15,8 @@ PROMPT_MAPPING = {
     "Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md": "Training data only",
     "Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md": "Free text rules",
     "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec",
-    "Accuracy-ChildBenefit-indeterminacy-v3.md": "Combined indeterminacy cohort"
+    "Accuracy-ChildBenefit-indeterminacy-v3.md": "Combined indeterminacy cohort",
+    "StructuredSpecification-ChildBenefit-v2.md" : "Structured spec with indeterminacy",
 }
 
 
