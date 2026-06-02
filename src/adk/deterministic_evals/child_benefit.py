@@ -67,13 +67,14 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
             }
             continue
 
-        is_correct = expected["eligible"] == actual["is_eligible"]
+        actual_eligible = actual["eligible"] if "eligible" in actual else actual["is_eligible"]
+        is_correct = expected["eligible"] == actual_eligible
         if not is_correct:
             case_report["overall_is_correct"] = False
 
         case_report["child_evaluations"][name] = {
             "expected_eligible": expected["eligible"],
-            "actual_eligible": actual["is_eligible"],
+            "actual_eligible": actual_eligible,
             "is_correct": is_correct,
         }
 
@@ -165,10 +166,13 @@ def run_evaluation(input_folder_path: str = None):
             if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
         ]
         assert len(judgement_calls) < 2, f"Multiple Judgement calls detected in {case_id}"
-        judgement_call = judgement_calls[0] if len(judgement_calls) == 1 else None
-
+        if "eligibility_agent_payload" in data:
+            judgement_call = data["eligibility_agent_payload"]
+        else:
+            judgement_call = judgement_calls[0]["argumeents"] if len(judgement_calls) == 1 else None
+        
         # Guard against cases where the agent crashed or failed to call the tool
-        if not judgement_call or "arguments" not in judgement_call:
+        if not judgement_call:
             evaluation_results[case_id] = {
                 "case_id": case_id,
                 "overall_is_correct": False,
@@ -179,9 +183,7 @@ def run_evaluation(input_folder_path: str = None):
             }
             continue
 
-        tool_call_payload = judgement_call["arguments"]
-
-        report = evaluate_test_case(test_case_data, tool_call_payload)
+        report = evaluate_test_case(test_case_data, judgement_call)
 
         # Inject the metrics into the detailed case report
         report["duration_seconds"] = duration
