@@ -21,6 +21,8 @@ from google.adk.utils.context_utils import Aclosing
 
 from deterministic_evals.child_benefit import run_evaluation
 from evaluation_judge.agent import get_conversation_pipeline, get_facts_bundle_pipeline # pyright:ignore[reportUnusedImport]
+from gds_eligibility.agent import Eligibility
+
 
 @dataclass
 class Config(YAMLWizard):
@@ -372,6 +374,12 @@ def update_token_usage(event, usage_dict: dict) -> None:
     usage_dict["breakdown_by_agent"][author]["total"] += p_tokens + c_tokens
 
 
+def fix_enumeration_representation(actual_results: dict[str, dict[str, int|str]]) -> None:
+    for child in actual_results.keys():
+        if type(actual_results[child]["eligible"]) == int:
+            actual_results[child]["eligible"] = Eligibility(actual_results[child]["eligible"]).name
+
+
 async def execute_test_case(
     config: Config,
     test_id: int,
@@ -487,6 +495,7 @@ async def execute_test_case(
                                     == "eligibility_judgement_outcome"
                                 ):
                                     payload[f"{event.author}_payload"] = part.function_response.dict()["response"]
+                                    fix_enumeration_representation(payload["eligibility_agent_payload"]["child_evaluations"])
                                     try:
                                         payload["correctness"] = derive_correctness_from_payload(
                                             expected_results=payload["meta"]["test_case"]["expected_eligibility"],
@@ -546,7 +555,7 @@ def load_and_parse_test_cases(test_cohort: str, test_case_file_str: str | None):
     return test_cases
 
 
-def derive_correctness_from_payload(expected_results, actual_results):
+def derive_correctness_from_payload(expected_results: dict[str, dict[str, str]], actual_results: dict[str, dict[str, str]]):
     matches_by_child = {
         child: child_payload["eligible"] == actual_results[child]["eligible"]
         for child, child_payload in expected_results.items()
