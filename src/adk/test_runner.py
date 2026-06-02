@@ -487,10 +487,13 @@ async def execute_test_case(
                                     == "eligibility_judgement_outcome"
                                 ):
                                     payload[f"{event.author}_payload"] = part.function_response.dict()["response"]
-                                    payload["correctness"] = derive_correctness_from_payload(
-                                        expected_results=payload["meta"]["test_case"]["expected_eligibility"],
-                                        actual_results=payload["eligibility_agent_payload"]["child_evaluations"]
-                                    )
+                                    try:
+                                        payload["correctness"] = derive_correctness_from_payload(
+                                            expected_results=payload["meta"]["test_case"]["expected_eligibility"],
+                                            actual_results=payload["eligibility_agent_payload"]["child_evaluations"]
+                                        )
+                                    except Exception as e:
+                                        payload["correctness"] = {"eligibility_outcome": {"overall": False}} 
                                 elif part.function_response.name in [
                                     "start_assessment",
                                     "get_node_info",
