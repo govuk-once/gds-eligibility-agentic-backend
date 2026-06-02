@@ -8,6 +8,8 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.tool_context import ToolContext
 
+from gds_eligibility.agent import Eligibility
+
 # Load the child benefit eligibility specification
 PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
 SPEC_PATH = PROMPTS_DIR / "manual" / "graph_creation" / "specifications" / "child_benefit" / "child_benefit_eligibility.json"
@@ -19,12 +21,6 @@ def load_specification() -> dict[str, Any]:
 
 CHILD_BENEFIT_SPEC = load_specification()
 prompts_dir = Path(os.environ.get("PROMPTS_DIR", PROMPTS_DIR))
-
-
-class Eligibility(Enum):
-    ELIGIBLE = 1
-    INELIGIBLE = 2
-    INDETERMINATE = 3
 
 
 def get_prompt(rel_path: str) -> str:
@@ -45,7 +41,8 @@ def get_node_info(node_id: str, tool_context: ToolContext) -> dict[str, Any]:
     Returns:
         Dictionary containing node information
     """
-    print(f"  [Tool Call] get_node_info triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] get_node_info triggered by {tool_context.agent_name}")
     nodes = CHILD_BENEFIT_SPEC["decision_tree"]["nodes"]
 
     if node_id not in nodes:
@@ -86,7 +83,8 @@ def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> dict[str
     Returns:
         Dictionary containing the destination node information
     """
-    print(f"  [Tool Call] navigate_to_outcome triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] navigate_to_outcome triggered by {tool_context.agent_name}")
     current_node_id = tool_context.state.get("current_node")
 
     if not current_node_id:
@@ -130,7 +128,8 @@ def get_constants(tool_context: ToolContext) -> dict[str, Any]:
     Returns:
         Dictionary containing all constants
     """
-    print(f"  [Tool Call] get_constants triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] get_constants triggered by {tool_context.agent_name}")
     return CHILD_BENEFIT_SPEC.get("constants", {})
 
 
@@ -141,7 +140,8 @@ def get_validation_rules(tool_context: ToolContext) -> dict[str, Any]:
     Returns:
         Dictionary containing validation rules
     """
-    print(f"  [Tool Call] get_validation_rules triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] get_validation_rules triggered by {tool_context.agent_name}")
     return CHILD_BENEFIT_SPEC.get("validation_rules", {})
 
 
@@ -155,7 +155,8 @@ def start_assessment(tool_context: ToolContext) -> dict[str, Any]:
     Returns:
         Dictionary containing the first node information
     """
-    print(f"  [Tool Call] start_assessment triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] start_assessment triggered by {tool_context.agent_name}")
     # Reset state
     tool_context.state["navigation_history"] = []
 
@@ -175,7 +176,8 @@ def get_specification_metadata(tool_context: ToolContext|None = None) -> dict[st
         Dictionary containing version, source, description, etc.
     """
     if tool_context:
-        print(f"  [Tool Call] get_specification_metadata triggered by {tool_context.agent_name}")
+        case_id = tool_context.state.get("case_id")
+        print(f"<{case_id}> [Tool Call] get_specification_metadata triggered by {tool_context.agent_name}")
     return {
         "version": CHILD_BENEFIT_SPEC.get("version"),
         "last_updated": CHILD_BENEFIT_SPEC.get("last_updated"),
@@ -201,7 +203,8 @@ def eligibility_judgement_outcome(
         reasonings: A list of step-by-step reasoning explaining the rules for each child. MUST be in the exact same order as child_names.
         overall_reasoning: A brief summary of the family's total situation.
     """
-    print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
 
 
