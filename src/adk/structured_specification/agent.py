@@ -1,23 +1,27 @@
+from enum import Enum
 import os
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.tool_context import ToolContext
 
+from gds_eligibility.agent import Eligibility
+
 # Load the child benefit eligibility specification
-PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts" 
+PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
 SPEC_PATH = PROMPTS_DIR / "manual" / "graph_creation" / "specifications" / "child_benefit" / "child_benefit_eligibility.json"
 
-def load_specification() -> Dict[str, Any]:
+def load_specification() -> dict[str, Any]:
     """Load the child benefit eligibility specification."""
     with open(SPEC_PATH, 'r') as f:
         return json.load(f)
 
 CHILD_BENEFIT_SPEC = load_specification()
 prompts_dir = Path(os.environ.get("PROMPTS_DIR", PROMPTS_DIR))
+
 
 def get_prompt(rel_path: str) -> str:
     prompt_path = Path(prompts_dir).joinpath(rel_path)
@@ -26,7 +30,7 @@ def get_prompt(rel_path: str) -> str:
     return "\n".join(prompt_lines)
 
 
-def get_node_info(node_id: str, tool_context: ToolContext) -> Dict[str, Any]:
+def get_node_info(node_id: str, tool_context: ToolContext) -> dict[str, Any]:
     """
     Retrieve information about a specific node in the decision tree.
 
@@ -37,7 +41,8 @@ def get_node_info(node_id: str, tool_context: ToolContext) -> Dict[str, Any]:
     Returns:
         Dictionary containing node information
     """
-    print(f"  [Tool Call] get_node_info triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] get_node_info triggered by {tool_context.agent_name}")
     nodes = CHILD_BENEFIT_SPEC["decision_tree"]["nodes"]
 
     if node_id not in nodes:
@@ -67,7 +72,7 @@ def get_node_info(node_id: str, tool_context: ToolContext) -> Dict[str, Any]:
     }
 
 
-def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str, Any]:
+def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> dict[str, Any]:
     """
     Navigate to an outcome node based on the current node's outcomes.
 
@@ -78,7 +83,8 @@ def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str
     Returns:
         Dictionary containing the destination node information
     """
-    print(f"  [Tool Call] navigate_to_outcome triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] navigate_to_outcome triggered by {tool_context.agent_name}")
     current_node_id = tool_context.state.get("current_node")
 
     if not current_node_id:
@@ -115,29 +121,31 @@ def navigate_to_outcome(outcome_key: str, tool_context: ToolContext) -> Dict[str
     return get_node_info(next_node_id, tool_context)
 
 
-def get_constants(tool_context: ToolContext) -> Dict[str, Any]:
+def get_constants(tool_context: ToolContext) -> dict[str, Any]:
     """
     Retrieve constant values from the specification (age limits, time limits, etc.).
 
     Returns:
         Dictionary containing all constants
     """
-    print(f"  [Tool Call] get_constants triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] get_constants triggered by {tool_context.agent_name}")
     return CHILD_BENEFIT_SPEC.get("constants", {})
 
 
-def get_validation_rules(tool_context: ToolContext) -> Dict[str, Any]:
+def get_validation_rules(tool_context: ToolContext) -> dict[str, Any]:
     """
     Retrieve validation rules from the specification.
 
     Returns:
         Dictionary containing validation rules
     """
-    print(f"  [Tool Call] get_validation_rules triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] get_validation_rules triggered by {tool_context.agent_name}")
     return CHILD_BENEFIT_SPEC.get("validation_rules", {})
 
 
-def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
+def start_assessment(tool_context: ToolContext) -> dict[str, Any]:
     """
     Start a new child benefit eligibility assessment. ALWAYS CALL THIS WHEN STARTING A CONVERSATION ON CHILD BENEFIT ELIGIBILITY
 
@@ -147,7 +155,8 @@ def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
     Returns:
         Dictionary containing the first node information
     """
-    print(f"  [Tool Call] start_assessment triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] start_assessment triggered by {tool_context.agent_name}")
     # Reset state
     tool_context.state["navigation_history"] = []
 
@@ -159,7 +168,7 @@ def start_assessment(tool_context: ToolContext) -> Dict[str, Any]:
     return get_node_info(first_node_id, tool_context)
 
 
-def get_specification_metadata(tool_context: ToolContext = None) -> Dict[str, Any]:
+def get_specification_metadata(tool_context: ToolContext|None = None) -> dict[str, Any]:
     """
     Get metadata about the child benefit specification.
 
@@ -167,7 +176,8 @@ def get_specification_metadata(tool_context: ToolContext = None) -> Dict[str, An
         Dictionary containing version, source, description, etc.
     """
     if tool_context:
-        print(f"  [Tool Call] get_specification_metadata triggered by {tool_context.agent_name}")
+        case_id = tool_context.state.get("case_id")
+        print(f"<{case_id}> [Tool Call] get_specification_metadata triggered by {tool_context.agent_name}")
     return {
         "version": CHILD_BENEFIT_SPEC.get("version"),
         "last_updated": CHILD_BENEFIT_SPEC.get("last_updated"),
@@ -178,33 +188,34 @@ def get_specification_metadata(tool_context: ToolContext = None) -> Dict[str, An
 
 
 def eligibility_judgement_outcome(
-        child_names: list[str], 
-        is_eligible_list: list[bool], 
-        reasonings: list[str], 
-        overall_reasoning: str, 
+        child_names: list[str],
+        is_eligible_list: list[Eligibility],
+        reasonings: list[str],
+        overall_reasoning: str,
         tool_context: ToolContext
     ):
     """
     Call this function ONLY when you have an outcome to report as to eligibility.
-    
+
     Args:
         child_names: A list of the exact names of every child discussed.
-        is_eligible_list: A list of booleans (True/False) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
+        is_eligible_list: A list of Eligibility enumerations (each with a value of `ELIGIBILE`, `INELIGIBLE` or `INDETERMINATE`) indicating if the claimant is eligible for each child. MUST be in the exact same order as child_names.
         reasonings: A list of step-by-step reasoning explaining the rules for each child. MUST be in the exact same order as child_names.
         overall_reasoning: A brief summary of the family's total situation.
     """
-    print(f"  [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
+    case_id = tool_context.state.get("case_id")
+    print(f"<{case_id}> [Tool Call] eligibility_judgement_outcome triggered by {tool_context.agent_name}")
     tool_context.actions.escalate = True
-    
 
-    child_evaluations = []
+
+    child_evaluations = {}
     for name, is_eligible, reasoning in zip(child_names, is_eligible_list, reasonings):
-        child_evaluations.append({
+        child_evaluations[name] = {
             "child_name": name,
-            "is_eligible": is_eligible,
+            "eligible": is_eligible,
             "reasoning": reasoning
-        })
-    
+        }
+
     return {
         "child_evaluations": child_evaluations,
         "overall_reasoning": overall_reasoning
@@ -213,7 +224,7 @@ def eligibility_judgement_outcome(
 
 root_agent = Agent(
     model=LiteLlm(model="bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"),
-    name="child_benefit_eligibility_agent",
+    name="eligibility_agent",
     description="A helpful assistant for UK Child Benefit eligibility questions using the official specification.",
     instruction=get_prompt("agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md").format(metadata=get_specification_metadata()),
     tools=[

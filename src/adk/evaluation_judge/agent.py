@@ -9,10 +9,19 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.tool_context import ToolContext
 
 from gds_eligibility.agent import root_agent as gds_eligibility
-from structured_specification.agent import root_agent as structured_specification
+from structured_specification.agent import (
+    get_specification_metadata,
+    root_agent as structured_specification
+)
 
 
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
+
+
+def ensure_format_applied(prompt_string: str, format_key: str, format_val: str) -> str:
+    new_string = prompt_string.format(**{format_key: format_val})
+    assert new_string != prompt_string
+    return new_string
 
 
 def get_prompt(rel_path: str, **kwargs) -> str:
@@ -21,10 +30,8 @@ def get_prompt(rel_path: str, **kwargs) -> str:
         prompt_lines = f.readlines()
     prompt_string = "\n".join(prompt_lines)
     if kwargs:
-        for format_key in kwargs.keys():
-            # str.format() will fail silently if args/kwargs are not present in the string templating syntax
-            assert ("{" + format_key + "}") in prompt_string
-        prompt_string = prompt_string.format(**kwargs)
+        for format_key, format_val in kwargs.items():
+            prompt_string = ensure_format_applied(prompt_string, format_key, format_val)
     return prompt_string
 
 
@@ -142,7 +149,11 @@ def get_conversation_pipeline(
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
-    agent_under_test.instruction = get_prompt(eligibility_prompt)
+    if eligibility_agent == "structured_specification":
+        #  agent_under_test.instruction = get_prompt(eligibility_prompt).format(metadata=get_specification_metadata())
+        agent_under_test.instruction = get_prompt(eligibility_prompt, metadata=get_specification_metadata())
+    else:
+        agent_under_test.instruction = get_prompt(eligibility_prompt)
     if not url_tool_call_allowed:
         agent_under_test.tools = [
             t for t in agent_under_test.tools
