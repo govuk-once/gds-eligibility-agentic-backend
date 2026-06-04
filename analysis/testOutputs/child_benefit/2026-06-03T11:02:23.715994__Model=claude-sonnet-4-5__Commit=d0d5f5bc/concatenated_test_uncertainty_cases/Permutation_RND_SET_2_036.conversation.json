@@ -1,0 +1,641 @@
+{
+    "case_id": "RND_SET_2_036",
+    "meta": {
+        "permutation": 85,
+        "test_case": {
+            "case_id": "RND_SET_2_036",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 19
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": true
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": true
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 11
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": true
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 19 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 19 and in approved education\n  - Another claimant who lives with the child has priority\n  - Child is not in local authority care\n  - Child in hospital for 11 weeks\n  - Child is not fostered\n  - Child works 24+ hours/week but is in approved education\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Another claimant who lives with the child has priority",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 19 and in approved education",
+                        "Another claimant who lives with the child has priority",
+                        "Child is not in local authority care",
+                        "Child in hospital for 11 weeks",
+                        "Child is not fostered",
+                        "Child works 24+ hours/week but is in approved education",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-06-03T11:02:23.715994",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "d0d5f5bc",
+            "hypothesis_name": "structured_spec_factBundle_reruns",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "agents/Ancillary/Actor-Indeterminacy-v2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v2.md",
+            "test_set_size": 199,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "facts_bundle_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 56601,
+        "total_completion_tokens": 2641,
+        "total_overall_tokens": 59242,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 56601,
+                "completion_tokens": 2641,
+                "total": 59242
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 64.25
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-06-03T11:06:35.229780",
+            "author": "eligibility_agent",
+            "text": "I'll help you determine if you're eligible for Child Benefit. Let me start the assessment process."
+        },
+        {
+            "timestamp": "2026-06-03T11:06:38.377808",
+            "author": "eligibility_agent",
+            "text": "Great! Let me start by asking about your child. \n\n**How old is your child?**\n\nThis helps me determine which eligibility path applies to your situation:\n- Children under 16 have different rules\n- Children aged 16-19 may qualify if they're in approved education or training\n- Children 20 or over generally don't qualify"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:41.376311",
+            "author": "eligibility_agent",
+            "text": "Thank you for providing that information. You mentioned you have a child named Alex who is 19 years old. Let me continue with the assessment."
+        },
+        {
+            "timestamp": "2026-06-03T11:06:45.754673",
+            "author": "eligibility_agent",
+            "text": "Since Alex is 19 years old, I need to check their education or training status.\n\n**Is Alex currently:**\n1. In approved education or training, OR\n2. Has Alex recently left education (within the last 20 weeks)?\n\nBased on your situation, it sounds like Alex is in approved education. Is that correct?"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:50.496014",
+            "author": "eligibility_agent",
+            "text": "Good! Now I need to verify that Alex's education qualifies. \n\n**For Alex's approved education, I need to confirm it meets these requirements:**\n\nThe education must be:\n- **Non-advanced** (like A-levels, T-levels, Scottish Highers, NVQs Level 1-3, BTECs Level 1-3)\n- **NOT advanced education** (like university degrees, HNC, HND, NVQ Level 4+)\n- At least **12 hours per week** of supervised study\n- **Not employer-funded** or with an agreed future job with an employer\n\nBased on your situation with Alex being in approved education, can you confirm that Alex's education meets these criteria (non-advanced education, at least 12 hours per week supervised study)?"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:55.338353",
+            "author": "eligibility_agent",
+            "text": "Now I need to check Alex's work situation.\n\n**Is Alex working less than 24 hours per week (or not in paid work)?**\n\nNote: Children aged 16+ who work 24 or more hours per week and are not in approved education/training are generally not eligible. However, since Alex is in approved education, let me know about their work hours.\n\nFrom your situation, it appears Alex works 24+ hours per week but is in approved education. Is that correct?"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:58.964214",
+            "author": "eligibility_agent",
+            "text": "I need to clarify something important here. You mentioned that Alex is in approved education AND works 24+ hours per week. Let me check the rules more carefully, as there's an important interaction between these two factors.\n\nLet me get more information about the constants to understand the exact requirements:"
+        },
+        {
+            "timestamp": "2026-06-03T11:07:07.353065",
+            "author": "eligibility_agent",
+            "text": "I see the issue. According to the rules, the work limit is 24 hours per week. The decision tree indicates that if a child aged 16+ is working 24 or more hours per week, this typically makes them ineligible - even if they're in approved education.\n\nHowever, let me verify this carefully. Looking at the help text from the previous node: \"Children aged 16+ working 24+ hours per week **and not in approved education/training** are not eligible.\"\n\nThis suggests that being in approved education might override the work hours issue. Let me navigate back to check if there's an exception:\n\nLet me reconsider the flow. When I look at the help text more carefully, it says a child is ineligible if they work 24+ hours \"**and not** in approved education/training.\" Since Alex **IS** in approved education, perhaps I should have answered \"yes\" (working less than 24 hours or this rule doesn't apply because they're in education).\n\nLet me go back and check the proper path. Actually, looking at the question more carefully: \"Is the child working less than 24 hours per week (or not in paid work)?\" \n\nThe question asks if the child is working LESS than 24 hours. If Alex is working 24+ hours, the answer would be \"no\" to this question, which leads to ineligibility.\n\nHowever, I notice this seems inconsistent with the help text. Let me check if there are validation rules that might clarify this:"
+        },
+        {
+            "timestamp": "2026-06-03T11:07:16.075619",
+            "author": "eligibility_agent",
+            "text": "Thank you for your patience. Looking at the validation rules, I can see the key issue:\n\nUnder \"ending_conditions\" it states: \"Child starts paid work 24+ hours per week **and leaves education/training**\"\n\nThis means that if a child is working 24+ hours per week BUT is still in approved education, they may still qualify. However, the decision tree I'm following led to an ineligibility outcome.\n\nLet me check if there are other factors in your situation that might affect eligibility. You mentioned:\n\n- Alex is 19 and in approved education \u2713\n- Alex works 24+ hours/week\n- Another claimant who lives with Alex has priority\n\n**This last point is crucial!** If another claimant who lives with Alex has priority, then regardless of Alex's work hours, **you would not be eligible to claim because someone else has priority**.\n\nLet me ask: **Does another person who lives with Alex already claim Child Benefit for Alex, or have priority to claim?**\n\nThis is actually a separate eligibility issue from the work hours question. Only one person can claim Child Benefit for a child at a time, and if someone else who lives with the child has priority (or is already claiming), you cannot claim.\n\nLet me also note that you mentioned Alex has been in hospital for 11 weeks, which is under the 12-week limit, so that wouldn't disqualify the claim on its own.\n\nCould you clarify the priority situation? This might be the determining factor for your eligibility."
+        },
+        {
+            "timestamp": "2026-06-03T11:07:27.231945",
+            "author": "eligibility_agent",
+            "text": "Thank you. Let me continue processing based on the information you've provided about your situation.\n\nBased on the details you've shared:\n- Alex is 19 years old and lives with you\n- Alex is in approved education\n- **Another claimant who lives with the child has priority**\n- Alex has been in hospital for 11 weeks (under the 12-week limit)\n- Alex works 24+ hours/week but is in approved education\n\nThe critical factor here is that **another claimant who lives with Alex has priority**. This means that even though Alex might otherwise qualify as a child for Child Benefit purposes, you cannot claim because someone else has priority.\n\nLet me also verify the other factors to give you a complete assessment. According to the validation rules, a child working 24+ hours per week is only disqualified if they **leave education/training**. Since Alex is still in approved education, the work hours alone wouldn't disqualify them as a qualifying child.\n\nHowever, the priority rule is absolute: **only one person can claim Child Benefit for a child at a time**. If another person who lives with Alex has priority (or is already claiming), you are not eligible to claim for Alex.\n\nLet me provide you with the final assessment:"
+        },
+        {
+            "timestamp": "2026-06-03T11:07:37.212875",
+            "author": "eligibility_agent",
+            "text": "## Your Child Benefit Eligibility Assessment\n\n**Result: You are NOT ELIGIBLE to claim Child Benefit for Alex**\n\n### Why you're not eligible:\n\nAlthough Alex would normally qualify as an eligible child (being 19 years old and in approved education), **another person who lives with Alex has priority to claim Child Benefit**. \n\nUnder UK Child Benefit rules, only one person can claim Child Benefit for a child at a time. When multiple people are responsible for a child and live with them, they must agree who will claim, or HMRC will decide based on who has primary care responsibility.\n\n### Important points about Alex's situation:\n\n\u2713 **Alex meets the child criteria**: At 19 and in approved education, Alex would normally be a qualifying child\n\u2713 **Work hours**: Although Alex works 24+ hours/week, this only disqualifies a child if they leave education/training (which Alex hasn't done)\n\u2713 **Hospital stay**: The 11 weeks in hospital is under the 12-week limit, so this doesn't affect eligibility\n\n### What you can do:\n\n1. **If the current claimant agrees**: The person who currently has priority could transfer the claim to you by contacting the Child Benefit Office\n\n2. **If you disagree about priority**: You can contact HMRC and provide evidence that you should have priority. HMRC will consider:\n   - Where Alex spends most nights per week\n   - Who provides the main day-to-day care\n   - Who is the main financial contributor to Alex's upkeep\n   - School/medical registration details\n\n3. **Contact the Child Benefit Office**: Call **0300 200 3100** to discuss your specific situation\n\nI'm sorry this isn't the outcome you were hoping for. If you believe you should have priority, or if the other person is willing to transfer the claim to you, please contact the Child Benefit Office to discuss your options."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-06-03T11:06:35.229761",
+            "tool_name": "start_assessment",
+            "arguments": {},
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:41.376290",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "16_to_19"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:45.754650",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "in_education_or_training"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:50.496004",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "approved_education"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:55.338332",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "no"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:06:58.964196",
+            "tool_name": "get_constants",
+            "arguments": {},
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:07:07.353055",
+            "tool_name": "get_validation_rules",
+            "arguments": {},
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:07:27.231931",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    2
+                ],
+                "reasonings": [
+                    "Alex is 19 years old and in approved education, which would normally qualify them as an eligible child (children aged 16-19 can qualify if in approved non-advanced education of at least 12 hours per week supervised study). Although Alex works 24+ hours per week, this only disqualifies a child if they leave education/training, which Alex has not done. Alex has been in hospital for 11 weeks, which is under the 12-week limit. However, another claimant who lives with Alex has priority to claim Child Benefit. Under UK Child Benefit rules, only one person can claim Child Benefit for a child at a time. When multiple people are responsible for a child, they must agree who claims, or HMRC will decide based on who has primary care responsibility. Since another claimant has priority, you are ineligible to claim Child Benefit for Alex, even though Alex would otherwise be a qualifying child."
+                ],
+                "overall_reasoning": "The claimant is ineligible to claim Child Benefit for Alex because another person who lives with the child has priority to claim. While Alex meets the criteria as a qualifying child (aged 19 in approved education), the priority rules prevent multiple claims for the same child."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [
+        {
+            "node_id": "has_qualifying_child",
+            "node_type": "routing",
+            "question": null,
+            "description": "Determine child's age category for eligibility",
+            "help_text": null,
+            "criteria": null,
+            "outcomes": {
+                "under_16": "check_child_not_working_full_time",
+                "16_to_19": "check_education_or_extension",
+                "20_or_over": "INELIGIBLE_no_qualifying_child"
+            },
+            "paths": null,
+            "routing_logic": "Under 16: automatic qualification. 16-19: check education/training. 20+: not eligible",
+            "evaluation_logic": null,
+            "reference": null,
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_education_or_extension",
+            "node_type": "routing",
+            "question": null,
+            "description": "For 16-19 year olds, check if in education/training or eligible for extension",
+            "help_text": null,
+            "criteria": null,
+            "outcomes": {
+                "in_education_or_training": "check_education_level",
+                "left_education_recently": "check_extension_eligibility",
+                "neither": "INELIGIBLE_no_qualifying_child"
+            },
+            "paths": null,
+            "routing_logic": "If in education/training, validate type and level. If just left education (within 20 weeks), check extension eligibility.",
+            "evaluation_logic": null,
+            "reference": null,
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_education_level",
+            "node_type": "complex_criteria",
+            "question": "Is the child in approved (non-advanced) education or training?",
+            "description": null,
+            "help_text": "Approved education: A-levels, T-levels, NVQ Level 3 or below, Scottish Highers/Advanced Highers. Advanced (NOT approved): University degrees, HNC, HND, NVQ Level 4+. Must be full-time (12+ hours/week supervised study).",
+            "criteria": {
+                "must_be_non_advanced": true,
+                "approved_qualifications": [
+                    "A-levels",
+                    "AS-levels",
+                    "T-levels",
+                    "Scottish Highers",
+                    "Scottish Advanced Highers",
+                    "NVQ Level 1, 2, or 3",
+                    "BTEC Level 1, 2, or 3",
+                    "Access to Higher Education courses"
+                ],
+                "excluded_qualifications": [
+                    "University degrees (Bachelor's, Master's, PhD)",
+                    "Higher National Certificate (HNC) - Level 4",
+                    "Higher National Diploma (HND) - Level 5",
+                    "NVQ Level 4 or above",
+                    "Professional qualifications at Level 4+"
+                ],
+                "minimum_hours_per_week": 12,
+                "must_be_supervised_study": true,
+                "employer_funded_excluded": true,
+                "employer_agreed_future_job_excluded": true,
+                "must_not_be_married_unless_dependent": "Married 16-19 year olds only qualify if financially dependent on claimant"
+            },
+            "outcomes": {
+                "approved_education": "check_child_not_working_full_time",
+                "advanced_education": "INELIGIBLE_advanced_education",
+                "part_time_insufficient": "INELIGIBLE_part_time_education",
+                "employer_funded": "INELIGIBLE_employer_funded_training"
+            },
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": "https://www.gov.uk/child-benefit/eligibility",
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_child_not_working_full_time",
+            "node_type": "boolean_question",
+            "question": "Is the child working less than 24 hours per week (or not in paid work)?",
+            "description": null,
+            "help_text": "Children aged 16+ working 24+ hours per week and not in approved education/training are not eligible",
+            "criteria": null,
+            "outcomes": {
+                "yes": "check_child_not_receiving_benefits",
+                "no": "INELIGIBLE_child_working_full_time"
+            },
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": "https://www.gov.uk/child-benefit/eligibility",
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "INELIGIBLE_child_working_full_time",
+            "node_type": "outcome",
+            "question": null,
+            "description": null,
+            "help_text": null,
+            "criteria": null,
+            "outcomes": null,
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": null,
+            "result": "INELIGIBLE",
+            "reason": "Child aged 16+ is working 24 or more hours per week and not in approved education or training",
+            "guidance": "Child Benefit stops if child aged 16 or over starts paid work for 24+ hours per week and is no longer in approved education or training. If they return to education/training, you may be able to claim again.",
+            "next_steps": null
+        },
+        {
+            "age_limits": {
+                "standard_maximum_age": 16,
+                "education_training_maximum_age": 20,
+                "extension_period_weeks": 20,
+                "extension_maximum_age": 18,
+                "birthday_rule": "Benefit stops on child's 20th birthday, not end of academic year"
+            },
+            "education_requirements": {
+                "minimum_hours_per_week": 12,
+                "must_be_supervised_study": true,
+                "approved_levels": [
+                    "A-levels",
+                    "AS-levels",
+                    "T-levels",
+                    "Scottish Highers",
+                    "Scottish Advanced Highers",
+                    "NVQ Level 1, 2, 3",
+                    "BTEC Level 1, 2, 3",
+                    "Access to Higher Education"
+                ],
+                "advanced_excluded": [
+                    "University degrees (Bachelor, Master, PhD)",
+                    "HNC (Higher National Certificate) - Level 4",
+                    "HND (Higher National Diploma) - Level 5",
+                    "NVQ Level 4+",
+                    "Professional qualifications Level 4+"
+                ],
+                "training_exclusions": [
+                    "Employer-funded training",
+                    "Training with employer agreement for future job"
+                ]
+            },
+            "apprenticeship_rules": {
+                "england": {
+                    "all_types_excluded": true,
+                    "types": [
+                        "Intermediate Apprenticeships",
+                        "Advanced Apprenticeships",
+                        "Higher Apprenticeships",
+                        "Degree Apprenticeships"
+                    ]
+                },
+                "scotland": {
+                    "modern_apprenticeships_excluded": true
+                },
+                "wales": {
+                    "foundation_apprenticeships_approved": true,
+                    "other_apprenticeships_excluded": true
+                }
+            },
+            "time_limits": {
+                "hospital_weeks": 12,
+                "hospital_linking_rule_days": 28,
+                "care_weeks": 8,
+                "care_minimum_home_hours_per_week": 24,
+                "care_consecutive_nights_per_week": 2,
+                "care_consecutive_days_minimum": 7,
+                "jobseeker_maximum_days": 91
+            },
+            "work_limits": {
+                "maximum_hours_per_week": 24
+            },
+            "payment_rates": {
+                "note": "Current rates not specified in source documents - check gov.uk for latest rates",
+                "eldest_child": "TBD",
+                "additional_children_each": "TBD"
+            },
+            "high_income_charge": {
+                "threshold": 60000,
+                "taper_end": 80000,
+                "note": "High Income Child Benefit Charge applies if you or partner earns over \u00a360,000. This is a payment adjustment, not an eligibility criterion."
+            }
+        },
+        {
+            "age_and_education": {
+                "rule": "Child must be under 16, OR aged 16-19 and in approved education or training",
+                "approved_education": "Full-time non-advanced education (12+ hours/week supervised study): A-levels, T-levels, Scottish Highers, NVQ Level 3 or below",
+                "advanced_education_excluded": "University degrees, HNC (Level 4), HND (Level 5), NVQ Level 4+, professional qualifications Level 4+",
+                "minimum_hours": "12 hours per week supervised study required for 16-19 year olds",
+                "approved_training": "Unpaid work-based training with education provider, or approved training course. Employer-funded training excluded.",
+                "extension": "If 16-17 year old leaves education/training, benefit continues for 20 weeks if registered with careers service, Connexions, or armed services. Ends at week 20 or age 18, whichever sooner.",
+                "birthday_cutoff": "Benefit stops on child's 20th birthday, not at end of academic year",
+                "married_children": "Married 16-19 year olds only qualify if financially dependent on claimant",
+                "ending_conditions": [
+                    "Child turns 20 (hard cutoff on birthday)",
+                    "Child starts paid work 24+ hours per week and leaves education/training",
+                    "Child starts disqualifying apprenticeship",
+                    "Child receives ESA, Universal Credit, or similar benefits in own right",
+                    "Child starts advanced education (university, HNC, HND)",
+                    "Part-time education under 12 hours/week"
+                ]
+            },
+            "apprenticeship_rules": {
+                "rule": "Regional rules apply for apprenticeships",
+                "england": "ALL apprenticeships disqualify (Intermediate, Advanced, Higher, Degree)",
+                "scotland": "Modern Apprenticeships disqualify",
+                "wales": "Foundation Apprenticeships APPROVED. Other Welsh apprenticeships disqualify.",
+                "note": "Welsh Foundation Apprenticeships are the ONLY apprenticeships that qualify for Child Benefit"
+            },
+            "residency": {
+                "rule": "Must normally live in UK or meet special circumstances",
+                "settled_status": "Can claim with settled status under EU Settlement Scheme",
+                "presettled_status_conditions": [
+                    "Working and earning above NI primary threshold for 3 continuous months, OR",
+                    "Looking for work (jobseeker for up to 91 days), OR",
+                    "Sufficient resources (not claiming IS, JSA, PC, UC), OR",
+                    "Studying with sufficient resources, OR",
+                    "Family member of EEA/Swiss national with right to reside"
+                ],
+                "abroad": "May qualify if Crown servant or living in certain countries"
+            },
+            "responsibility": {
+                "rule": "Must be responsible for child through living with them OR contributing to upkeep",
+                "living_with": "Primary indicator of responsibility",
+                "contributing": "Must pay at least Child Benefit amount (or equivalent in kind) towards care",
+                "contribution_threshold": "\u00a326.05 per week for eldest/only child, \u00a317.25 per week for additional children (2024/25 rates - check gov.uk for current rates)",
+                "contributions_include": [
+                    "Food",
+                    "Clothes",
+                    "Pocket money",
+                    "Housing costs",
+                    "Presents",
+                    "Maintenance payments under court order/agreement"
+                ],
+                "frequency": "Can be weekly, monthly, or lump sum",
+                "combined_contributions": "Two people can combine contributions if both contribute to same child",
+                "unequal_allocation": {
+                    "rule": "When contributing to multiple children, can allocate contribution amounts unequally",
+                    "explanation": "If contributing \u00a340 for two children, can allocate as \u00a326.05 (eldest) + \u00a313.95 (second), or any split where each child receives at least their applicable rate",
+                    "example_1": "\u00a340 total for 2 children: \u00a326.05 (child 1) + \u00a313.95 (child 2) = eligible for child 1 only",
+                    "example_2": "\u00a350 total for 2 children: \u00a326.05 (child 1) + \u00a323.95 (child 2) = eligible for both",
+                    "note": "Each child must receive at least the Child Benefit rate they would generate (eldest rate for first child, additional rate for others)"
+                },
+                "adoption_allowance": "Adoption allowance does NOT disqualify (unlike fostering allowance)"
+            },
+            "priority_rules": {
+                "rule": "Only one person can claim Child Benefit for a child",
+                "multiple_carers": "If two people are responsible, they must agree who claims",
+                "hmrc_arbitration": {
+                    "rule": "If agreement cannot be reached, HMRC decides based on evidence",
+                    "criteria": [
+                        "Primary residence (where child spends most nights per week)",
+                        "Main contributor to child's upkeep and care",
+                        "Day-to-day care responsibilities",
+                        "Stability and continuity for the child",
+                        "Existing claim history"
+                    ],
+                    "evidence_required": [
+                        "Proof of residence (utility bills, rental agreement, council tax)",
+                        "School registration and school correspondence",
+                        "Medical records and GP registration",
+                        "Financial contribution evidence (bank statements, receipts, maintenance records)",
+                        "Court orders or formal custody arrangements (if applicable)",
+                        "Statements from child's school, doctor, or other professionals"
+                    ],
+                    "common_scenarios": [
+                        "Separated parents with child spending 4 days vs 3 days per week with each",
+                        "Grandparent caring for grandchild while parent works",
+                        "Child living part-time with two different households",
+                        "Parent vs step-parent both contributing significantly"
+                    ],
+                    "decision_binding": true,
+                    "appeal_process": "Contact Child Benefit Office if circumstances change significantly"
+                },
+                "transfer": "Current claimant can transfer by contacting Child Benefit Office",
+                "child_moves": "If child moves but you still contribute to upkeep (at least CB amount), you can continue claiming"
+            },
+            "hospital_and_care": {
+                "hospital": {
+                    "time_limit": "12 weeks in hospital or residential accommodation",
+                    "linking_rule": "CUMULATIVE: If child returns within 28 days, time counts towards 12-week limit. Multiple stays within 28 days add together.",
+                    "example": "10 weeks + 15 day gap + 3 weeks = 13 weeks cumulative (exceeds limit)",
+                    "exception": "Can continue if regularly spending money on child",
+                    "abroad": "For hospital abroad, only if went for treatment and you're back in UK spending on them",
+                    "mental_health": "Psychiatric units count as hospital, not custody"
+                },
+                "care": {
+                    "time_limit": "8 weeks in local authority care",
+                    "exception_24_hours": "Can continue if child spends 24+ hours per week at home",
+                    "exception_nights": "Can continue if child spends 2 consecutive nights per week at home",
+                    "reclaim_conditions": "Can claim again if child spends 2 consecutive nights/week OR 7+ consecutive days at home",
+                    "custody": "Youth custody counts as care, 8-week limit applies"
+                },
+                "partner_spending": "Partner's money only counts if married/civil partnered and living together"
+            },
+            "council_payments": {
+                "rule": "Generally cannot claim if local council is paying for child's accommodation or maintenance",
+                "fostering": "Can claim for fostered child only if council NOT paying",
+                "adoption": "Adoption allowance does NOT disqualify",
+                "informal_care": "Cannot claim if council paying for informal care arrangement"
+            },
+            "administrative": {
+                "backdating": "Claims can be backdated up to 3 months",
+                "high_income_charge": {
+                    "rule": "HICBC is a payment adjustment, not an eligibility criterion. Claimant is still eligible but may owe tax.",
+                    "threshold_start": 60000,
+                    "threshold_full_clawback": 80000,
+                    "calculation": "Tax charge = 1% of Child Benefit for every \u00a3200 of income between \u00a360k-\u00a380k",
+                    "who_pays": "Higher earner in household pays, regardless of who claims Child Benefit",
+                    "examples": [
+                        "Income \u00a365,000: 50% clawback (25 \u00d7 \u00a3200 above \u00a360k = 25% per \u00a3200 = 25% charge)",
+                        "Income \u00a370,000: 50% clawback",
+                        "Income \u00a380,000+: 100% clawback (but still eligible, just repay full amount)"
+                    ],
+                    "opt_out": "Can choose not to receive payments to avoid charge, but should still register to protect National Insurance credits",
+                    "partner_income": "Partner's income applies even if they are not the claimant. Higher earner always pays.",
+                    "not_eligibility": "Important: HICBC does NOT affect eligibility. It is a post-payment tax charge only."
+                },
+                "payment_structure": {
+                    "rates_note": "Check gov.uk for current rates",
+                    "eldest_child_rate": "Higher rate for first child claimed",
+                    "additional_children_rate": "Lower rate for each additional child",
+                    "split_family_rule": "If two parents each claim for different children from same family, both get eldest child rate for their first child",
+                    "example": "Divorced parents: Mother claims for child A (gets eldest rate), Father claims for child B (also gets eldest rate, not additional rate)",
+                    "frequency": "Paid every 4 weeks, or weekly if single parent or receiving certain benefits"
+                }
+            }
+        }
+    ],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INELIGIBLE",
+                "reasoning": "Alex is 19 years old and in approved education, which would normally qualify them as an eligible child (children aged 16-19 can qualify if in approved non-advanced education of at least 12 hours per week supervised study). Although Alex works 24+ hours per week, this only disqualifies a child if they leave education/training, which Alex has not done. Alex has been in hospital for 11 weeks, which is under the 12-week limit. However, another claimant who lives with Alex has priority to claim Child Benefit. Under UK Child Benefit rules, only one person can claim Child Benefit for a child at a time. When multiple people are responsible for a child, they must agree who claims, or HMRC will decide based on who has primary care responsibility. Since another claimant has priority, you are ineligible to claim Child Benefit for Alex, even though Alex would otherwise be a qualifying child."
+            }
+        },
+        "overall_reasoning": "The claimant is ineligible to claim Child Benefit for Alex because another person who lives with the child has priority to claim. While Alex meets the criteria as a qualifying child (aged 19 in approved education), the priority rules prevent multiple claims for the same child."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": true,
+            "granular": {
+                "Alex": true
+            }
+        }
+    }
+}

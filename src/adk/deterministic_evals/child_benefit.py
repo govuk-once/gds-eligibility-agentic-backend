@@ -9,27 +9,22 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
     leaving room for future LLM-based reasoning evaluation.
     """
     case_id = test_case_data["case_id"]
-    id_to_name = {
-        child["id"]["value"]: child["name"]["value"] 
-        for child in test_case_data["facts"]["children"]["value"]
-    }
     expected_data = {}
-    for result in test_case_data["expected_eligibility"]:
-        name = id_to_name[result["child_id"]]
-        expected_data[name] = {"eligible": result["eligible"]}
+    for name, result in test_case_data["expected_eligibility"].items():
+        expected_data[name.lower()] = {"eligible": result["eligible"]}
 
     # Rebuild the expected object structure gracefully
     # because a change in the tool calling has changed the structure
     # so we need to zip it manually if this isn't done
     actual_data = {}
-    
+
     # CASE 1: The payload is from an old run (Function Response) and is already zipped
     if "child_evaluations" in eligibility_agent_tool_call:
         actual_data = {
             eval_obj["child_name"].lower(): eval_obj
-            for eval_obj in eligibility_agent_tool_call["child_evaluations"]
+            for eval_obj in eligibility_agent_tool_call["child_evaluations"].values()
         }
-        
+
     # CASE 2: The payload is from a new run (Function Call Arguments) and needs zipping
     elif "child_names" in eligibility_agent_tool_call:
         for name, is_eligible, reasoning in zip(
@@ -38,7 +33,7 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
             eligibility_agent_tool_call.get("reasonings", [])
         ):
             actual_data[name.lower()] = {
-                "child_name": name,
+                "child_name": name.lower(),
                 "is_eligible": is_eligible,
                 "reasoning": reasoning
             }
@@ -72,13 +67,14 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
             }
             continue
 
-        is_correct = expected["eligible"] == actual["is_eligible"]
+        actual_eligible = actual["eligible"] if "eligible" in actual else actual["is_eligible"]
+        is_correct = expected["eligible"] == actual_eligible
         if not is_correct:
             case_report["overall_is_correct"] = False
 
         case_report["child_evaluations"][name] = {
             "expected_eligible": expected["eligible"],
-            "actual_eligible": actual["is_eligible"],
+            "actual_eligible": actual_eligible,
             "is_correct": is_correct,
         }
 
@@ -87,7 +83,7 @@ def evaluate_test_case(test_case_data: dict, eligibility_agent_tool_call: dict) 
 
 def run_evaluation(input_folder_path: str = None):
     """
-    Evaluates test outputs. If no path is provided, automatically finds 
+    Evaluates test outputs. If no path is provided, automatically finds
     and evaluates the most recent run. Saves summary and detailed JSONs.
     """
     repo_root = Path(__file__).resolve().parents[3]
@@ -99,14 +95,14 @@ def run_evaluation(input_folder_path: str = None):
         if not base_dir.exists():
             print(f"Base directory not found: {base_dir.resolve()}")
             sys.exit(1)
-            
+
         # Get all subdirectories EXCEPT new eval_reports folder
         subdirs = [d for d in base_dir.iterdir() if d.is_dir() and d.name != "eval_reports"]
-        
+
         if not subdirs:
             print(f"No test run directories found in {base_dir.resolve()}")
             sys.exit(1)
-        
+
         # Sort lexicographically and pick the latest
         # as they're all named things like 2026-03-04T08:55:32.859368__RepoCommit=3890395
         subdirs.sort(key=lambda x: x.name)
@@ -128,7 +124,7 @@ def run_evaluation(input_folder_path: str = None):
     total_duration_seconds = 0.0
     total_urls_read = 0
 
-    for json_file in target_dir.glob("*.conversation.json"):
+    for json_file in target_dir.glob("**/*.conversation.json"):
         with json_file.open("r") as f:
             data = json.load(f)
 
@@ -141,9 +137,9 @@ def run_evaluation(input_folder_path: str = None):
         # Everything in same folder has same metadata so we only need to do this once
         if not run_config_metadata:
 
-            run_config_metadata = meta_content.get("run_config", {})            
+            run_config_metadata = meta_content.get("run_config", {})
 
-        
+
         test_case_data = meta_content["test_case"]
         case_id = test_case_data["case_id"]
         total_cases += 1
@@ -151,11 +147,11 @@ def run_evaluation(input_folder_path: str = None):
         # Extract performance and tool calls
         duration = data.get("performance", {}).get("duration_seconds", 0.0)
         tool_activity = data.get("tool_activity", [])
-        
+
         # Filter out just the web pages it read and grab the URLs
         urls_read = [
-            activity.get("arguments", {}).get("url") 
-            for activity in tool_activity 
+            activity.get("arguments", {}).get("url")
+            for activity in tool_activity
             if activity.get("tool_name") == "read_webpage"
         ]
 
@@ -164,17 +160,19 @@ def run_evaluation(input_folder_path: str = None):
         total_urls_read += len(urls_read)
 
         # Find the final judgement tool call in the activity log
-        judgement_call = next(
-            (
-                activity 
-                for activity in tool_activity 
-                if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
-            ), 
-            None
-        )
-
+        judgement_calls = [
+            activity
+            for activity in tool_activity
+            if activity.get("tool_name") in ["eligibility_judgement_outcome", "child_benefit_eligibility_agent_payload"]
+        ]
+        assert len(judgement_calls) < 2, f"Multiple Judgement calls detected in {case_id}"
+        if "eligibility_agent_payload" in data:
+            judgement_call = data["eligibility_agent_payload"]
+        else:
+            judgement_call = judgement_calls[0]["argumeents"] if len(judgement_calls) == 1 else None
+        
         # Guard against cases where the agent crashed or failed to call the tool
-        if not judgement_call or "arguments" not in judgement_call:
+        if not judgement_call:
             evaluation_results[case_id] = {
                 "case_id": case_id,
                 "overall_is_correct": False,
@@ -185,9 +183,7 @@ def run_evaluation(input_folder_path: str = None):
             }
             continue
 
-        tool_call_payload = judgement_call["arguments"]
-
-        report = evaluate_test_case(test_case_data, tool_call_payload)
+        report = evaluate_test_case(test_case_data, judgement_call)
 
         # Inject the metrics into the detailed case report
         report["duration_seconds"] = duration
@@ -224,9 +220,9 @@ def run_evaluation(input_folder_path: str = None):
         "failed_cases": total_cases - passed_cases,
         "accuracy": round(accuracy, 4),
         "mean_duration_seconds": round(mean_duration, 2),
-        "mean_urls_read": round(mean_urls, 2)  
+        "mean_urls_read": round(mean_urls, 2)
     }
-    
+
     summary_filepath = output_dir / "evaluation_report_summary.json"
     with summary_filepath.open("w") as f:
         json.dump(summary_data, f, indent=4)
@@ -240,7 +236,7 @@ def run_evaluation(input_folder_path: str = None):
     print(f"Passed      : {passed_cases}")
     print(f"Failed      : {total_cases - passed_cases}")
     if total_cases > 0:
-        print(f"Accuracy    : {accuracy:.4f}%")
+        print(f"Accuracy    : {accuracy * 100:.4f}%")
         print(f"Avg Duration   : {mean_duration:.2f}s")
         print(f"Avg URLs Read  : {mean_urls:.2f}")
 

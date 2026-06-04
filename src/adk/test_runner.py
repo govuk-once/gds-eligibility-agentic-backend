@@ -6,7 +6,9 @@ from subprocess import run
 from pathlib import Path
 import argparse
 import random
+from dataclasses import dataclass
 
+from dataclass_wizard import YAMLWizard
 from google.genai import types
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
@@ -18,31 +20,30 @@ from google.adk.apps.app import App
 from google.adk.utils.context_utils import Aclosing
 
 from deterministic_evals.child_benefit import run_evaluation
+from evaluation_judge.agent import get_conversation_pipeline, get_facts_bundle_pipeline # pyright:ignore[reportUnusedImport]
+from gds_eligibility.agent import Eligibility
 
-from evaluation_judge.agent import get_conversation_pipeline
 
-config = {
-    "hypothesis_name": "opus_no_links",
-    "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "eligibility_model_string": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
-    "actor_prompt": "structured_generation/child_benefit/actor_v0.2.md",
-    "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md", # structured spec: "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v1.md"
-    "test_cohort": "child_benefit",
-    "output_path": "analysis/testOutputs",
-    "app_name": "evaluation_judge",
-    "app_user_id": "test_user",
-    "url_tool_call_allowed": False, # if rules via URLs then should be True
-     "eligibility_agent": "gds_eligibility", # alternative is "structured_specification"
-    "max_concurrent_cases": 15,
-    # 20 is fine for Sonnet/Haiku (limits: requests/min 10k, tokens/min 5m)
-    # 30 is too many.
-    # For Opus the requests/min are 10k and tokens/min 2m
-    # 20 is too many for Opus. 15 seems OK.
-    # other models may vary.
-    # check quotas: https://eu-west-2.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas
-    "max_retries": 3,
-    "base_delay": 5,  # seconds (if request fails)
-}
+@dataclass
+class Config(YAMLWizard):
+    hypothesis_name: str
+    actor_model_string: str
+    actor_kwargs: dict
+    eligibility_model_string: str
+    actor_prompt: str
+    eligibility_prompt: str
+    test_cohort: str
+    test_case_file: str
+    output_path: str
+    app_name: str
+    app_user_id: str
+    url_tool_call_allowed: bool # if rules via URLs then should be True
+    eligibility_agent: str
+    max_concurrent_cases: int
+    max_retries: int
+    base_delay: int # seconds (if request fails)
+    output_structure_version: int # Version of transcript structure
+    pipeline_name: str
 
 
 def get_short_model_name(model_string: str) -> str:
@@ -68,7 +69,7 @@ def get_short_model_name(model_string: str) -> str:
 
 
 def get_or_create_output_directory(
-    resume_val: str | None, execution_datetime: str, git_commit: str
+    config: Config, resume_val: str | None, execution_datetime: str, git_commit: str
 ) -> Path:
     """
     This is basically to handle the --resume flag, which was necessary because of timeouts.
@@ -76,21 +77,23 @@ def get_or_create_output_directory(
     1. Don't pass --resume. Default behaviour is to create a new directory and start from first case.
     2. Pass --resume with no args. Default behaviour is to resume from most recent directory.
     3. Pass --resume with args e.g. '--resume "2026-03-04T17:22:27.476356__Model=claude-sonnet-4-5__Commit=cce7a2c"'
-       This will resume from the last case in that directory.
-       Note: if doing this make sure to set the config params to whatever they were that time.
+    This will resume from the last case in that directory.
+    Note: if doing this make sure to set the config params to whatever they were that time.
     """
     base_path = (
-        Path("../../").joinpath(config["output_path"]).joinpath(config["test_cohort"])
+        Path("../../").joinpath(config.output_path).joinpath(config.test_cohort)
     )
 
     # Default behaviour (No ---resume flag): Create a new directory
     if not resume_val:
-        model_short_name = get_short_model_name(config["eligibility_model_string"])
+        model_short_name = get_short_model_name(config.eligibility_model_string)
         output_dir = base_path.joinpath(
             f"{execution_datetime}__Model={model_short_name}__Commit={git_commit}"
+        ).joinpath(
+            config.test_case_file
         )
         output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"STARTING NEW RUN: {output_dir.name}")
+        print(f"STARTING NEW RUN: {output_dir.relative_to(output_dir.parent.parent)}")
         return output_dir
 
     # Default resume (--resume with no folder name passed)
@@ -106,8 +109,9 @@ def get_or_create_output_directory(
         if not directories:
             raise FileNotFoundError("Cannot resume. No previous runs found.")
 
-        latest_dir = max(directories, key=lambda d: d.name)
-        print(f"RESUMING LATEST RUN: {latest_dir.name}")
+        latest_dir = max(directories, key=lambda d: d.name).joinpath(config.test_case_file)
+        assert latest_dir.exists(), "You've probably changed the test_case_file since the run you're resuming"
+        print(f"RESUMING LATEST RUN: {latest_dir.relative_to(latest_dir.parent.parent)}")
         return latest_dir
 
     # Explicit resume (--resume specific_folder_name)
@@ -124,12 +128,12 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     """
     Checks if an output file exists and is completely written.
     If it is incomplete or corrupted, it deletes the file so it can be re-run.
-    This is for the --resume case. If it was interruped then we get a corrupted json
+    This is for the --resume case. If it was interrupted then we get a corrupted json
     which causes problems later.
 
     Returns:
-        bool: True if the file is fully complete (meaning the case should be skipped).
-              False if the file doesn't exist or was deleted (meaning the case needs to run).
+    bool: True if the file is fully complete (meaning the case should be skipped).
+    False if the file doesn't exist or was deleted (meaning the case needs to run).
     """
     if not output_file_path.exists():
         return False
@@ -162,7 +166,7 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
         pass  # File is half-written and corrupted
 
     if is_complete:
-        print(f"Skipping {case_name} (Already complete)")
+        print(f"Skipping {case_name} <{data['case_id']}> (Already complete)")
         return True
 
     # If we get here, the file exists but crashed/timed out before finishing the task
@@ -171,7 +175,17 @@ def check_and_clean_existing_output(output_file_path: Path, case_name: str) -> b
     return False
 
 
-async def main(resume_val: str | None = None, n_cases: int | None = None):
+def get_config(config_name: str) -> Config:
+    # This can be Config|list[Config] wheret the latter breaks further checks
+    config: Config = Config.from_yaml_file( #  pyright:ignore[reportAssignmentType]
+        f"../../config/test_runner/{config_name}.yaml"
+    )
+    assert config.hypothesis_name == config_name, "Please keep config name and hypothesis name synonymous for now, pending later refactor"
+    return config
+
+
+async def main(config_name: str, case_keys: list[str], resume_val: str | None = None, n_cases: int | None = None):
+    config = get_config(config_name)
 
     git_commit = run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -182,22 +196,40 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
     execution_datetime = datetime.now().isoformat()
 
     output_dir = get_or_create_output_directory(
-        resume_val, execution_datetime, git_commit
+        config, resume_val, execution_datetime, git_commit
     )
-    test_cases = load_and_parse_test_cases(config["test_cohort"])
-    if n_cases:
+    test_cases = load_and_parse_test_cases(
+        config.test_cohort,
+        config.test_case_file
+    )
+    if case_keys:
+        found_cases = {}
+        for test_case in test_cases:
+            for case_key in case_keys:
+                if test_case["case_id"] == case_key:
+                    found_cases[case_key] = test_case
+        if len(found_cases) == len(case_keys):
+            test_cases = list(found_cases.values())
+        elif len(found_cases) < len(case_keys):
+            missing = set(case_keys).difference(found_cases.keys())
+            print(f"I looked everywhere, but I couldn't find {','.join(missing)}, I beg your forgiveness")
+            exit(1)
+        else:
+            print("Something deeply weird has happened")
+            exit(1)
+    elif n_cases:
         test_cases = test_cases[:n_cases]
         print(f"Limiting execution to the first {n_cases} test cases.")
 
     # Concurrency. max_concurrent_cases = 20 reduced a 2 hour Sonnet run to about 6 mins
-    semaphore = asyncio.Semaphore(config["max_concurrent_cases"])
+    semaphore = asyncio.Semaphore(config.max_concurrent_cases)
 
     async def run_case_concurrently(test_id, test_case):
         async with semaphore:
             # For --resume case. Can't just check if it exists, need to make sure it's written fully (with judgment playload).
-            expected_filename = f"Permutation{test_id}.conversation.json"
+            case_name = test_case.get("case_id", f"{test_id}")
+            expected_filename = f"Permutation_{case_name}.conversation.json"
             output_file_path = output_dir / expected_filename
-            case_name = test_case.get("case_id", f"Permutation {test_id}")
             if check_and_clean_existing_output(output_file_path, case_name):
                 return
 
@@ -205,36 +237,40 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
                 "permutation": test_id,
                 "test_case": test_case,
                 "execution_datetime": execution_datetime,
+                "versions": { "output_structure": config.output_structure_version, "test_case_content": test_case.get("content_version", 1) },
                 "run_config": {
-                    "actor_model_string": config["actor_model_string"],
-                    "test_cohort": config["test_cohort"],
+                    "actor_model_string": config.actor_model_string,
+                    "actor_kwargs": config.actor_kwargs,
+                    "test_cohort": config.test_cohort,
                     "commit": git_commit,
-                    "hypothesis_name": config["hypothesis_name"],
-                    "eligibility_model_string": config["eligibility_model_string"],
-                    "actor_prompt": config["actor_prompt"],
-                    "eligibility_prompt": config["eligibility_prompt"],
+                    "hypothesis_name": config.hypothesis_name,
+                    "eligibility_model_string": config.eligibility_model_string,
+                    "actor_prompt": config.actor_prompt,
+                    "eligibility_prompt": config.eligibility_prompt,
                     "test_set_size": len(test_cases),
-                    "url_tool_call_allowed": config.get("url_tool_call_allowed", True),
-                    "max_concurrent_cases": config["max_concurrent_cases"],
+                    "url_tool_call_allowed": config.url_tool_call_allowed,
+                    "max_concurrent_cases": config.max_concurrent_cases,
+                    "pipeline_name": config.pipeline_name,
                 },
             }
 
-            for attempt in range(config["max_retries"]):
+            for attempt in range(config.max_retries):
                 try:
                     # Instantiate services inside the execution block so they are totally isolated
                     session_service = InMemorySessionService()
                     artifact_service = InMemoryArtifactService()
                     credential_service = InMemoryCredentialService()
 
-                    print(f"▶️ Starting {case_name}...")
+                    print(f"▶️ Starting {case_name} <{test_id}>...")
                     await execute_test_case(
+                        config,
                         test_id,
                         test_case,
                         session_service,
                         artifact_service,
                         credential_service,
                         output_dir,
-                        config["test_cohort"],
+                        config.test_cohort,
                         meta,
                     )
                     break  # Success! Break out of the retry loop.
@@ -259,26 +295,26 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
                     )
 
                     if is_retryable:
-                        if attempt < config["max_retries"] - 1:
+                        if attempt < config.max_retries - 1:
                             # Exponential backoff with a random jitter
                             sleep_time = (
-                                config["base_delay"] * (2**attempt)
+                                config.base_delay * (2**attempt)
                             ) + random.uniform(0, 1)
                             print(
-                                f"⚠️ Rate limited on {case_name}. Retrying in {sleep_time:.1f}s..."
+                                f"⚠️ Rate limited on {case_name} <{test_id}>. Retrying in {sleep_time:.1f}s..."
                             )
                             await asyncio.sleep(sleep_time)
                         else:
                             print(
-                                f"❌ Failed {case_name} after {config['max_retries']} attempts due to rate limits."
+                                f"❌ Failed {case_name} <{test_id}> after {config.max_retries} attempts due to rate limits."
                             )
                             raise e
                     else:
                         # If it's a normal code bug or framework error, crash so we can fix it
-                        print(f"❌ Fatal Error in {case_name}: {e}")
+                        print(f"❌ Fatal Error in {case_name} <{test_id}>: {e}")
                         raise e
 
-    # This prepares all cases, and the semaphore above ensures only config["max_concurrent_cases"] run at once
+    # This prepares all cases, and the semaphore above ensures only config.max_concurrent_cases run at once
     tasks = []
     for test_id, test_case in enumerate(test_cases, start=1):
         tasks.append(run_case_concurrently(test_id, test_case))
@@ -291,7 +327,7 @@ async def main(resume_val: str | None = None, n_cases: int | None = None):
             f"\nTest execution complete! Triggering deterministic evaluator for {output_dir.name}..."
         )
         try:
-            run_evaluation(output_dir.name)
+            run_evaluation(output_dir.parent.name)
             print("Evaluation complete. Summary report generated.")
         except Exception as e:
             print(f"Run finished, but evaluator failed to execute: {e}")
@@ -338,7 +374,14 @@ def update_token_usage(event, usage_dict: dict) -> None:
     usage_dict["breakdown_by_agent"][author]["total"] += p_tokens + c_tokens
 
 
+def fix_enumeration_representation(actual_results: dict[str, dict[str, int|str]]) -> None:
+    for child in actual_results.keys():
+        if type(actual_results[child]["eligible"]) == int:
+            actual_results[child]["eligible"] = Eligibility(actual_results[child]["eligible"]).name
+
+
 async def execute_test_case(
+    config: Config,
     test_id: int,
     test_case: dict,
     session_service: InMemorySessionService,
@@ -352,22 +395,27 @@ async def execute_test_case(
     This is largely inspired by/borrowed from `google.adk.cli.cli.run_interactively`
     https://github.com/google/adk-python/blob/32f2ec3a78c4ef8475b7d8a630705e4cf5ccbe50/src/google/adk/cli/cli.py#L88
     """
-
+    pipeline = globals()["get_" + config.pipeline_name]
     app = App(
-        name=config["app_name"],
-        root_agent=get_conversation_pipeline(
-            test_case["agent_script"],
-            config["actor_model_string"],
-            config["eligibility_model_string"],
-            config["actor_prompt"],
-            config["eligibility_prompt"],
-            config["eligibility_agent"],
-            config.get("url_tool_call_allowed", True),
+        name=config.app_name,
+        root_agent=pipeline(
+            situation_profile=test_case["agent_script"],
+            actor_model=config.actor_model_string,
+            actor_kwargs=config.actor_kwargs,
+            eligibility_model=config.eligibility_model_string,
+            actor_prompt_path=config.actor_prompt,
+            eligibility_prompt=config.eligibility_prompt,
+            eligibility_agent=config.eligibility_agent,
+            url_tool_call_allowed=config.url_tool_call_allowed,
         ),
     )
 
     session = await session_service.create_session(
-        app_name=config["app_name"], user_id=config["app_user_id"]
+        app_name=config.app_name,
+        user_id=config.app_user_id,
+        state={
+            "case_id": test_id
+        },
     )
     runner = Runner(
         app=app,
@@ -394,13 +442,14 @@ async def execute_test_case(
     # Start the stopwatch
     start_time = time.perf_counter()
 
-    with output_dir.joinpath(f"Permutation{test_id}.conversation.json").open(
+    case_name = test_case.get("case_id", f"{test_id}")
+    with output_dir.joinpath(f"Permutation_{case_name}.conversation.json").open(
         "w"
     ) as output_file:
         print(f"Outputting dialogue to {output_file.name}")
         async with Aclosing(
             runner.run_async(
-                user_id=config["app_user_id"],
+                user_id=config.app_user_id,
                 session_id=session.id,
                 new_message=types.Content(
                     role="user",
@@ -445,9 +494,15 @@ async def execute_test_case(
                                     part.function_response.name
                                     == "eligibility_judgement_outcome"
                                 ):
-                                    payload[f"{event.author}_payload"] = {
-                                        "response": part.function_response.dict()
-                                    }
+                                    payload[f"{event.author}_payload"] = part.function_response.dict()["response"]
+                                    fix_enumeration_representation(payload["eligibility_agent_payload"]["child_evaluations"])
+                                    try:
+                                        payload["correctness"] = derive_correctness_from_payload(
+                                            expected_results=payload["meta"]["test_case"]["expected_eligibility"],
+                                            actual_results=payload["eligibility_agent_payload"]["child_evaluations"]
+                                        )
+                                    except Exception as e:
+                                        payload["correctness"] = {"eligibility_outcome": {"overall": False}} 
                                 elif part.function_response.name in [
                                     "start_assessment",
                                     "get_node_info",
@@ -456,9 +511,7 @@ async def execute_test_case(
                                     "get_validation_rules",
                                     "get_specification_metadata",
                                 ]:
-                                    payload["tool_response"].append(
-                                        {"response": part.function_response.dict()}
-                                    )
+                                    payload["tool_response"].append(part.function_response.dict()["response"])
 
                         # Log the standard text conversation
                         if text := "".join(p.text or "" for p in event.content.parts):
@@ -483,10 +536,12 @@ async def execute_test_case(
                 json.dump(payload, output_file, indent=4)
 
 
-def load_and_parse_test_cases(test_cohort: str):
+def load_and_parse_test_cases(test_cohort: str, test_case_file_str: str | None):
 
+    if test_case_file_str is None:
+        test_case_file_str = "test_cases"
     test_case_file = Path(
-        f"../../prompts/structured_generation/{test_cohort}/test_cases.jsonl"
+        f"../../prompts/structured_generation/{test_cohort}/{test_case_file_str}.jsonl"
     )
 
     test_cases = []
@@ -500,9 +555,27 @@ def load_and_parse_test_cases(test_cohort: str):
     return test_cases
 
 
+def derive_correctness_from_payload(expected_results: dict[str, dict[str, str]], actual_results: dict[str, dict[str, str]]):
+    matches_by_child = {
+        child: child_payload["eligible"] == actual_results[child]["eligible"]
+        for child, child_payload in expected_results.items()
+    }
+    return {
+        "eligibility_outcome": {
+            "overall": all(matches_by_child.values()),
+            "granular": matches_by_child
+        }
+    }
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run the Eligibility Agent evaluation."
+    )
+
+    parser.add_argument(
+        "config_name",
+        help="Name of the config, looked up in the ./config/test_runner/ directory omit the the '.yaml' extension",
+        choices=[path.stem for path in Path(__file__).absolute().parents[2].joinpath("config/test_runner").glob("*.yaml")],
     )
 
     parser.add_argument(
@@ -519,5 +592,15 @@ if __name__ == "__main__":
         default=None,
         help="Limit the number of test cases to run (e.g., 1 for debugging).",
     )
+    parser.add_argument(
+        "--case-keys",
+        type=str,
+        default="",
+        help="Used when running specific cases is desirable. Specify multiples by splitting with ,",
+    )
     args = parser.parse_args()
-    asyncio.run(main(args.resume, args.n_cases))
+    if args.case_keys:
+        case_keys = args.case_keys.split(",")
+    else:
+        case_keys = []
+    asyncio.run(main(args.config_name, case_keys, args.resume, args.n_cases))

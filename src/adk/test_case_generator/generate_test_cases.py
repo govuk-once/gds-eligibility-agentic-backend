@@ -1,6 +1,6 @@
 import json
 import random
-from typing import Any, Dict, List, Tuple
+from typing import Any
 from pathlib import Path
 
 
@@ -19,7 +19,12 @@ CB_WEEKLY_RATE = 26.05
 with open("data_dictionary.json", "r") as f:
     DATA_DICTIONARY = json.load(f)
 
-OUTFILE_NAME = "../../../prompts/structured_generation/child_benefit/test_cases.jsonl"
+BASE_DIR = Path(__file__).resolve().parent
+
+OUTFILE_NAME = BASE_DIR.parent.parent.parent / "prompts/structured_generation/child_benefit/test_cases.jsonl"
+
+CONTENT_VERSION = 2
+RANDOM_CASE_SET_ID = f"RND_SET_{CONTENT_VERSION}" # so we don't reuse the same random IDs
 
 RANDOM_GENERATION_CONFIG = {
     # Case-Level Probabilities
@@ -38,10 +43,10 @@ RANDOM_GENERATION_CONFIG = {
     "prob_another_claimant_priority": 0.10,
     # Care & Hospital
     "prob_care": 0.12,
-    "care_weeks": [4, 7, 8, 9, 12, 16],
+    "care_weeks": [4, 7, 8, 9, 10, 16],
     "prob_care_home_24h": 0.50,
     "prob_hospital": 0.12,
-    "hospital_weeks": [4, 8, 11, 12, 13, 18],
+    "hospital_weeks": [4, 8, 11, 10, 13, 18],
     "prob_hospital_spending": 0.50,
     # Fostering
     "prob_foster": 0.08,
@@ -54,9 +59,9 @@ RANDOM_GENERATION_CONFIG = {
     "min_age_post_16_rules": 16,  # Applies to education, work, apprenticeships, and benefits
     "max_age_extension": 17,  # The maximum inclusive age for the 20-week extension
     "age_education_cutoff": 20,  # The age at which ALL education eligibility strictly ends
-    
+
     # We need names so we can uniquely identify the child later
-    # doesn't matter what they are at this stage 
+    # doesn't matter what they are at this stage
     # (add more if creatng test cases with more than three children)
     "names": [
         "Alex", "Blake", "Charlie"
@@ -67,7 +72,7 @@ RANDOM_GENERATION_CONFIG = {
 # Rules
 #
 # Each function encodes a single eligibility criterion from the published
-# Child Benefit rules (gov.uk). Each returns a Tuple[bool, str] (passed, reason).
+# Child Benefit rules (gov.uk). Each returns a tuple[bool, str] (passed, reason).
 #
 # `passed` is a boolean as it's per-child. So a claimant may have two children
 # and eligibility is True for child 0 and False for child 1.
@@ -86,7 +91,7 @@ RANDOM_GENERATION_CONFIG = {
 # ---------------------------------------------------------------------------
 
 
-def check_residency(facts: Dict[str, Any]) -> Tuple[bool, str]:
+def check_residency(facts: dict[str, Any]) -> tuple[bool, str]:
     """Claimant must live in the UK.
     Note that this applies to the claimant (i.e. parent/carer)
     whereas the other rules apply to the child.
@@ -96,7 +101,7 @@ def check_residency(facts: Dict[str, Any]) -> Tuple[bool, str]:
     return True, "Claimant lives in the UK"
 
 
-def check_child_age_education(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_child_age_education(child: dict[str, Any]) -> tuple[bool, str]:
     """
     Child must be under 16, OR under 20 and in approved education/training,
     OR 16-17 and in the 20-week extension period (registered with a
@@ -106,16 +111,16 @@ def check_child_age_education(child: Dict[str, Any]) -> Tuple[bool, str]:
     if age < 16:
         return True, f"Child is {age} (under 16)"
     if age >= 20:
-        return False, f"Child is {age}, which is 20 or over"
+        return False, f"Child is {age}"
     # 16-19
     if child["in_approved_education"]:
         return True, f"Child is {age} and in approved education"
     if age <= 17 and child["in_extension_period"]:
-        return True, f"Child is {age} and in the 20-week extension period"
+        return True, f"Child is {age}, has left education or training and been registered with a government-sponsored careers service or the armed services for less than 20 weeks"
     return False, f"Child is {age} and not in approved education or extension period"
 
 
-def check_responsibility(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_responsibility(child: dict[str, Any]) -> tuple[bool, str]:
     """
     Claimant must be responsible for the child: either the child lives with
     them (and no other claimant has priority), or the claimant contributes
@@ -134,18 +139,18 @@ def check_responsibility(child: Dict[str, Any]) -> Tuple[bool, str]:
     upkeep = child["upkeep_per_week"]
     if upkeep < CB_WEEKLY_RATE:
         return False, (
-            f"Child does not live with claimant and weekly upkeep "
-            f"(£{upkeep:.2f}) is below the Child Benefit rate (£{CB_WEEKLY_RATE})"
+            f"Child does not live with claimant and weekly upkeep is"
+            f"(£{upkeep:.2f})"
         )
     if child["another_claimant_lives_with_child"]:
         return False, "Someone who lives with the child is already claiming"
     return (
         True,
-        f"Claimant contributes £{upkeep:.2f}/week towards child's upkeep (>= £{CB_WEEKLY_RATE}) and no other claimaint has priority",
+        f"Claimant contributes £{upkeep:.2f}/week towards child's upkeep and no other claimaint has priority",
     )
 
 
-def check_care_absence(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_care_absence(child: dict[str, Any]) -> tuple[bool, str]:
     """
     If the child has been in local authority care for more than 8 weeks,
     eligibility stops UNLESS the child spends at least 24 hours per week
@@ -160,14 +165,14 @@ def check_care_absence(child: Dict[str, Any]) -> Tuple[bool, str]:
             )
         return False, (
             f"Child in local authority care for {care_weeks} weeks "
-            f"(>8) and does not spend 24+ hours/week at home"
+            f"and does not spend 24+ hours/week at home"
         )
     if care_weeks > 0:
-        return True, f"Child in care for {care_weeks} weeks (within 8-week limit)"
+        return True, f"Child in care for {care_weeks} weeks"
     return True, "Child is not in local authority care"
 
 
-def check_hospital_absence(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_hospital_absence(child: dict[str, Any]) -> tuple[bool, str]:
     """
     If the child has been in hospital or residential accommodation for more
     than 12 weeks, eligibility stops UNLESS the claimant regularly spends
@@ -182,18 +187,18 @@ def check_hospital_absence(child: Dict[str, Any]) -> Tuple[bool, str]:
             )
         return False, (
             f"Child in hospital/residential accommodation for "
-            f"{hospital_weeks} weeks (>12) and claimant is not "
+            f"{hospital_weeks} weeks and claimant is not "
             f"regularly spending money on child"
         )
     if hospital_weeks > 0:
         return (
             True,
-            f"Child in hospital for {hospital_weeks} weeks (within 12-week limit)",
+            f"Child in hospital for {hospital_weeks} weeks",
         )
     return True, "Child is not in hospital or residential accommodation"
 
 
-def check_fostering(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_fostering(child: dict[str, Any]) -> tuple[bool, str]:
     """
     A foster parent can claim Child Benefit ONLY if the local council is NOT
     paying towards the child's accommodation or maintenance.
@@ -211,7 +216,7 @@ def check_fostering(child: Dict[str, Any]) -> Tuple[bool, str]:
     return True, "Child is not fostered"
 
 
-def check_child_work_status(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_child_work_status(child: dict[str, Any]) -> tuple[bool, str]:
     """
     Eligibility stops if the child works 24 or more hours per week AND is
     no longer in approved education or training.
@@ -223,7 +228,7 @@ def check_child_work_status(child: Dict[str, Any]) -> Tuple[bool, str]:
     return True, "Child does not work 24+ hours/week"
 
 
-def check_apprenticeship(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_apprenticeship(child: dict[str, Any]) -> tuple[bool, str]:
     """
     Eligibility stops if the child starts an apprenticeship in England.
     """
@@ -232,7 +237,7 @@ def check_apprenticeship(child: Dict[str, Any]) -> Tuple[bool, str]:
     return True, "Child has not started an apprenticeship in England"
 
 
-def check_child_benefits(child: Dict[str, Any]) -> Tuple[bool, str]:
+def check_child_benefits(child: dict[str, Any]) -> tuple[bool, str]:
     """
     Eligibility stops if the child receives certain benefits in their own
     right, such as Universal Credit or Employment and Support Allowance.
@@ -250,7 +255,7 @@ def check_child_benefits(child: Dict[str, Any]) -> Tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 
-def evaluate_eligibility(facts: Dict[str, Any]) -> List[Dict[str, Any]]:
+def evaluate_eligibility(facts: dict[str, Any]) -> dict[str,dict[str, Any]]:
     """
     Evaluate eligibility for each child. Returns a list of per-child results.
     """
@@ -268,8 +273,8 @@ def evaluate_eligibility(facts: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     res_ok, res_reason = check_residency(facts)
 
-    results = []
-    for child in facts["children"]:
+    results = {}
+    for child in facts["children"].values():
         failed_reasons = []
         # Bit of a hack to append the residency to child but it's easiest approach
         # rather than special-casing this one reason
@@ -287,19 +292,17 @@ def evaluate_eligibility(facts: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         is_eligible = len(failed_reasons) == 0
 
-        results.append(
-            {
-                "child_id": child["id"],
-                "name" : child["name"],
-                "eligible": is_eligible,
-                # This is either a list of semicolon-separated failures, or all passes
-                "reason": "; ".join(failed_reasons)
-                if not is_eligible
-                else "; ".join(all_circumstances),
-                # The complete list of every reason regardless of pass/fail (for LLM script)
-                "circumstances": all_circumstances,
-            }
-        )
+        results[child["name"]] = {
+            "child_id": child["id"],
+            "name" : child["name"],
+            "eligible": "ELIGIBLE" if is_eligible else "INELIGIBLE",
+            # This is either a list of semicolon-separated failures, or all passes
+            "reason": "; ".join(failed_reasons)
+            if not is_eligible
+            else "; ".join(all_circumstances),
+            # The complete list of every reason regardless of pass/fail (for LLM script)
+            "circumstances": all_circumstances,
+        }
 
     return results
 
@@ -313,7 +316,7 @@ def evaluate_eligibility(facts: Dict[str, Any]) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
-def _generate_case_id(rule: str, variant: str, expected: List[bool]) -> str:
+def _generate_case_id(rule: str, variant: str, expected: list[bool]) -> str:
     """Derives a strict, predictable case ID based on the expected outcomes."""
     if all(expected):
         outcome_str = "PASS"
@@ -328,14 +331,16 @@ def _generate_case_id(rule: str, variant: str, expected: List[bool]) -> str:
     return case_id
 
 
-def _build_child_facts(raw_children: List[Dict]) -> List[Dict]:
+def _build_child_facts(
+    raw_children: list[dict[str,str|int|float|bool]]
+) -> dict[str,dict[str,str|int|float|bool]]:
     """Takes raw JSON child data and returns a list of dicts.
     Assigns consecutive child_ids.
     If unspecified, specifies defaults as below (basically a simple case)
     """
     DEFAULT_NAMES = RANDOM_GENERATION_CONFIG["names"]
-    
-    children = []
+
+    children = {}
     for i, child_data in enumerate(raw_children):
         # 1. Define the complete baseline for a "standard, uncomplicated" child
         c = {
@@ -361,7 +366,7 @@ def _build_child_facts(raw_children: List[Dict]) -> List[Dict]:
 
         # 2. Overwrite the baseline with whatever was explicitly stated in the JSON
         c.update(child_data)
-        children.append(c)
+        children[c["name"]] = c
     return children
 
 
@@ -378,6 +383,8 @@ def _enrich_facts(data: Any) -> Any:
                 "description": DATA_DICTIONARY[k],
                 "value": _enrich_facts(v),
             }
+            if k in DATA_DICTIONARY
+            else _enrich_facts(v)
             for k, v in data.items()
         }
     elif isinstance(data, list):
@@ -385,7 +392,7 @@ def _enrich_facts(data: Any) -> Any:
     return data
 
 
-def _build_preamble(facts: Dict[str, Any]) -> str:
+def _build_preamble(facts: dict[str, Any]) -> str:
     """Builds the factual 'Situation Profile' for the LLM."""
     lines = []
 
@@ -399,10 +406,10 @@ def _build_preamble(facts: Dict[str, Any]) -> str:
 
     # Number of children
     child_word = "child" if len(facts["children"]) == 1 else "children"
-    lines.append(f"You are inquiring about your {len(facts['children'])} {child_word}:")
+    lines.append(f"You are asking about Child Benefit for {len(facts['children'])} {child_word}:")
 
     # Child details
-    for child in facts["children"]:
+    for child in facts["children"].values():
         lives_with = (
             "lives with you"
             if child["lives_with_claimant"]
@@ -418,7 +425,7 @@ def _build_preamble(facts: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _build_agent_script(facts: Dict[str, Any], eligibility_results: List[Dict]) -> str:
+def _build_agent_script(facts: dict[str, Any], eligibility_results: dict[str,Any]) -> str:
     """Formats the evaluated circumstances into a readable script for the LLM.
     For example, for the first test case it produces this:
     Regarding Alex:
@@ -433,25 +440,26 @@ def _build_agent_script(facts: Dict[str, Any], eligibility_results: List[Dict]) 
     - Child does not receive qualifying benefits in their own right
     """
     parts = [_build_preamble(facts)]
-    for result in eligibility_results:
+    for result in eligibility_results.values():
         #print(result)
         facts_list = "\n".join(f"  - {c}" for c in result["circumstances"])
         parts.append(f"Regarding {result['name']}:\n{facts_list}")
     return "\n\n".join(parts)
 
 
-def _assert_correctness(case_id: str, actual: List[bool], expected: List[bool]) -> None:
+def _assert_correctness(case_id: str, actual: list[str], expected: list[bool]) -> None:
     """Verifies the rule engine's output matches the expectations specified in the json.
     For example Case 0 should return [True] (list of 1 child who is eligible).
     """
-    assert actual == expected, (
-        f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual}"
+    actual_bool = [actual_elem == "ELIGIBLE" for actual_elem in actual]
+    assert actual_bool == expected, (
+        f"\nTEST FAILED: {case_id}\nExpected: {expected}\nActual:   {actual_bool}"
     )
 
 
 def generate_systematic_cases(
     json_filepath: str = "systematic_cases.json",
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Loads systematic test cases, evaluates them, and asserts correctness."""
 
     with open(json_filepath, "r") as f:
@@ -476,13 +484,14 @@ def generate_systematic_cases(
         eligibility_results = evaluate_eligibility(facts)
 
         # Assert the engine behaved correctly
-        actual_outcomes = [res["eligible"] for res in eligibility_results]
+        actual_outcomes = [res["eligible"] for res in eligibility_results.values()]
         _assert_correctness(case_id, actual_outcomes, expected)
 
         # Build and store the final payload
         cases.append(
             {
                 "case_id": case_id,
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,
@@ -497,14 +506,14 @@ def generate_systematic_cases(
 # ---------------------------------------------------------------------------
 
 
-def generate_random_child(rng: random.Random, child_id: str) -> Dict[str, Any]:
+def generate_random_child(rng: random.Random, child_id: str) -> dict[str, Any]:
     """Builds a random child profile based on RANDOM_GENERATION_CONFIG."""
     cfg = RANDOM_GENERATION_CONFIG
 
     age = rng.randint(cfg["age_range"][0], cfg["age_range"][1])
     lives_with = rng.random() < cfg["prob_lives_with_claimant"]
 
-    child: Dict[str, Any] = {
+    child: dict[str, Any] = {
         "id": child_id,
         "age": age,
         "lives_with_claimant": lives_with,
@@ -555,7 +564,7 @@ def generate_random_child(rng: random.Random, child_id: str) -> Dict[str, Any]:
     return child
 
 
-def _generate_random_case_facts(rng: random.Random) -> Dict[str, Any]:
+def _generate_random_case_facts(rng: random.Random) -> dict[str, Any]:
     """Generates the fully formed factual profile for a single random case."""
     cfg = RANDOM_GENERATION_CONFIG
 
@@ -574,7 +583,7 @@ def _generate_random_case_facts(rng: random.Random) -> Dict[str, Any]:
     }
 
 
-def generate_random_cases(count: int = 50, seed: int = 146) -> List[Dict[str, Any]]:
+def generate_random_cases(count: int = 50, seed: int = 146) -> list[dict[str, Any]]:
     """
     Generates random test cases, evaluates them, and builds the agent scripts.
     A seed of 146 happens to generate exactly 71 eligible and 71 ineligible children
@@ -593,7 +602,8 @@ def generate_random_cases(count: int = 50, seed: int = 146) -> List[Dict[str, An
         # 3. Build and store the final payload
         cases.append(
             {
-                "case_id": f"RND_{i + 1:03d}",
+                "case_id": f"{RANDOM_CASE_SET_ID}_{i + 1:03d}",
+                "content_version": CONTENT_VERSION,
                 "facts": _enrich_facts(facts),
                 "agent_script": _build_agent_script(facts, eligibility_results),
                 "expected_eligibility": eligibility_results,
@@ -615,6 +625,7 @@ def save_cases(all_cases):
 def main() -> None:
     systematic = generate_systematic_cases()
     random_cases = generate_random_cases(50)
+
     all_cases = systematic + random_cases
 
     save_cases(all_cases)
@@ -622,7 +633,7 @@ def main() -> None:
     # Summary
     total_children = sum(len(c["expected_eligibility"]) for c in all_cases)
     eligible = sum(
-        1 for c in all_cases for r in c["expected_eligibility"] if r["eligible"]
+        1 for c in all_cases for r in c["expected_eligibility"].values() if r["eligible"] == "ELIGIBLE"
     )
     print(
         f"Generated {len(all_cases)} cases "

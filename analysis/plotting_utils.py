@@ -1,18 +1,22 @@
 import re
+import json
+from collections.abc import Mapping
+from typing import Any
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
 import pandas as pd
 from IPython.display import display
 from pathlib import Path
-import json
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
-from collections.abc import Mapping
 
 # This is where we'll want to add something like "Structured rules"
 PROMPT_MAPPING = {
     "Accuracy-ChildBenefit-structuredOutput-v2.md": "Rules via URLs",
     "Accuracy-ChildBenefit-structuredOutput-v2.1_no_links.md": "Training data only",
     "Accuracy-ChildBenefit-structuredOutput-v2.2_no_links_rules_in_prompt.md": "Free text rules",
-    "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec"
+    "StructuredSpecification-ChildBenefit-v1.md" : "Structured spec",
+    "Accuracy-ChildBenefit-indeterminacy-v3.md": "Combined indeterminacy cohort",
+    "StructuredSpecification-ChildBenefit-v2.md" : "Structured spec with indeterminacy",
 }
 
 
@@ -37,11 +41,13 @@ def get_short_model_name(model_string: str) -> str:
     # Stitch it back together
     return "-".join(clean_parts)
 
+
 def extract_prompt_version(prompt_name: str) -> str:
     match = re.search(r"v\d+(?:\.\d+)?", str(prompt_name))
     return match.group(0) if match else "v?"
 
-def get_nice_prompt_name(prompt_string: str, prompt_mapping: dict) -> str:
+
+def get_nice_prompt_name(prompt_string: str, prompt_mapping: dict[str, Any]) -> tuple[str, Any]:
     if not isinstance(prompt_string, str):
         return "Unknown"
     file_name = prompt_string.split("/")[-1]
@@ -49,6 +55,7 @@ def get_nice_prompt_name(prompt_string: str, prompt_mapping: dict) -> str:
 
 
 def create_df_runs(
+    hypothesis_to_filter: str|None = None,
     test_cohort: str = "child_benefit", drop_unknown_prompt: bool = True
 ) -> pd.DataFrame:
     reports_dir = Path(f"testOutputs/{test_cohort}/eval_reports")
@@ -75,6 +82,7 @@ def create_df_runs(
                     "prompt": config.get("eligibility_prompt", "unknown"),
                     "url_allowed": config.get("url_tool_call_allowed", True),
                     "commit": config.get("commit", "unknown"),
+                    "hypothesis_name": config.get("hypothesis_name", "unknown"),
                     "results": cases.get(
                         "results", cases
                     ),  # Handles nested (old style) or flat cases dict
@@ -86,6 +94,8 @@ def create_df_runs(
     # From before we recorded the prompt in this way and have different shaped output
     if drop_unknown_prompt:
         df_runs = (df_runs[df_runs["prompt"] != "unknown"]).reset_index()
+    if hypothesis_to_filter:
+        df_runs = (df_runs[df_runs["hypothesis_name"] == hypothesis_to_filter]).reset_index()
 
     # Create some slightly shorter/nicer names for plotting/tables
     df_runs[["prompt_name", "prompt_type"]] = (
@@ -116,6 +126,7 @@ def create_df_runs(
     display(df_runs["config_key"].value_counts().to_frame("Count"))
 
     return df_runs
+
 
 def apply_presentation_theme(
     fig: plt.Figure,
@@ -222,7 +233,8 @@ def apply_presentation_theme(
 
     return fig
 
-def flatten_run_row_children(row) -> list[dict]:
+
+def flatten_run_row_children(row) -> list[dict[str, Any]]:
     """
     Extracts data at the child-level.
     A case with 3 children will return 3 dictionaries.

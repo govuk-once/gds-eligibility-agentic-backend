@@ -1,0 +1,271 @@
+{
+    "case_id": "RESIDENCY_FAIL",
+    "meta": {
+        "permutation": 2,
+        "test_case": {
+            "case_id": "RESIDENCY_FAIL",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": false
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 8
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": false
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": false
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou do not live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 8 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant does not live in the UK\n  - Child is 8 (under 16)\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child does not receive qualifying benefits in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Claimant does not live in the UK",
+                    "circumstances": [
+                        "Claimant does not live in the UK",
+                        "Child is 8 (under 16)",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child does not receive qualifying benefits in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-05-18T12:00:40.293660",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "759efcde",
+            "hypothesis_name": "indeterminacy_concat_cases_reruns",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "agents/Ancillary/Actor-Indeterminacy-v2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/Accuracy-ChildBenefit-indeterminacy-v3.md",
+            "test_set_size": 199,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "conversation_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 55972,
+        "total_completion_tokens": 1507,
+        "total_overall_tokens": 57479,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 38851,
+                "completion_tokens": 1264,
+                "total": 40115
+            },
+            "actor": {
+                "prompt_tokens": 17121,
+                "completion_tokens": 243,
+                "total": 17364
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 57.32
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-05-18T12:00:45.698304",
+            "author": "eligibility_agent",
+            "text": "Hello! I'd be happy to help you determine if you're eligible for Child Benefit. To assess your eligibility, I'll need to ask you some questions.\n\nLet me start with the basics:\n\n**Do you have any children, and if so, how many children are you asking about?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:00:49.688992",
+            "author": "actor",
+            "text": "Hello! Yes, I have one child - my son Alex. He's 8 years old and I'm wondering if I can claim Child Benefit for him."
+        },
+        {
+            "timestamp": "2026-05-18T12:00:52.623929",
+            "author": "eligibility_agent",
+            "text": "Thank you for that information! Your son Alex is 8 years old, which is under 16, so that's a good start.\n\nNow I need to ask you a few more questions to assess your eligibility:\n\n**Do you live in the UK?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:00:55.049985",
+            "author": "actor",
+            "text": "No, I don't live in the UK. I'm living abroad at the moment."
+        },
+        {
+            "timestamp": "2026-05-18T12:00:58.099392",
+            "author": "eligibility_agent",
+            "text": "Thank you for letting me know. The location where you live can affect eligibility for Child Benefit.\n\n**Can you tell me which country you're currently living in, and are you a Crown servant (such as a diplomat or member of the armed forces posted abroad)?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:00:59.773839",
+            "author": "actor",
+            "text": "I'm not a Crown servant - I'm not in the diplomatic service or the armed forces or anything like that. I'm just living abroad with my family."
+        },
+        {
+            "timestamp": "2026-05-18T12:01:01.773607",
+            "author": "eligibility_agent",
+            "text": "Thank you for clarifying that. \n\n**Which country are you currently living in? This is important as Child Benefit may be available if you're living in certain specific countries.**"
+        },
+        {
+            "timestamp": "2026-05-18T12:01:04.304396",
+            "author": "actor",
+            "text": "I'd rather not say exactly which country, but I'm definitely living outside the UK. Does it matter which specific country I'm in?"
+        },
+        {
+            "timestamp": "2026-05-18T12:01:10.170765",
+            "author": "eligibility_agent",
+            "text": "Yes, unfortunately the specific country does matter for Child Benefit eligibility. According to the rules, you may be able to get Child Benefit if you go to live in **certain countries**, but only specific countries qualify.\n\nWithout knowing which country you're in, I cannot determine whether you fall within the scope of those eligible countries or not.\n\nSince you've indicated that:\n- You live outside the UK\n- You are not a Crown servant\n- You cannot provide the specific country you're living in\n\nI don't have sufficient information to make a definitive assessment of your eligibility. The rules I have access to specify that living abroad generally makes you ineligible unless you're in certain qualifying countries or are a Crown servant.\n\n**Is there any other information you can provide about your circumstances, or are you able to reconsider sharing which country you're in?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:01:13.957721",
+            "author": "actor",
+            "text": "I understand. I'm sorry, but I genuinely don't know which countries qualify and which don't - I'm just living abroad. Is there anything else about my situation that would help? Alex lives with me here, and he's not working or anything like that - he's just a regular 8-year-old going to school."
+        },
+        {
+            "timestamp": "2026-05-18T12:01:16.360784",
+            "author": "eligibility_agent",
+            "text": "I understand your situation. Let me ask a few more questions to see if there are any other factors that might be relevant:\n\n**Are you or your partner currently working for a UK employer or paying UK National Insurance contributions while living abroad?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:01:18.259393",
+            "author": "actor",
+            "text": "No, neither of us is working for a UK employer or paying UK National Insurance at the moment."
+        },
+        {
+            "timestamp": "2026-05-18T12:01:20.682714",
+            "author": "eligibility_agent",
+            "text": "Thank you for providing that information. Let me ask one more question:\n\n**Are you or have you been receiving Child Benefit for Alex in the past while you were in the UK, or is this a new claim you're considering?**"
+        },
+        {
+            "timestamp": "2026-05-18T12:01:22.870027",
+            "author": "actor",
+            "text": "This is a new claim I'm considering. I haven't claimed Child Benefit for Alex before."
+        },
+        {
+            "timestamp": "2026-05-18T12:01:39.458862",
+            "author": "eligibility_agent",
+            "text": "## Summary\n\nBased on the information you've provided, I'm unable to make a definitive determination about your eligibility for Child Benefit for Alex.\n\n**Here's what we know:**\n- Alex is 8 years old and lives with you, which normally would meet the basic requirements\n- However, you're living outside the UK and are not a Crown servant\n\n**The issue:**\nThe general rule for Child Benefit is that you must live in the UK. There are exceptions for people living in certain specific countries or for Crown servants posted abroad. Since you cannot provide the specific country you're residing in, I cannot determine whether you fall within one of those qualifying exceptions.\n\n**What this means:**\nYour eligibility for Child Benefit for Alex is **INDETERMINATE** - I don't have enough information to say whether you would be eligible or not. The specific country of residence is essential information needed to properly assess your situation.\n\n**Next steps:**\nIf you wish to pursue a Child Benefit claim, I would recommend contacting the Child Benefit Office directly. They can provide specific guidance on whether the country you're living in qualifies for Child Benefit payments, and they can assess your individual circumstances more thoroughly."
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-05-18T12:01:32.806334",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    "INDETERMINATE"
+                ],
+                "reasonings": [
+                    "Alex is 8 years old, which is under 16, and lives with the claimant. However, the claimant is living outside the UK and is not a Crown servant. According to the rules, you may be able to get Child Benefit if you go to live in certain countries or if you're a Crown servant, but the claimant does not fall into the Crown servant category and cannot or will not provide the specific country they are living in. Without knowing which specific country the claimant resides in, it is impossible to determine whether they are in one of the qualifying countries where Child Benefit can be claimed. The claimant is not working for a UK employer or paying UK National Insurance contributions. The general rule is that you normally qualify for Child Benefit if you're responsible for a child under 16 and you live in the UK, which the claimant does not. Since the specific country of residence cannot be established and this information is essential to determine if an exception applies, eligibility cannot be definitively determined and falls outside the scope of information available."
+                ],
+                "overall_reasoning": "The claimant is living abroad (not in the UK) with their 8-year-old son Alex and is not a Crown servant. While the child meets the age requirement (under 16) and lives with the claimant, the general rule requires living in the UK to qualify for Child Benefit. Exceptions exist for certain countries and Crown servants, but the claimant is not a Crown servant and cannot provide the specific country of residence. Without this critical information, it is impossible to determine whether they fall within any qualifying exception. Therefore, eligibility is indeterminate due to insufficient information about their country of residence, which is essential to assess whether any exception to the UK residency requirement applies."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INDETERMINATE",
+                "reasoning": "Alex is 8 years old, which is under 16, and lives with the claimant. However, the claimant is living outside the UK and is not a Crown servant. According to the rules, you may be able to get Child Benefit if you go to live in certain countries or if you're a Crown servant, but the claimant does not fall into the Crown servant category and cannot or will not provide the specific country they are living in. Without knowing which specific country the claimant resides in, it is impossible to determine whether they are in one of the qualifying countries where Child Benefit can be claimed. The claimant is not working for a UK employer or paying UK National Insurance contributions. The general rule is that you normally qualify for Child Benefit if you're responsible for a child under 16 and you live in the UK, which the claimant does not. Since the specific country of residence cannot be established and this information is essential to determine if an exception applies, eligibility cannot be definitively determined and falls outside the scope of information available."
+            }
+        },
+        "overall_reasoning": "The claimant is living abroad (not in the UK) with their 8-year-old son Alex and is not a Crown servant. While the child meets the age requirement (under 16) and lives with the claimant, the general rule requires living in the UK to qualify for Child Benefit. Exceptions exist for certain countries and Crown servants, but the claimant is not a Crown servant and cannot provide the specific country of residence. Without this critical information, it is impossible to determine whether they fall within any qualifying exception. Therefore, eligibility is indeterminate due to insufficient information about their country of residence, which is essential to assess whether any exception to the UK residency requirement applies."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": false,
+            "granular": {
+                "Alex": false
+            }
+        }
+    }
+}

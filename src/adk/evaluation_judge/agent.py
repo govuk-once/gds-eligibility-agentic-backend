@@ -1,6 +1,7 @@
 from copy import deepcopy
 import os
 from pathlib import Path
+from typing import Any
 
 from google.adk.agents import LoopAgent, SequentialAgent
 from google.adk.agents.llm_agent import Agent
@@ -8,10 +9,19 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.tool_context import ToolContext
 
 from gds_eligibility.agent import root_agent as gds_eligibility
-from structured_specification.agent import root_agent as structured_specification
+from structured_specification.agent import (
+    get_specification_metadata,
+    root_agent as structured_specification
+)
 
 
 prompts_dir = os.environ.get("PROMPTS_DIR", "../../prompts")
+
+
+def ensure_format_applied(prompt_string: str, format_key: str, format_val: str) -> str:
+    new_string = prompt_string.format(**{format_key: format_val})
+    assert new_string != prompt_string
+    return new_string
 
 
 def get_prompt(rel_path: str, **kwargs) -> str:
@@ -20,20 +30,18 @@ def get_prompt(rel_path: str, **kwargs) -> str:
         prompt_lines = f.readlines()
     prompt_string = "\n".join(prompt_lines)
     if kwargs:
-        for format_key in kwargs.keys():
-            # str.format() will fail silently if args/kwargs are not present in the string templating syntax
-            assert ("{" + format_key + "}") in prompt_string
-        prompt_string = prompt_string.format(**kwargs)
+        for format_key, format_val in kwargs.items():
+            prompt_string = ensure_format_applied(prompt_string, format_key, format_val)
     return prompt_string
 
 
 def conversation_judgement_outcome(
-    outcome_agrees_with_expected_outcome: bool, 
-    outcome_disagrees_with_expected_outcome: bool, 
-    outcome_partly_agrees_with_expected_outcome: bool, 
-    erroneous_info_given_by_eligibility_agent_without_realising: bool, 
-    erroneous_info_given_by_eligibility_agent_but_later_realised: bool, 
-    reasoning_for_conversation_judgement: str, 
+    outcome_agrees_with_expected_outcome: bool,
+    outcome_disagrees_with_expected_outcome: bool,
+    outcome_partly_agrees_with_expected_outcome: bool,
+    erroneous_info_given_by_eligibility_agent_without_realising: bool,
+    erroneous_info_given_by_eligibility_agent_but_later_realised: bool,
+    reasoning_for_conversation_judgement: str,
     tool_context: ToolContext
 ):
     """Call this function ONLY when you have an outcome to report as to eligibility."""
@@ -43,9 +51,9 @@ def conversation_judgement_outcome(
         "outcome_agrees_with_expected_outcome": outcome_agrees_with_expected_outcome,
         "outcome_disagrees_with_expected_outcome": outcome_disagrees_with_expected_outcome,
         "outcome_partly_agrees_with_expected_outcome": outcome_partly_agrees_with_expected_outcome,
-        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising, 
+        "erroneous_info_given_by_eligibility_agent_without_realising": erroneous_info_given_by_eligibility_agent_without_realising,
         "erroneous_info_given_by_eligibility_agent_but_later_realised": erroneous_info_given_by_eligibility_agent_but_later_realised,
-        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement, 
+        "reasoning_for_conversation_judgement": reasoning_for_conversation_judgement,
     }
 
 
@@ -81,15 +89,44 @@ def get_original_conversation_pipeline(test_case: str):
     eligibility_agent = structured_specification
     conversation_pipeline = LoopAgent(
         # Any agent instantiated outside the scope of this function should be deep-copied, as said
-        # agent instance remembers its parent from previous invocations 
+        # agent instance remembers its parent from previous invocations
         name="Converse", sub_agents=[deepcopy(eligibility_agent), actor]
     )
     return conversation_pipeline
 
 
+def get_facts_bundle_pipeline(
+    situation_profile: str,
+    eligibility_model: str,
+    eligibility_prompt: str,
+    eligibility_agent: str,
+    url_tool_call_allowed: bool = True,
+    *args,
+    **kwargs
+):
+    # Copy the production agent to create a system under test
+    agent_under_test = deepcopy(globals()[eligibility_agent])
+    # Change the model and prompt as specified in the config
+    agent_under_test.model = LiteLlm(model=eligibility_model)
+    agent_under_test.instruction = get_prompt(eligibility_prompt) + "\n" + situation_profile
+    if not url_tool_call_allowed:
+        agent_under_test.tools = [
+            t for t in agent_under_test.tools
+            if t.__name__ != "read_webpage"
+        ]
+
+    # Spin up the conversational loop
+    conversation_pipeline = LoopAgent(
+        name="Converse",
+        sub_agents=[agent_under_test],
+    )
+    return conversation_pipeline
+
+
 def get_conversation_pipeline(
-    situation_profile: str, 
-    actor_model: str, 
+    situation_profile: str,
+    actor_model: str,
+    actor_kwargs: dict[str, Any],
     eligibility_model: str,
     actor_prompt_path: str,
     eligibility_prompt: str,
@@ -98,7 +135,10 @@ def get_conversation_pipeline(
 ):
     # Instantiate the actor (the one that pretends to be the user)
     actor = Agent(
-        model=LiteLlm(model=actor_model),
+        model=LiteLlm(
+            model=actor_model,
+            **actor_kwargs,
+        ),
         name="actor",
         description="When given a context, it will role-play as a user in order to test another agent",
         instruction=get_prompt(actor_prompt_path) + "\n" + situation_profile,
@@ -109,10 +149,14 @@ def get_conversation_pipeline(
     agent_under_test = deepcopy(globals()[eligibility_agent])
     # Change the model and prompt as specified in the config
     agent_under_test.model = LiteLlm(model=eligibility_model)
-    agent_under_test.instruction = get_prompt(eligibility_prompt)
+    if eligibility_agent == "structured_specification":
+        #  agent_under_test.instruction = get_prompt(eligibility_prompt).format(metadata=get_specification_metadata())
+        agent_under_test.instruction = get_prompt(eligibility_prompt, metadata=get_specification_metadata())
+    else:
+        agent_under_test.instruction = get_prompt(eligibility_prompt)
     if not url_tool_call_allowed:
         agent_under_test.tools = [
-            t for t in agent_under_test.tools 
+            t for t in agent_under_test.tools
             if t.__name__ != "read_webpage"
         ]
 

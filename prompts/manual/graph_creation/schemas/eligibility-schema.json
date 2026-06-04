@@ -388,8 +388,8 @@
         "type": {"const": "outcome"},
         "result": {
           "type": "string",
-          "enum": ["ELIGIBLE", "INELIGIBLE", "DEFERRED"],
-          "description": "Final eligibility determination. DEFERRED indicates case requires external decision-making (e.g., HMRC arbitration)"
+          "enum": ["ELIGIBLE", "INELIGIBLE", "INDETERMINATE"],
+          "description": "Final eligibility determination. INDETERMINATE indicates the situation of the case is outside of the explicitly defined eligiblity rules",
         },
         "description": {
           "type": "string",
@@ -397,11 +397,11 @@
         },
         "reason": {
           "type": "string",
-          "description": "Reason for outcome (for INELIGIBLE and DEFERRED outcomes)"
+          "description": "Reason for outcome (for INELIGIBLE and INDETERMINATE outcomes)"
         },
         "guidance": {
           "type": "string",
-          "description": "Next steps or guidance (for INELIGIBLE and DEFERRED outcomes)"
+          "description": "Next steps or guidance (for INELIGIBLE and INDETERMINATE outcomes)"
         },
         "next_steps": {
           "type": "array",
@@ -433,11 +433,11 @@
         },
         {
           "if": {
-            "properties": {"result": {"const": "DEFERRED"}}
+            "properties": {"result": {"const": "INDETERMINATE"}}
           },
           "then": {
             "required": ["reason", "guidance"],
-            "description": "DEFERRED outcomes must explain why external decision is needed"
+            "description": "INDETERMINATE outcomes must explain why external decision is needed"
           }
         }
       ],
