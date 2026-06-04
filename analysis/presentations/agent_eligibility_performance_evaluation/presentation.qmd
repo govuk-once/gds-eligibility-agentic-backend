@@ -11,7 +11,7 @@ format:
         center: true
         background-transition: none
         incremental: false
-        smaller: false
+        smaller: true
         self-contained: true
         slide-number: true
         toc: true
@@ -29,7 +29,7 @@ format:
 # Technical Challenges
 
 - Model hallucination
-- Epistemic Limits; having an agent answer "I don't know"
+- Epistemic Limits; can an agent answer "I don't know"?
 - Testing output space when input space effectively unbounded
 
 ---
@@ -45,36 +45,82 @@ format:
 
 # Questions we sought to answer
 
-* To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules
-* What representation of eligibility rules results in best performance (i.e. accuracy, consistency, token use, latency)
-* How can we control for systematic errors relating to methodology
+1. How well is an agent able to apply a set of eligiblity rules when conversing with with a user whose situation is described by those rules?
+2. To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
+3. What representation of eligibility rules results in best performance (i.e. accuracy, consistency, token use, latency)?
+4. How can we control for systematic errors relating to methodology?
 
 ---
 
-# How we went about answering them
+# How we went about answering them: Question 1
 
-*
+> How well is an agent able to apply a set of eligiblity rules when conversing with with a user whose situation is described by those rules?
+
+- By examining the factors included in a particular set of eligibility rules (Child Benefit), we synthesised a set of 100 scenarios by expressing these factors combinatorially for a family unit.
+    - These gave us a known ground-truth outcome, on a per child basis which was whether each child in the family unit was eligible for child benefit.
+- Each scenario in turn was presented to another agent (the `actor`) tasked assuming the role given in the scenario and conversing with eligibility agent
+- The eligibility agent was given an MCP tool to call to give its answer for each child, once it was satisfied it had fully explored the eligibility of its interlocutor (the `actor`)
+- The result of these tool calls were compared to ground truth to yield the accuracy metric over multiple trials
+
+---
+
+# How we went about answering them: Question 2
+
+> To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
+
+- We expanded the previous method to move from a binary representation (`ELIGIBLE`, `INELIGIBLE`) to a trinary representation of eligibility for each child (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
+- Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised
+    - For these test cases, the ground truth answer for at least one child was `INDETERMINATE`
+
+---
+
+# How we went about answering them: Question 3
+
+> What representation of eligibility rules results in best performance (i.e. accuracy, consistency, token use, latency)?
+
+- We created a proof-of-concept representation of the child benefit eligibility rules as a traversable graph, leading to outcomes of either `ELIGIBLE` or `INELIGIBLE`
+- We exposed the graph to the eligbility agent via MCP tools
+
+---
+
+# How we went about answering them: Question 4
+
+> How can we control for systematic errors relating to methodology?
+
+- After obtaining initial results, we examined the transcript and other outputs of the failing runs to classify failure modes
+- Obvious failure modes observed were:
+    - Actor hallucination: Where the actor agent goes "off-script" and reports information not contained within the scenario it was given
+    - Elicitation failure: Where the agent under test failed to ask sufficient questions to extract the full situation, including factors which would have made them eligible/ineligible if they were surfaced
+    - Agent-under-test error/hallucination: Where the agent-under-test arrives at the wrong answer without a mitigating external factor
+- To control for the first two failure modes, we can run a comparative study without the actor agent, where the scenario is given to the agent-under-test directly
 
 ---
 
 # Four approaches
 
-* Two modes of eligibility rules representation:
-  1. "Free text" - rules in a human readable format taken from gov.uk website
-  2. "Structured" - converting rules into a graphical format, exposed to the agent via MCP tools
-
-* Two modes of exposing scenario to agent-under-test:
+- Two modes of exposing scenario to agent-under-test:
   1. "Actor" - another agent was provided with the test scenario, and told to converse with the agent-under-test, pretending to be a human in the situation described by the scenario
   2. "Facts bundle" - Scenario was provided to the agent-under-test directly
 
+- Two modes of eligibility rules representation:
+  1. "Free text" - rules in a human readable format taken from gov.uk website
+  2. "Structured" - converting rules into a graphical format, exposed to the agent via MCP tools
+
 ---
 
-|                  | Actor                        | Facts Bundle                       |
-|------------------|------------------------------|------------------------------------|
-| Free Text        | Free Text with Actor         | Free Text with Facts Bundle        |
-| Structured Rules | Structured Rules with Actor  | Structured Rules with Facts Bundle |
+# Four approaches
 
-: Combinatorial evaluation of above modes
+|                  | Actor                            | Facts Bundle                           |
+|------------------|----------------------------------|----------------------------------------|
+| Free Text        | **Free Text with Actor**         | **Free Text with Facts Bundle**        |
+| Structured Rules | **Structured Rules with Actor**  | **Structured Rules with Facts Bundle** |
+
+: Combining these we get four approaches
+
+
+- Our final results all used:
+    - the same cohort of 199 scenarios (100 which fell inside the rules, 99 which did not)
+    - the same 3 outcomes for eligibility on a per child basis (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
 
 ---
 
@@ -94,6 +140,6 @@ format:
 
 ---
 
-# Results: MoE
+# Results: Mixed Effects Model
 
 ---
