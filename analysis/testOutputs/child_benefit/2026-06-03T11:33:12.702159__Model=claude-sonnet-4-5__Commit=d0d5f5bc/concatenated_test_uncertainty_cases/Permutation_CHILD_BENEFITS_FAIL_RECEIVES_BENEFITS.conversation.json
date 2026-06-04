@@ -1,0 +1,428 @@
+{
+    "case_id": "CHILD_BENEFITS_FAIL_RECEIVES_BENEFITS",
+    "meta": {
+        "permutation": 41,
+        "test_case": {
+            "case_id": "CHILD_BENEFITS_FAIL_RECEIVES_BENEFITS",
+            "content_version": 2,
+            "facts": {
+                "claimant_lives_in_uk": {
+                    "description": "Whether the claimant lives in the UK.",
+                    "value": true
+                },
+                "children": {
+                    "description": "A list of children the claimant is claiming for.",
+                    "value": {
+                        "Alex": {
+                            "id": {
+                                "description": "An identifier for the child.",
+                                "value": "child_0"
+                            },
+                            "name": {
+                                "description": "The child's first name.",
+                                "value": "Alex"
+                            },
+                            "age": {
+                                "description": "The child's age in years.",
+                                "value": 18
+                            },
+                            "lives_with_claimant": {
+                                "description": "Whether the child lives with the claimant.",
+                                "value": true
+                            },
+                            "in_approved_education": {
+                                "description": "Whether the child is in approved education or training (e.g. A-levels, GCSEs, NVQ up to level 3). Only relevant for children aged 16-19.",
+                                "value": true
+                            },
+                            "in_extension_period": {
+                                "description": "Whether the child (aged 16 or 17) has left education and registered with a government-sponsored careers service or the armed forces (qualifying for a 20-week extension).",
+                                "value": false
+                            },
+                            "upkeep_per_week": {
+                                "description": "The amount in \u00a3 per week the claimant contributes towards the child's upkeep (food, clothes, pocket money, etc.). Only relevant if the child does not live with the claimant.",
+                                "value": 0.0
+                            },
+                            "another_claimant_has_priority": {
+                                "description": "Whether another person who also lives with the child has priority for claiming Child Benefit.",
+                                "value": false
+                            },
+                            "another_claimant_lives_with_child": {
+                                "description": "Whether someone who lives with the child is already claiming Child Benefit for them.",
+                                "value": false
+                            },
+                            "care_weeks": {
+                                "description": "The number of weeks the child has been in local authority care.",
+                                "value": 0
+                            },
+                            "care_home_24h_per_week": {
+                                "description": "Whether the child spends at least 24 hours per week at home while in local authority care.",
+                                "value": false
+                            },
+                            "hospital_weeks": {
+                                "description": "The number of weeks the child has been in hospital or residential accommodation.",
+                                "value": 0
+                            },
+                            "claimant_spends_on_child": {
+                                "description": "Whether the claimant regularly spends money on the child (e.g. food, clothes, books) while the child is in hospital or residential accommodation.",
+                                "value": false
+                            },
+                            "is_fostered": {
+                                "description": "Whether the child is fostered by the claimant.",
+                                "value": false
+                            },
+                            "council_pays_for_child": {
+                                "description": "Whether the local council pays towards the child's accommodation or maintenance.",
+                                "value": false
+                            },
+                            "works_24_plus_hours": {
+                                "description": "Whether the child works 24 or more hours per week in paid employment.",
+                                "value": false
+                            },
+                            "started_apprenticeship_in_england": {
+                                "description": "Whether the child has started an apprenticeship in England.",
+                                "value": false
+                            },
+                            "receives_qualifying_benefits": {
+                                "description": "Whether the child receives qualifying benefits in their own right, such as Universal Credit or Employment and Support Allowance.",
+                                "value": true
+                            }
+                        }
+                    }
+                }
+            },
+            "agent_script": "=== YOUR SITUATION PROFILE ===\nYou live in the UK.\nYou are asking about Child Benefit for 1 child:\n  - Alex is 18 years old and lives with you.\n\nHere are the exact details of your circumstances to use when answering the agent's questions:\n\nRegarding Alex:\n  - Claimant lives in the UK\n  - Child is 18 and in approved education\n  - Child lives with claimant\n  - Child is not in local authority care\n  - Child is not in hospital or residential accommodation\n  - Child is not fostered\n  - Child does not work 24+ hours/week\n  - Child has not started an apprenticeship in England\n  - Child receives qualifying benefits (e.g. UC, ESA) in their own right",
+            "expected_eligibility": {
+                "Alex": {
+                    "child_id": "child_0",
+                    "name": "Alex",
+                    "eligible": "INELIGIBLE",
+                    "reason": "Child receives qualifying benefits (e.g. UC, ESA) in their own right",
+                    "circumstances": [
+                        "Claimant lives in the UK",
+                        "Child is 18 and in approved education",
+                        "Child lives with claimant",
+                        "Child is not in local authority care",
+                        "Child is not in hospital or residential accommodation",
+                        "Child is not fostered",
+                        "Child does not work 24+ hours/week",
+                        "Child has not started an apprenticeship in England",
+                        "Child receives qualifying benefits (e.g. UC, ESA) in their own right"
+                    ]
+                }
+            }
+        },
+        "execution_datetime": "2026-06-03T11:33:12.702159",
+        "versions": {
+            "output_structure": 2,
+            "test_case_content": 2
+        },
+        "run_config": {
+            "actor_model_string": "bedrock/converse/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_kwargs": {
+                "temperature": 1.0
+            },
+            "test_cohort": "child_benefit",
+            "commit": "d0d5f5bc",
+            "hypothesis_name": "structured_spec_factBundle_reruns",
+            "eligibility_model_string": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "actor_prompt": "agents/Ancillary/Actor-Indeterminacy-v2.md",
+            "eligibility_prompt": "agents/TechnicalHypotheses/StructuredSpecification-ChildBenefit-v2.md",
+            "test_set_size": 199,
+            "url_tool_call_allowed": false,
+            "max_concurrent_cases": 15,
+            "pipeline_name": "facts_bundle_pipeline"
+        }
+    },
+    "usage": {
+        "total_prompt_tokens": 40322,
+        "total_completion_tokens": 1611,
+        "total_overall_tokens": 41933,
+        "breakdown_by_agent": {
+            "eligibility_agent": {
+                "prompt_tokens": 40322,
+                "completion_tokens": 1611,
+                "total": 41933
+            }
+        }
+    },
+    "performance": {
+        "duration_seconds": 37.77
+    },
+    "conversation": [
+        {
+            "timestamp": "2026-06-03T11:34:53.650360",
+            "author": "eligibility_agent",
+            "text": "I'll help you determine if you're eligible for Child Benefit. Let me start the assessment process."
+        },
+        {
+            "timestamp": "2026-06-03T11:34:56.542848",
+            "author": "eligibility_agent",
+            "text": "Thank you for reaching out about Child Benefit eligibility! I'll guide you through this step by step.\n\nFirst, I need to understand the age of the child you're asking about:\n\n**How old is your child?**\n\n- Under 16 years old\n- Between 16 and 19 years old\n- 20 years or older\n\nPlease let me know which age category applies to your child."
+        },
+        {
+            "timestamp": "2026-06-03T11:34:58.710715",
+            "author": "eligibility_agent",
+            "text": "I understand you're asking about Child Benefit for Alex, who is 18 years old. Let me continue the assessment based on your situation."
+        },
+        {
+            "timestamp": "2026-06-03T11:35:01.908087",
+            "author": "eligibility_agent",
+            "text": "Now, since Alex is 18 years old, I need to understand their education or training status:\n\n**Is Alex currently:**\n1. **In approved education or training** (still attending), or\n2. **Recently left approved education or training** (within the last 20 weeks), or\n3. **Neither** - not in education/training and didn't recently leave\n\nWhich of these applies to Alex?"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:09.746584",
+            "author": "eligibility_agent",
+            "text": "Good! Since Alex is in approved education, I need to verify the type and level of education. This is important because Child Benefit is only available for children in **non-advanced** education.\n\n**What type of education is Alex enrolled in?**\n\nExamples of **approved (non-advanced) education** include:\n- A-levels, AS-levels\n- T-levels\n- Scottish Highers or Advanced Highers\n- NVQ Level 1, 2, or 3\n- BTEC Level 1, 2, or 3\n- Access to Higher Education courses\n\nExamples of **advanced education (NOT approved)** include:\n- University degrees (Bachelor's, Master's, PhD)\n- Higher National Certificate (HNC) - Level 4\n- Higher National Diploma (HND) - Level 5\n- NVQ Level 4 or above\n\nAlso, the education must be:\n- **Full-time** (at least 12 hours per week of supervised study)\n- **NOT funded by an employer** or with a guaranteed job at the end\n\nWhat type of course is Alex studying?"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:12.586050",
+            "author": "eligibility_agent",
+            "text": "Excellent! Alex is in approved education. Now I need to check their work situation.\n\n**Is Alex working less than 24 hours per week (or not in paid work at all)?**\n\nChildren aged 16+ who work 24 or more hours per week are not eligible for Child Benefit, even if they're in education."
+        },
+        {
+            "timestamp": "2026-06-03T11:35:16.887231",
+            "author": "eligibility_agent",
+            "text": "Good! Alex works less than 24 hours per week. Now I need to check about benefits.\n\n**Is Alex NOT receiving certain benefits in their own right?**\n\nSpecifically, I'm asking: Does Alex receive Employment and Support Allowance (ESA) or Universal Credit **in their own right** (not as part of your household)?\n\nIf Alex does **NOT** receive these benefits, answer **Yes**.\nIf Alex **DOES** receive these benefits in their own right, answer **No**.\n\nBased on your situation profile, I can see that Alex does receive qualifying benefits (UC, ESA) in their own right. Let me proceed with this information."
+        },
+        {
+            "timestamp": "2026-06-03T11:35:22.778356",
+            "author": "eligibility_agent",
+            "text": "I've completed the assessment for Alex. Unfortunately, I need to deliver some difficult news."
+        },
+        {
+            "timestamp": "2026-06-03T11:35:29.963417",
+            "author": "eligibility_agent",
+            "text": "## Assessment Result: **NOT ELIGIBLE**\n\nI'm sorry to inform you that you are **not eligible** for Child Benefit for Alex.\n\n### Why Alex is not eligible:\n\nAlthough Alex meets several of the eligibility criteria:\n- \u2713 Is 18 years old (within the 16-19 age range)\n- \u2713 Is in approved education\n- \u2713 Works less than 24 hours per week\n\n**However**, Alex is receiving benefits in their own right (such as Universal Credit or Employment and Support Allowance). According to Child Benefit rules, when a young person aged 16-19 starts receiving these types of benefits in their own right, they are no longer eligible for Child Benefit, even if they are still in education.\n\n### What this means:\n\nChild Benefit stops when a child starts receiving Employment and Support Allowance, Universal Credit, or similar benefits in their own right. This is because these benefits are considered to provide support directly to the young person, replacing the need for Child Benefit.\n\n### Important Information:\n\nIf Alex's circumstances change in the future (for example, if they stop receiving these benefits in their own right), their eligibility for Child Benefit may change. In that case, you may wish to reassess your eligibility at that time.\n\nIs there anything else you'd like me to clarify about this decision?"
+        }
+    ],
+    "tool_activity": [
+        {
+            "timestamp": "2026-06-03T11:34:53.650341",
+            "tool_name": "start_assessment",
+            "arguments": {},
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:34:58.710696",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "16_to_19"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:04.094956",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "in_education_or_training"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:09.746571",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "approved_education"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:12.586037",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "yes"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:16.887213",
+            "tool_name": "navigate_to_outcome",
+            "arguments": {
+                "outcome_key": "no"
+            },
+            "author": "eligibility_agent"
+        },
+        {
+            "timestamp": "2026-06-03T11:35:22.778339",
+            "tool_name": "eligibility_judgement_outcome",
+            "arguments": {
+                "child_names": [
+                    "Alex"
+                ],
+                "is_eligible_list": [
+                    2
+                ],
+                "reasonings": [
+                    "Alex is 18 years old and in approved education, working less than 24 hours per week, which would normally make them eligible for Child Benefit. However, Alex is receiving qualifying benefits (Universal Credit or Employment and Support Allowance) in their own right. According to Child Benefit rules, a child who receives these benefits in their own right is not eligible for Child Benefit, even if they meet all other criteria."
+                ],
+                "overall_reasoning": "The claimant is not eligible for Child Benefit for Alex because, although Alex meets the age and education requirements, they are receiving benefits (UC or ESA) in their own right, which disqualifies them from Child Benefit eligibility."
+            },
+            "author": "eligibility_agent"
+        }
+    ],
+    "tool_response": [
+        {
+            "node_id": "has_qualifying_child",
+            "node_type": "routing",
+            "question": null,
+            "description": "Determine child's age category for eligibility",
+            "help_text": null,
+            "criteria": null,
+            "outcomes": {
+                "under_16": "check_child_not_working_full_time",
+                "16_to_19": "check_education_or_extension",
+                "20_or_over": "INELIGIBLE_no_qualifying_child"
+            },
+            "paths": null,
+            "routing_logic": "Under 16: automatic qualification. 16-19: check education/training. 20+: not eligible",
+            "evaluation_logic": null,
+            "reference": null,
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_education_or_extension",
+            "node_type": "routing",
+            "question": null,
+            "description": "For 16-19 year olds, check if in education/training or eligible for extension",
+            "help_text": null,
+            "criteria": null,
+            "outcomes": {
+                "in_education_or_training": "check_education_level",
+                "left_education_recently": "check_extension_eligibility",
+                "neither": "INELIGIBLE_no_qualifying_child"
+            },
+            "paths": null,
+            "routing_logic": "If in education/training, validate type and level. If just left education (within 20 weeks), check extension eligibility.",
+            "evaluation_logic": null,
+            "reference": null,
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_education_level",
+            "node_type": "complex_criteria",
+            "question": "Is the child in approved (non-advanced) education or training?",
+            "description": null,
+            "help_text": "Approved education: A-levels, T-levels, NVQ Level 3 or below, Scottish Highers/Advanced Highers. Advanced (NOT approved): University degrees, HNC, HND, NVQ Level 4+. Must be full-time (12+ hours/week supervised study).",
+            "criteria": {
+                "must_be_non_advanced": true,
+                "approved_qualifications": [
+                    "A-levels",
+                    "AS-levels",
+                    "T-levels",
+                    "Scottish Highers",
+                    "Scottish Advanced Highers",
+                    "NVQ Level 1, 2, or 3",
+                    "BTEC Level 1, 2, or 3",
+                    "Access to Higher Education courses"
+                ],
+                "excluded_qualifications": [
+                    "University degrees (Bachelor's, Master's, PhD)",
+                    "Higher National Certificate (HNC) - Level 4",
+                    "Higher National Diploma (HND) - Level 5",
+                    "NVQ Level 4 or above",
+                    "Professional qualifications at Level 4+"
+                ],
+                "minimum_hours_per_week": 12,
+                "must_be_supervised_study": true,
+                "employer_funded_excluded": true,
+                "employer_agreed_future_job_excluded": true,
+                "must_not_be_married_unless_dependent": "Married 16-19 year olds only qualify if financially dependent on claimant"
+            },
+            "outcomes": {
+                "approved_education": "check_child_not_working_full_time",
+                "advanced_education": "INELIGIBLE_advanced_education",
+                "part_time_insufficient": "INELIGIBLE_part_time_education",
+                "employer_funded": "INELIGIBLE_employer_funded_training"
+            },
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": "https://www.gov.uk/child-benefit/eligibility",
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_child_not_working_full_time",
+            "node_type": "boolean_question",
+            "question": "Is the child working less than 24 hours per week (or not in paid work)?",
+            "description": null,
+            "help_text": "Children aged 16+ working 24+ hours per week and not in approved education/training are not eligible",
+            "criteria": null,
+            "outcomes": {
+                "yes": "check_child_not_receiving_benefits",
+                "no": "INELIGIBLE_child_working_full_time"
+            },
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": "https://www.gov.uk/child-benefit/eligibility",
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "check_child_not_receiving_benefits",
+            "node_type": "boolean_question",
+            "question": "Is the child NOT receiving certain benefits in their own right (e.g., ESA, Universal Credit)?",
+            "description": null,
+            "help_text": "Children receiving Employment and Support Allowance or Universal Credit in their own right are not eligible",
+            "criteria": null,
+            "outcomes": {
+                "yes": "check_child_not_apprentice",
+                "no": "INELIGIBLE_child_receiving_benefits"
+            },
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": "https://www.gov.uk/child-benefit/eligibility",
+            "result": null,
+            "reason": null,
+            "guidance": null,
+            "next_steps": null
+        },
+        {
+            "node_id": "INELIGIBLE_child_receiving_benefits",
+            "node_type": "outcome",
+            "question": null,
+            "description": null,
+            "help_text": null,
+            "criteria": null,
+            "outcomes": null,
+            "paths": null,
+            "routing_logic": null,
+            "evaluation_logic": null,
+            "reference": null,
+            "result": "INELIGIBLE",
+            "reason": "Child is receiving certain benefits in their own right",
+            "guidance": "Child Benefit stops if child starts receiving Employment and Support Allowance, Universal Credit, or similar benefits in their own right.",
+            "next_steps": null
+        }
+    ],
+    "eligibility_agent_payload": {
+        "child_evaluations": {
+            "Alex": {
+                "child_name": "Alex",
+                "eligible": "INELIGIBLE",
+                "reasoning": "Alex is 18 years old and in approved education, working less than 24 hours per week, which would normally make them eligible for Child Benefit. However, Alex is receiving qualifying benefits (Universal Credit or Employment and Support Allowance) in their own right. According to Child Benefit rules, a child who receives these benefits in their own right is not eligible for Child Benefit, even if they meet all other criteria."
+            }
+        },
+        "overall_reasoning": "The claimant is not eligible for Child Benefit for Alex because, although Alex meets the age and education requirements, they are receiving benefits (UC or ESA) in their own right, which disqualifies them from Child Benefit eligibility."
+    },
+    "correctness": {
+        "eligibility_outcome": {
+            "overall": true,
+            "granular": {
+                "Alex": true
+            }
+        }
+    }
+}
