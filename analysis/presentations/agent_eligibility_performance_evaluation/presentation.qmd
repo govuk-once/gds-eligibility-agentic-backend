@@ -20,7 +20,7 @@ format:
 # Background
 
 - GDS have an ambition to leverage Agentic technology to help UK residents understand what they are eligible for from government
-<!-- Maybe add a line on why GDS should be doing this and not departments -->
+    - Whilst a lot of departments are working on similar initiatives, GDS is looking to work with these initiatives to provide additional centralised channels applicable for all departments
 - Eligibility rules can be complex, vague and/or incomplete
 - Agentic innovations present an opportunity to offer bespoke, person-centric advice which abstracts away the cognitive load of understanding how their personal situation fits into a complex ecosystem
 
@@ -30,12 +30,13 @@ format:
 - Model hallucination
 - Epistemic Limits; can an agent answer "I don't know"?
   <!-- tighten up wording -->
-- Testing output space when input space effectively unbounded
+- Assuring output space consistently meets accuracy and content standards when input space effectively unbounded
 
 # Domain Challenges
 
-- Importance of giving accurate advice
+- Importance of giving accurate advice in this context
 - We are not subject-matter experts on any particular benefit, left to figure out what good looks like in naive way
+    - We relied entirely on the eligibility guidance published on gov.uk to determine what the eligibility rules for a particular benefit were
 - We don't have a sufficiently large/stratified cohort of users to be able to draw any empirically sound conclusions
     - We therefore had to lean on automated testing approaches alone
 - A known issue surfaced through user research with advisors is that there are often so many edge case circumstances, that in total a non-trivial fraction of the population falls into one or more edge cases
@@ -44,34 +45,39 @@ format:
 
 1. How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?
 2. To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
-<!-- 3.5 What are the metrics we use to decide that performance is best? -->
-3. What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
-   <!-- How do we best simulate a conversation and ... -->
-4. How can we control for systematic errors relating to methodology?
+3. What are the most appropriate metrics to judge performance in this space?
+4. What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
+5. How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
 
 # How we went about answering them: Question 1
 
 > How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?
 
-<!-- clarify that outcome is binary here -->
-- By examining the factors included in a particular set of eligibility rules (Child Benefit), we synthesized a set of 100 scenarios by expressing these factors combinatorially for a family unit.
+- By examining the factors included in a particular set of eligibility rules (Child Benefit, taken from gov.uk), we synthesized a set of 100 scenarios by expressing these factors combinatorially for a family unit.
     - These gave us a known ground-truth outcome, on a per-child basis which was whether each child in the family unit was eligible for child benefit.
-- Each scenario in turn was presented to another agent (the `actor`) tasked assuming the role given in the scenario and conversing with eligibility agent
+    - This outcome was, for each child in a family, whether they are eligible or ineligible for child benefit
+- Each scenario in turn was presented to another agent (the `actor`), tasked assuming the role given in the scenario and conversing with eligibility agent
 - The eligibility agent was given an MCP tool to call to give its answer for each child, once it was satisfied it had fully explored the eligibility of its interlocutor (the `actor`)
 <!-- emphasise that this allows for deterministic evaluation, dont have to rely on llm as a judge -->
 - The result of these tool calls were compared to ground truth to yield the accuracy metric over multiple trials
-<!-- add a line about the test runner/ test harness (modificaiton of event) -->
+    - The fact that the outcomes represented an unambiguious state obviated the need for LLM-as-a-judge in
+<!-- add a line about the test runner/ test harness (modification of event) -->
 
 # How we went about answering them: Question 2
 
 > To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
 
-<!-- clarify what is meant by indeterminate in subbullet -->
 - We expanded the previous method to move from a binary representation (`ELIGIBLE`, `INELIGIBLE`) to a trinary representation of eligibility for each child (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
+    - `INDETERMINATE` is a representation of the case where a situation (in this case of the eligibility of a child for child benefit) is explicitly covered within the eligibility rules provided (in this case taken from gov.uk)
 - Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised
     - For these test cases, the ground truth answer for at least one child was `INDETERMINATE`
 
 # How we went about answering them: Question 3
+
+> What are the most appropriate metrics to judge performance in this space?
+
+
+# How we went about answering them: Question 4
 
 > What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
 
@@ -79,9 +85,9 @@ format:
 - We exposed the graph to the eligibility agent via MCP tools
 <!-- add image from child benefit graph, or zoomed in bit, or both -->
 
-# How we went about answering them: Question 4
+# How we went about answering them: Question 5
 
-> How can we control for systematic errors relating to methodology?
+> How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
 
 - After obtaining initial results, we examined the transcript and other outputs of the failing runs to classify failure modes
 - Obvious failure modes observed were:
@@ -91,7 +97,8 @@ format:
     - Elicitation failure: Where the agent under test failed to ask sufficient questions to extract the full situation, including factors which would have made them eligible/ineligible if they were surfaced
     - Agent-under-test error/hallucination: Where the agent-under-test arrives at the wrong answer without a mitigating external factor
 - To control for the first two failure modes, we can run a comparative study without the actor agent, where the scenario is given to the agent-under-test directly
-<!-- point out there is a weakness in that it removes one othe failure modes we care about, strength is it isolates the other -->
+
+<!-- point out there is a weakness in that it removes one other failure modes we care about, strength is it isolates the other -->
 
 # Four approaches
 
@@ -118,6 +125,11 @@ format:
 
 
 # Results: Comparison of the four approaches
+
+|                  | Actor                            | Facts Bundle                           |
+|------------------|----------------------------------|----------------------------------------|
+| Free Text        | ![Free Text With Actor](./files/Actor-FreeText-confusionMatrix.png)| ![Free Text With Facts-Bundle](./files/FactsBundle-FreeText-confusionMatrix.png)|                                       |
+| Structured Rules | ![Structured Rules With Actor](./files/Actor-Structured-confusionMatrix.png)| ![Structured Rules With Facts-Bundle](./files/FactsBundle-Structured-confusionMatrix.png)|                                       |                                 |                                        |
 
 
 # Results: Preferential failure modes
