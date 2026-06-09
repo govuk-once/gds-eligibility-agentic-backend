@@ -100,7 +100,7 @@ format:
 
 <!-- point out there is a weakness in that it removes one other failure modes we care about, strength is it isolates the other -->
 
-# Four approaches
+# Methodology: Four approaches
 
 - Two modes of exposing scenario to agent-under-test:
   1. "Actor" - another agent was provided with the test scenario, and told to converse with the agent-under-test, pretending to be a human in the situation described by the scenario
@@ -110,7 +110,7 @@ format:
   1. "Free text" - rules in a human-readable format taken from gov.uk website
   2. "Structured" - converting rules into a graphical format, exposed to the agent via MCP tools
 
-# Four approaches
+# Methodology: Four approaches
 
 |                  | Actor                            | Facts Bundle                           |
 |------------------|----------------------------------|----------------------------------------|
@@ -124,7 +124,7 @@ format:
     - the same 3 outcomes for eligibility on a per-child basis (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
 
 
-# Results: Comparison of the four approaches
+# Results: Variation in Failure Modes
 
 |                  | Actor                            | Facts Bundle                           |
 |------------------|----------------------------------|----------------------------------------|
@@ -132,11 +132,19 @@ format:
 | Structured Rules | ![Structured Rules With Actor](./files/Actor-Structured-confusionMatrix.png){width=100%} | ![Structured Rules With Facts-Bundle](./files/FactsBundle-Structured-confusionMatrix.png){width=80%} |
 
 
-# Results: Preferential failure modes
+# Analysis: Preferential Failure Modes
+
+- We can classify these failure modes into preferable and non-preferable:
+    - In general, we would prefer to avoid a residual in the `INELIGIBLE` category
+        - That would result in someone with at least a possibility of eligibility being discouraged from applying.
+    - For this reason, where what should be an `INDETERMINATE` result is misclassified, we would prefer a classification of `ELIGIBLE` rather than `INELIGLBLE`
+    - For an `INELIGIBLE` result to be misclassified as `ELIGIBLE` is less preferable
+        - Because the situation is not ambiguous, there should be  sufficient information available and successfully elicited to correctly classify this result.
 
 
+![Preferential Failure Modes](./files/FailureModePreference.png)
 
-# Results: Mixed Effects Model
+# Methodology: Mixed Effects Model
 
 Bayesian mixed-effects logistic regression (`bambi`):
 
@@ -151,10 +159,12 @@ $$
 Where:
 
 - $Y_{ij}$ indicates whether run $j$ produced the correct answer for case $i$
-* $\text{run\_type}_{ij}$ is a dummy-coded category vector indicating whether the case is presented conversationally or as a facts bundle
-* $\text{rules\_type}_{ij}$ is a dummy-coded category vector indicating whether the eligibility rules are provided as free text or in a structured format
+- $\text{run\_type}_{ij}$ is a dummy-coded category vector indicating whether the case is presented conversationally or as a facts bundle
+- $\text{rules\_type}_{ij}$ is a dummy-coded category vector indicating whether the eligibility rules are provided as free text or in a structured format
 - $u_i$ is a case-level random intercept ($u_i \sim \mathcal{N}(0,\sigma_u^2)$)
 
+
+# Results: Mixed Effects Model
 
 # Appendix: Data synthesis with ground truth
 
