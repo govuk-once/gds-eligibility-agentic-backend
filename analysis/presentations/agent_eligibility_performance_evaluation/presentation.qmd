@@ -35,6 +35,7 @@ format:
 # Domain Challenges
 
 - Importance of giving accurate advice in this context
+    - We control for this partly by qualifying the answers given as informed advice rather than a definite outcome
 - We are not subject-matter experts on any particular benefit, left to figure out what good looks like in naive way
     - We relied entirely on the eligibility guidance published on gov.uk to determine what the eligibility rules for a particular benefit were
 - We don't have a sufficiently large/stratified cohort of users to be able to draw any empirically sound conclusions
@@ -76,11 +77,12 @@ format:
 
 > What are the most appropriate metrics to judge performance in this space?
 
-- There are multiple different concerns to quantify in this context which all impact on user experience, or the practicality of the service:
-    - `Accuracy`
-    - `Consistency`
-    - `Token Use`
-    - `Latency`
+- There are multiple different concerns to quantify in this context which all impact on user experience, or the practicality of the service
+- We chose:
+    - `Accuracy` - Relaying information that is as accurate as possible is essential
+    - `Consistency` - We want two people in a similar situation to receive a similar response to ensure fairness
+    - `Token Use` - Impacts overall cost to GDS
+    - `Latency` - Impacts user experience
   <!-- Multiple candidate metrics of interest for -->
 <!-- add content here -->
 
@@ -92,14 +94,14 @@ format:
 :::: {.columns}
 
 ::: {.column width="40%"}
-- Created a proof-of-concept representation of the child benefit eligibility rules as a traversable graph represented as JSON, where each node representing either a:
+- Created a proof-of-concept representation of the child benefit eligibility rules as a traversable graph represented as JSON, where each node representing either:
     - a question
     - an outcome: `ELIGIBLE` or `INELIGIBLE`
 - Exposed the graph to the eligibility agent via MCP tools, through which it could, for each child:
   <!-- TODO double check on what basis it traversed the graph -->
     - view its current position/question
     - view and action its potential transitions
-    - record a eligibility outcomes: `ELIGIBLE`, `INELIGIBLE` or `INDETERMINATE`
+    - record an eligibility outcome: `ELIGIBLE`, `INELIGIBLE` or `INDETERMINATE`
 <!-- - Whilst the agent was given the option to record `INDETERMINATE`, it wasn't incorporated as an outcome into the graph -->
     <!-- - By their very nature such outcomes are undefined -->
 
@@ -170,9 +172,6 @@ format:
 - Other failure modes impact the utility of the service more than the outcome for the user:
     - They might result in the user wasting time in applying for a benefit that they are not eligible for, but this is a more preferable outcome than discouraging a user from applying for a benefit they are genuinely eligible for.
     - Having a service which reports users which have sufficient information to be `ELIGIBLE` and `INELIGIBLE` users is `INDETERMINATE` is obviously not ideal, but it is not as negative an outcome for the user as other failure modes.
-    <!-- - For an `INELIGIBLE` result to be misclassified as `ELIGIBLE` is less preferable -->
-    <!--     - Because the situation is not ambiguous, there should be sufficient information available and successfully elicited to correctly classify this result. -->
-    <!-- - Finally, for any result to be misclassified as `INDETERMINATE` is also less preferable, as this limits the utility of the service in -->
 :::
 
 ::: {.column width="40%"}
@@ -181,6 +180,10 @@ format:
 
 ::::
 
+
+# Analysis: Preferential Failure Modes
+
+<!-- TODO add commentary on how the results fit into the failure modes -->
 
 # Methodology: Mixed Effects Model
 
@@ -204,6 +207,9 @@ Where:
 
 # Results: Mixed Effects Model
 
-# Appendix: Data synthesis with ground truth
 
-# Appendix: Agentic test harness
+<!-- TODO graphs and add commentary -->
+
+<!-- # Appendix: Data synthesis with ground truth -->
+
+<!-- # Appendix: Agentic test harness -->
