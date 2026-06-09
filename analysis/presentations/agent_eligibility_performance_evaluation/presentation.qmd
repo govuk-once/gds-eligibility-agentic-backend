@@ -114,8 +114,6 @@ format:
 
 ::::
 
-<!-- add content here -->
-
 # How we went about answering them: Question 5
 
 > How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
@@ -151,14 +149,15 @@ format:
 - Our final results all used:
     - the same cohort of 199 scenarios (100 which fell inside the rules, 99 which did not)
     - the same 3 outcomes for eligibility on a per-child basis (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
+    - an average of results over 6 runs
 
 
 # Results: Variation in Failure Modes
 
 |                  | Actor                            | Facts Bundle                           |
 |------------------|----------------------------------|----------------------------------------|
-| Free Text        | ![Free Text With Actor](./files/Actor-FreeText-confusionMatrix.png){width=100%} | ![Free Text With Facts-Bundle](./files/FactsBundle-FreeText-confusionMatrix.png){width=80%}|
-| Structured Rules | ![Structured Rules With Actor](./files/Actor-Structured-confusionMatrix.png){width=100%} | ![Structured Rules With Facts-Bundle](./files/FactsBundle-Structured-confusionMatrix.png){width=80%} |
+| Free Text        | ![Free Text With Actor](./files/Actor-FreeText-confusionMatrix.png){width=100%} Accuracy: 73.52% | ![Free Text With Facts-Bundle](./files/FactsBundle-FreeText-confusionMatrix.png){width=80%} Accuracy: 89.89% |
+| Structured Rules | ![Structured Rules With Actor](./files/Actor-Structured-confusionMatrix.png){width=100%} Accuracy: 73.19% | ![Structured Rules With Facts-Bundle](./files/FactsBundle-Structured-confusionMatrix.png){width=80%} Accuracy: 82.18% |
 
 
 # Analysis: Preferential Failure Modes
@@ -187,6 +186,8 @@ format:
 
 # Methodology: Mixed Effects Model
 
+<!-- TODO does it make sense to place this before the preferential failiure mode commentary?  -->
+
 Bayesian mixed-effects logistic regression (`bambi`):
 
 $$
@@ -205,10 +206,42 @@ Where:
 - $u_i$ is a case-level random intercept ($u_i \sim \mathcal{N}(0,\sigma_u^2)$)
 
 
-# Results: Mixed Effects Model
+# Results: Mixed Effects Model - Overall Probability Distributions
+
+:::: {.columns}
+
+::: {.column width="50%"}
+![Actor](./files/MixedEffectsModel-Actor.png)
+:::
+
+::: {.column width="50%"}
+![Facts Bundle](./files/MixedEffectsModel-FactBundle.png)
+:::
+
+::::
+
+- Clear difference in probability density distributions
+    - by inspection there appears to be little overlap, suggesting statistical significance
+- Offset of Conversational (actor) and Facts Bundle distributions supports the argument that the failure modes arising from conversational interaction are significant
+    - Standard deviation of conversational run types appear slightly larger by inspection, which suggest the conversational modality has a detrimental effect on consistency
 
 
-<!-- TODO graphs and add commentary -->
+# Results: Mixed Effects Model - Accuracy-dropoff by Case
+
+:::: {.columns}
+
+::: {.column width="50%"}
+![Actor](./files/dropoff.actor.png)
+![Free Text](./files/dropoff.freetext.png)
+:::
+
+::: {.column width="50%"}
+![Facts Bundle](./files/dropoff.factsbundle.png)
+![Structured Rules](./files/dropoff.structured.png)
+:::
+
+::::
+
 
 <!-- # Appendix: Data synthesis with ground truth -->
 
