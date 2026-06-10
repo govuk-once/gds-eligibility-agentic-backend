@@ -20,10 +20,10 @@ format:
 # Background
 
 - GDS have an ambition to leverage Agentic technology to help UK residents understand what they are eligible for from government
-    - Whilst a lot of departments are working on similar initiatives, GDS is looking to work with these initiatives to provide additional centralised channels applicable for all departments
 - Eligibility rules can be complex, vague and/or incomplete
     - Part of our remit was to investigate what representation of these rules gave the best performance for the use-case of an Agentic system
 - Agentic innovations present an opportunity to offer bespoke, person-centric advice which abstracts away the cognitive load of understanding how their personal situation fits into a complex ecosystem
+    - Whilst a lot of departments are working on similar initiatives, GDS is looking to work with these initiatives to provide additional centralised channels applicable for all departments
 
 # Technical Challenges
 
@@ -38,10 +38,10 @@ format:
 - Importance of giving accurate advice in this context
     - We control for this partly by qualifying the answers given as informed advice rather than a definite outcome
 - We are not subject-matter experts on any particular benefit, left to figure out what good looks like in naive way
-    - We relied entirely on the eligibility guidance published on gov.uk to determine what the eligibility rules for a particular benefit were
+    - We relied entirely on the eligibility guidance published on gov.uk to determine the relevant eligibility rules
 - We don't have a sufficiently large/stratified cohort of users to be able to draw any empirically sound conclusions
     - We therefore had to lean on automated testing approaches alone
-- A known issue surfaced through user research with advisors is that there are often so many edge case circumstances, that in total a non-trivial fraction of the population falls into one or more edge cases
+- Some eligibility rules have so many edge cases a non-trivial fraction of the population falls into one or more
 
 # Questions we sought to answer
 
@@ -62,7 +62,7 @@ format:
     - For each scenario, a prompt with all relevant scenario content was presented to another agent (the `actor`), which was tasked assuming the role given in the scenario and conversing with eligibility agent
     - The eligibility agent was given an MCP tool to call to give its answer for each child, once it was satisfied it had fully explored the eligibility of its interlocutor (the `actor`)
 - The result of these tool calls were compared to ground truth to yield the accuracy metric over multiple trials
-    - The fact that the outcomes represented an unambiguous state obviated the need for LLM-as-a-judge in
+    - The fact that the outcomes represented an unambiguous state obviated the need for LLM-as-a-judge in discerning correctness
 
 # How we went about answering them: Question 2
 
@@ -70,8 +70,7 @@ format:
 
 - We expanded the previous method to move from a binary representation (`ELIGIBLE`, `INELIGIBLE`) to a ternary representation of eligibility for each child (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
     - `INDETERMINATE` represents a situation where eligibility (in this case of a child for child benefit) is not explicitly covered within the rules provided (in this case taken from gov.uk)
-- Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised
-    - For these test cases, the ground truth answer for at least one child was `INDETERMINATE`
+- Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised where the ground truth answer for at least one child was `INDETERMINATE`
 
 <!-- # How we went about answering them: Question 3 -->
 <!-- [> I'm not sure about including this question, given that we have limited time, can we take this as a given? <] -->
