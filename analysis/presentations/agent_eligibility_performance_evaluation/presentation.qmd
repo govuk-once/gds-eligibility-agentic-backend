@@ -47,6 +47,7 @@ format:
 1. How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?
 2. To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
 <!-- 3. What are the most appropriate metrics to judge performance in this space? -->
+<!-- TODO go back to initial wording -->
 3. Given these metrics, what representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
 4. How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
 
@@ -67,7 +68,7 @@ format:
 
 > To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
 
-- We expanded the previous method to move from a binary representation (`ELIGIBLE`, `INELIGIBLE`) to a trinary representation of eligibility for each child (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
+- We expanded the previous method to move from a binary representation (`ELIGIBLE`, `INELIGIBLE`) to a ternary representation of eligibility for each child (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
     - `INDETERMINATE` is a representation of the case where a situation (in this case of the eligibility of a child for child benefit) is explicitly covered within the eligibility rules provided (in this case taken from gov.uk)
 - Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised
     - For these test cases, the ground truth answer for at least one child was `INDETERMINATE`
@@ -109,7 +110,6 @@ format:
 
 ::: {.column width="60%"}
 ![Whole Graph](./files/child_benefit_eligibility_graph.whole.png){width=70%}
-<!-- TODO make this bigger -->
 ![Zoomed Graph](./files/child_benefit_eligibility_graph.zoomed.png){width=400%}
 :::
 
@@ -150,8 +150,7 @@ format:
 - Our final results all used:
     - the same cohort of 199 scenarios (100 which fell inside the rules, 99 which did not)
     - the same 3 outcomes for eligibility on a per-child basis (`ELIGIBLE`, `INELIGIBLE`, `INDETERMINATE`)
-    <!-- TODO change this to remove average  -->
-    <!-- - an average of results over 6 runs -->
+    - data from 6 full runs
 
 
 # Results: Variation in Failure Modes
@@ -183,8 +182,6 @@ format:
 
 
 # Methodology: Mixed Effects Model
-
-<!-- TODO does it make sense to place this before the preferential failiure mode commentary?  -->
 
 Bayesian mixed-effects logistic regression (`bambi`):
 
@@ -219,29 +216,43 @@ Where:
 ::::
 
 - Clear difference in probability density distributions
+    - agent performance when utilising free text rules is better over the entire distribution
     - but the effect is relatively small
       <!-- by inspection there appears to be little overlap -->
 <!-- - Offset of Conversational (actor) and Facts Bundle distributions supports the argument that the failure modes arising from conversational interaction are significant -->
 <!--     - Standard deviation of conversational run types appear slightly larger by inspection, which suggest the conversational modality has a detrimental effect on consistency -->
-- Structured rule representation shows dropoff in accuracy, not worth the substantial time and effort investment to curate
+<!-- - Structured rule representation shows dropoff in accuracy, not worth the substantial time and effort investment to curate -->
 
-# Results: Mixed Effects Model - Accuracy-dropoff by Case
+<!-- # Results: Mixed Effects Model - Accuracy-dropoff by Case -->
 
-:::: {.columns}
+<!-- :::: {.columns} -->
 
-::: {.column width="50%"}
-![Actor](./files/dropoff.actor.png)
-<!-- ![Free Text](./files/dropoff.freetext.png) -->
-:::
+<!-- ::: {.column width="50%"} -->
+<!-- ![Actor](./files/dropoff.actor.png) -->
+<!-- [> ![Free Text](./files/dropoff.freetext.png) <] -->
+<!-- ::: -->
 
-::: {.column width="50%"}
-![Facts Bundle](./files/dropoff.factsbundle.png)
-<!-- ![Structured Rules](./files/dropoff.structured.png) -->
-:::
+<!-- ::: {.column width="50%"} -->
+<!-- ![Facts Bundle](./files/dropoff.factsbundle.png) -->
+<!-- [> ![Structured Rules](./files/dropoff.structured.png) <] -->
+<!-- ::: -->
 
-::::
+<!-- :::: -->
 
 
+# Summary: Questions we sought to answer
+
+> 1. How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?
+    * [There is sufficient potential for the development of a real-world Service]{style="color:red"}
+> 2. To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
+    * [The results suggest that it is able to do this to acceptable accuracy, given the main failure modes are the most acceptable to the business]{style="color:red"}
+<!-- TODO go back to initial wording -->
+> 3. Given these metrics, what representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
+    * [Overall, basing the rules on the guidance already published gives the best performance from the point of view of all four metrics]{style="color:red"}
+4. How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
+    * [We have answered this to an extent, but further work might be needed for completeness]{style="color:red"}
+
+<!-- TODO add link to repo here -->
 <!-- # Appendix: Data synthesis with ground truth -->
 
 <!-- # Appendix: Agentic test harness -->
