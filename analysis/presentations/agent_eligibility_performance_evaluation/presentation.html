@@ -1084,10 +1084,9 @@ margin-right: 0; }
 
 <section id="technical-challenges" class="title-slide slide level1 center">
 <h1>Technical Challenges</h1>
-<!-- clarify this -->
 <ul>
 <li>Model hallucination when presented with a context not covered by instructions</li>
-<li>Epistemic Limits; can an agent answer “I don’t know”? <!-- tighten up wording --></li>
+<li>Epistemic Limits; can an agent answer “I don’t know”?</li>
 <li>Assuring output space consistently meets accuracy and content standards when input space effectively unbounded</li>
 </ul>
 </section>
@@ -1115,7 +1114,7 @@ margin-right: 0; }
 <h1>Questions we sought to answer</h1>
 <ol type="1">
 <li>How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?</li>
-<li>To what extent is an agent able to report <code>INDETERMINATE</code> when presented with a situation not explicitly covered by eligibility rules? <!-- 3. What are the most appropriate metrics to judge performance in this space? --></li>
+<li>To what extent is an agent able to report <code>INDETERMINATE</code> when presented with a situation not explicitly covered by eligibility rules?</li>
 <li>What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?</li>
 <li>How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?</li>
 </ol>
@@ -1156,17 +1155,6 @@ margin-right: 0; }
 </ul></li>
 <li>Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised where the ground truth answer for at least one child was <code>INDETERMINATE</code></li>
 </ul>
-<!-- # How we went about answering them: Question 3 -->
-<!-- [> I'm not sure about including this question, given that we have limited time, can we take this as a given? <] -->
-<!-- > What are the most appropriate metrics to judge performance in this space? -->
-<!-- - There are multiple different concerns to quantify in this context which all impact on user experience, or the practicality of the service -->
-<!-- - We chose: -->
-<!--     - `Accuracy` - Relaying information that is as accurate as possible is essential -->
-<!--     - `Consistency` - We want two people in a similar situation to receive a similar response to ensure fairness -->
-<!--     - `Token Use` - Impacts overall cost to GDS -->
-<!--     - `Latency` - Impacts user experience -->
-<!--   [> Multiple candidate metrics of interest for <] -->
-<!-- [> add content here <] -->
 </section>
 
 <section id="how-we-went-about-answering-them-question-3" class="title-slide slide level1 center">
@@ -1182,11 +1170,11 @@ margin-right: 0; }
 <li>a question</li>
 <li>an outcome: <code>ELIGIBLE</code> or <code>INELIGIBLE</code></li>
 </ul></li>
-<li>Exposed the graph to the eligibility agent via MCP tools, through which it could, for each child: <!-- TODO double check on what basis it traversed the graph -->
+<li>Exposed the graph to the eligibility agent via MCP tools, through which it could, for each child:
 <ul>
 <li>view its current position/question</li>
 <li>view and action its potential transitions</li>
-<li>record an eligibility outcome: <code>ELIGIBLE</code>, <code>INELIGIBLE</code> or <code>INDETERMINATE</code> <!-- - Whilst the agent was given the option to record `INDETERMINATE`, it wasn't incorporated as an outcome into the graph --> <!-- - By their very nature such outcomes are undefined --></li>
+<li>record an eligibility outcome: <code>ELIGIBLE</code>, <code>INELIGIBLE</code> or <code>INDETERMINATE</code></li>
 </ul></li>
 </ul>
 </div><div class="column" style="width:60%;">
@@ -1369,20 +1357,9 @@ Y_{ij} \sim \mathrm{Bernoulli}(p_{ij})
 <li>Clear difference in probability density distributions
 <ul>
 <li>agent performance when utilising free text rules is better over the entire distribution</li>
-<li>but the effect is relatively small <!-- by inspection there appears to be little overlap --> <!-- - Offset of Conversational (actor) and Facts Bundle distributions supports the argument that the failure modes arising from conversational interaction are significant --> <!--     - Standard deviation of conversational run types appear slightly larger by inspection, which suggest the conversational modality has a detrimental effect on consistency --> <!-- - Structured rule representation shows dropoff in accuracy, not worth the substantial time and effort investment to curate --></li>
+<li>but the effect is relatively small</li>
 </ul></li>
 </ul>
-<!-- # Results: Mixed Effects Model - Accuracy-dropoff by Case -->
-<!-- :::: {.columns} -->
-<!-- ::: {.column width="50%"} -->
-<!-- ![Actor](./files/dropoff.actor.png) -->
-<!-- [> ![Free Text](./files/dropoff.freetext.png) <] -->
-<!-- ::: -->
-<!-- ::: {.column width="50%"} -->
-<!-- ![Facts Bundle](./files/dropoff.factsbundle.png) -->
-<!-- [> ![Structured Rules](./files/dropoff.structured.png) <] -->
-<!-- ::: -->
-<!-- :::: -->
 </section>
 
 <section id="summary-questions-we-sought-to-answer" class="title-slide slide level1 center">
@@ -1392,36 +1369,19 @@ Y_{ij} \sim \mathrm{Bernoulli}(p_{ij})
 <ul>
 <li><span style="color:teal">The results demonstrate sufficient potential for the development of an Agentic eligibility service</span></li>
 </ul></li>
-</ol>
-<!-- ::: {.callout-note appearance="simple"} -->
-<!-- ::: -->
-<ol start="2" type="1">
 <li>To what extent is an agent able to report <code>INDETERMINATE</code> when presented with a situation not explicitly covered by eligibility rules?
 <ul>
 <li><span style="color:teal">The results suggest acceptable accuracy, considering the main failure modes are the most acceptable to the business</span></li>
 </ul></li>
-</ol>
-<!-- ::: {.callout-note appearance="simple"} -->
-<!-- ::: -->
-<ol start="3" type="1">
 <li>What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
 <ul>
 <li><span style="color:teal">The results suggest that exposing a ruleset based on the guidance already published gives the best performance for all four metrics</span></li>
 </ul></li>
-</ol>
-<!-- ::: {.callout-note appearance="simple"} -->
-<!-- ::: -->
-<ol start="4" type="1">
 <li>How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
 <ul>
-<li><span style="color:teal">We have answered this to an extent, but further work might be needed for completeness</span></li>
+<li><span style="color:teal">We have answered this to an extent, but further work might be needed for completeness</span> All analysis, results and raw (synthetic) data can be found at <a href="https://github.com/govuk-once/gds-eligibility-agentic-backend/" style="text-align: center">github.com/govuk-once/gds-eligibility-agentic-backend</a></li>
 </ul></li>
 </ol>
-<!-- ::: {.callout-note appearance="simple"} -->
-<!-- ::: -->
-<p>All analysis, results and raw (synthetic) data can be found at <a href="https://github.com/govuk-once/gds-eligibility-agentic-backend/" style="text-align: center">github.com/govuk-once/gds-eligibility-agentic-backend</a></p>
-<!-- # Appendix: Data synthesis with ground truth -->
-<!-- # Appendix: Agentic test harness -->
 
 </section>
     </div>

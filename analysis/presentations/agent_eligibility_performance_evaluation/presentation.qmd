@@ -27,10 +27,8 @@ format:
 
 # Technical Challenges
 
-<!-- clarify this -->
 - Model hallucination when presented with a context not covered by instructions
 - Epistemic Limits; can an agent answer "I don't know"?
-  <!-- tighten up wording -->
 - Assuring output space consistently meets accuracy and content standards when input space effectively unbounded
 
 # Domain Challenges
@@ -47,7 +45,6 @@ format:
 
 1. How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?
 2. To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
-<!-- 3. What are the most appropriate metrics to judge performance in this space? -->
 3. What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
 4. How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
 
@@ -72,20 +69,6 @@ format:
     - `INDETERMINATE` represents a situation where eligibility (in this case of a child for child benefit) is not explicitly covered within the rules provided (in this case taken from gov.uk)
 - Additionally, an extra set of 99 test cases which represented scenarios not explicitly included within the rules were devised where the ground truth answer for at least one child was `INDETERMINATE`
 
-<!-- # How we went about answering them: Question 3 -->
-<!-- [> I'm not sure about including this question, given that we have limited time, can we take this as a given? <] -->
-
-<!-- > What are the most appropriate metrics to judge performance in this space? -->
-
-<!-- - There are multiple different concerns to quantify in this context which all impact on user experience, or the practicality of the service -->
-<!-- - We chose: -->
-<!--     - `Accuracy` - Relaying information that is as accurate as possible is essential -->
-<!--     - `Consistency` - We want two people in a similar situation to receive a similar response to ensure fairness -->
-<!--     - `Token Use` - Impacts overall cost to GDS -->
-<!--     - `Latency` - Impacts user experience -->
-<!--   [> Multiple candidate metrics of interest for <] -->
-<!-- [> add content here <] -->
-
 # How we went about answering them: Question 3
 
 > What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
@@ -98,12 +81,9 @@ format:
     - a question
     - an outcome: `ELIGIBLE` or `INELIGIBLE`
 - Exposed the graph to the eligibility agent via MCP tools, through which it could, for each child:
-  <!-- TODO double check on what basis it traversed the graph -->
     - view its current position/question
     - view and action its potential transitions
     - record an eligibility outcome: `ELIGIBLE`, `INELIGIBLE` or `INDETERMINATE`
-<!-- - Whilst the agent was given the option to record `INDETERMINATE`, it wasn't incorporated as an outcome into the graph -->
-    <!-- - By their very nature such outcomes are undefined -->
 
 :::
 
@@ -217,64 +197,15 @@ Where:
 - Clear difference in probability density distributions
     - agent performance when utilising free text rules is better over the entire distribution
     - but the effect is relatively small
-      <!-- by inspection there appears to be little overlap -->
-<!-- - Offset of Conversational (actor) and Facts Bundle distributions supports the argument that the failure modes arising from conversational interaction are significant -->
-<!--     - Standard deviation of conversational run types appear slightly larger by inspection, which suggest the conversational modality has a detrimental effect on consistency -->
-<!-- - Structured rule representation shows dropoff in accuracy, not worth the substantial time and effort investment to curate -->
-
-<!-- # Results: Mixed Effects Model - Accuracy-dropoff by Case -->
-
-<!-- :::: {.columns} -->
-
-<!-- ::: {.column width="50%"} -->
-<!-- ![Actor](./files/dropoff.actor.png) -->
-<!-- [> ![Free Text](./files/dropoff.freetext.png) <] -->
-<!-- ::: -->
-
-<!-- ::: {.column width="50%"} -->
-<!-- ![Facts Bundle](./files/dropoff.factsbundle.png) -->
-<!-- [> ![Structured Rules](./files/dropoff.structured.png) <] -->
-<!-- ::: -->
-
-<!-- :::: -->
-
 
 # Summary: Questions we sought to answer
 
 1. How well is an agent able to apply a set of eligibility rules when conversing with a user whose situation is covered by those rules?
     * [The results demonstrate sufficient potential for the development of an Agentic eligibility service ]{style="color:teal"}
-
-<!-- ::: {.callout-note appearance="simple"} -->
-
-
-<!-- ::: -->
-
 2. To what extent is an agent able to report `INDETERMINATE` when presented with a situation not explicitly covered by eligibility rules?
     * [The results suggest acceptable accuracy, considering the main failure modes are the most acceptable to the business]{style="color:teal"}
-
-<!-- ::: {.callout-note appearance="simple"} -->
-
-
-<!-- ::: -->
-
 3. What representation of eligibility rules results in the best performance (i.e. accuracy, consistency, token use, latency)?
     * [The results suggest that exposing a ruleset based on the guidance already published gives the best performance for all four metrics]{style="color:teal"}
-
-<!-- ::: {.callout-note appearance="simple"} -->
-
-
-<!-- ::: -->
-
 4. How do we best simulate a user conversation in an authentic way that controls for systematic errors relating to its artificial nature?
     * [We have answered this to an extent, but further work might be needed for completeness]{style="color:teal"}
-
-<!-- ::: {.callout-note appearance="simple"} -->
-
-
-<!-- ::: -->
-
 All analysis, results and raw (synthetic) data can be found at [github.com/govuk-once/gds-eligibility-agentic-backend](https://github.com/govuk-once/gds-eligibility-agentic-backend/){style="text-align: center"}
-
-<!-- # Appendix: Data synthesis with ground truth -->
-
-<!-- # Appendix: Agentic test harness -->
