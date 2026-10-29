@@ -1,3 +1,15 @@
+# Eligibility agent research (archived)
+
+This repo documents exploratory research into the technical and evaluation challenges of using agentic AI to interpret complex government eligibility guidance. It investigates questions such as how eligibility rules should be represented, how consistently models apply them, and how they behave when information is missing or the available rules do not support a definitive answer. The work compared different models and ways of presenting guidance, including plain text, URLs and structured JSON rules, using synthetic test cases presented both as simulated conversations and as complete sets of facts. The experiments were conducted for research and evaluation purposes, not as part of a live service making decisions about benefit entitlement.
+
+The main finding was that in the configurations we tested **providing the rules as plain text in the prompt generally worked better than enforcing navigation of rules specified in a graph, or providing a URL with the rules and tool call ability**. The structured approach also incurred substantially greater latency. Larger models tended to perform better, but high average accuracy did not guarantee reliability: in the initial 99-case Child Benefit comparison, the best configuration (Claude Opus 4.5 with free-text rules) achieved about 95% average accuracy, yet returned the correct result in every repeated run for only 90 of the 99 cases. Later experiments introduced *indeterminate* outcomes, where the facts or rules did not justify a definitive answer, and explored how errors differed between conversational and facts-bundle evaluations. These were controlled synthetic benchmarks, **not estimates of real-world eligibility-assessment accuracy**.
+
+The main results are in the notebooks under [`analysis/`](analysis/), especially [`explore_tradeoffs.ipynb`](analysis/explore_tradeoffs.ipynb) (accuracy and latency across configurations), [`explore_reliability.ipynb`](analysis/explore_reliability.ipynb) (consistency over repeated runs), and the [`explore_reliability-indeterminacy.ipynb`](analysis/explore_reliability-indeterminacy.ipynb) series (including facts-bundle and structured-rule variants). The [test-case generation presentation](analysis/presentations/test_case_generation/presentation.html) explains how the benchmark was constructed and its limitations.
+
+The underlying JSON evaluation results and recorded conversations have been retained in [`analysis/testOutputs/child_benefit/`](analysis/testOutputs/child_benefit/) for inspection and reanalysis. This repository is preserved as a record of the research rather than a maintained application; its code and dependencies should not be assumed to be current or suitable for deployment.
+
+---
+
 ## Terraform Deployment
 
 1. `cd terraform`
